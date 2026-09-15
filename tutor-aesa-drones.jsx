@@ -1,0 +1,3434 @@
+import { useState, useEffect, useMemo, useRef } from "react";
+
+/* ------------------------------------------------------------------ */
+/*  DATOS                                                              */
+/* ------------------------------------------------------------------ */
+
+const TRACKS = {
+  a13: {
+    id: "a13",
+    nombre: "A1 / A3",
+    sub: "Categoría abierta · examen en línea de AESA",
+    preguntas: 40,
+    minutos: 40,
+    aciertos: 30,
+    resumen: [
+      ["Formato", "40 preguntas tipo test, en línea desde la sede de AESA"],
+      ["Aprobado", "75 % — 30 aciertos. Los fallos no restan"],
+      ["Requisito", "Curso en línea gratuito de AESA + registro de operador"],
+      ["Validez", "5 años (revalidable)"],
+    ],
+  },
+  a2: {
+    id: "a2",
+    nombre: "A2",
+    sub: "Categoría abierta · examen televigilado",
+    preguntas: 30,
+    minutos: 30,
+    aciertos: 23,
+    resumen: [
+      ["Formato", "30 preguntas, examen televigilado (webcam, micro y pantalla)"],
+      ["Aprobado", "75 % — 23 aciertos"],
+      ["Requisito", "Tener el A1/A3 + autoformación práctica declarada"],
+      ["Validez", "5 años (revalidable)"],
+    ],
+  },
+  sts: {
+    id: "sts",
+    nombre: "STS",
+    sub: "Categoría específica · escenarios estándar",
+    preguntas: 40,
+    minutos: 40,
+    aciertos: 30,
+    resumen: [
+      ["Formato", "40 preguntas / 40 min si vienes de A1/A3 · 30 preguntas / 30 min si ya tienes A2"],
+      ["Aprobado", "75 %"],
+      ["Requisito", "Prueba de superación A1/A3 (el A2 es opcional y acorta el examen)"],
+      ["Después", "Formación práctica del escenario y acreditación de aptitudes prácticas"],
+    ],
+  },
+};
+
+const CLASIFICACION = [
+  {
+    k: "C0",
+    u: ["si", "Sí. Es la única clase que puede sobrevolar personas no participantes, así que es la más viable en calle. Nunca sobre una aglomeración."],
+    m: "Menos de 250 g",
+    cat: "Abierta · A1",
+    col: "cy",
+    f: [
+      ["Dónde", "Hasta 120 m, en VLOS, respetando las zonas geográficas de UAS"],
+      ["Personas", "Puede sobrevolar personas no participantes · nunca aglomeraciones"],
+      ["Piloto", "Basta con leer y seguir el manual del fabricante: no exige examen"],
+      ["Equipo", "Velocidad máxima 19 m/s · no puede superar los 120 m · sin identificación a distancia"],
+      ["Registro", "Solo si lleva cámara o sensor capaz de captar datos personales"],
+    ],
+  },
+  {
+    k: "C1",
+    u: ["cond", "Sí, pero no puedes sobrevolar personas de forma intencionada. En una calle concurrida es inviable: sirve en descampados, parques vacíos o azoteas bajo tu control."],
+    m: "Menos de 900 g, o energía de impacto inferior a 80 J",
+    cat: "Abierta · A1",
+    col: "cy",
+    f: [
+      ["Dónde", "Hasta 120 m, en VLOS"],
+      ["Personas", "No sobrevolar intencionadamente a personas no participantes; si ocurre, reducir al mínimo el tiempo"],
+      ["Piloto", "Prueba de superación de la formación en línea A1/A3"],
+      ["Equipo", "Velocidad máxima 19 m/s · identificación a distancia · geoconciencia · luces · aviso de batería baja"],
+      ["Registro", "Obligatorio"],
+    ],
+  },
+  {
+    k: "C2",
+    u: ["cond", "Sí, manteniendo 30 m de las personas no participantes, o 5 m con el modo de baja velocidad. Obliga a elegir bien el sitio y la hora."],
+    m: "Menos de 4 kg",
+    cat: "Abierta · A2",
+    col: "am",
+    f: [
+      ["Dónde", "Hasta 120 m, en VLOS"],
+      ["Personas", "30 m horizontales de personas no participantes · 5 m con el modo de baja velocidad activado"],
+      ["Piloto", "Certificado de competencia A2, que exige tener antes el A1/A3"],
+      ["Equipo", "Modo de baja velocidad limitado a 3 m/s · identificación a distancia · geoconciencia"],
+      ["Registro", "Obligatorio · seguro obligatorio en A2"],
+    ],
+  },
+  {
+    k: "C3",
+    u: ["no", "No. Los 150 m respecto a zonas residenciales, comerciales, industriales o recreativas dejan la ciudad fuera."],
+    m: "Menos de 25 kg y hasta 3 m de dimensión",
+    cat: "Abierta · A3",
+    col: "ok",
+    f: [
+      ["Dónde", "A 150 m como mínimo de zonas residenciales, comerciales, industriales o recreativas"],
+      ["Personas", "Ninguna persona no participante dentro del radio de la operación"],
+      ["Piloto", "Prueba de superación de la formación en línea A1/A3"],
+      ["Equipo", "Identificación a distancia · geoconciencia · puede convertirse en C5 con un kit acreditado"],
+      ["Registro", "Obligatorio"],
+    ],
+  },
+  {
+    k: "C4",
+    u: ["no", "No. Mismo motivo que el C3: A3 obliga a alejarse 150 m de cualquier zona poblada."],
+    m: "Menos de 25 kg",
+    cat: "Abierta · A3",
+    col: "ok",
+    f: [
+      ["Dónde", "A 150 m como mínimo de zonas residenciales, comerciales, industriales o recreativas"],
+      ["Personas", "Ninguna persona no participante dentro del radio de la operación"],
+      ["Piloto", "Prueba de superación de la formación en línea A1/A3"],
+      ["Equipo", "Sin modos automáticos de control, salvo la estabilización: pensado para aeromodelismo"],
+      ["Registro", "Obligatorio"],
+    ],
+  },
+  {
+    k: "C5",
+    u: ["si", "Sí, y es el escenario diseñado justo para esto: zona en tierra acotada, solo personas participantes y declaración operacional presentada a AESA."],
+    m: "Menos de 25 kg",
+    cat: "Específica · STS-01",
+    col: "no",
+    f: [
+      ["Dónde", "Entorno poblado, sobre una zona terrestre controlada, en VLOS, hasta 120 m"],
+      ["Personas", "Solo personas participantes dentro de la zona terrestre controlada"],
+      ["Piloto", "A1/A3 más el examen teórico STS y la formación práctica del escenario"],
+      ["Equipo", "Medio de terminación del vuelo · modo de baja velocidad · luces · puede salir de un C3 con kit"],
+      ["Registro", "Obligatorio · declaración operacional a AESA y seguro siempre"],
+    ],
+  },
+  {
+    k: "C6",
+    u: ["no", "No. El STS-02 exige entorno escasamente poblado; la ciudad queda descartada."],
+    m: "Menos de 25 kg",
+    cat: "Específica · STS-02",
+    col: "no",
+    f: [
+      ["Dónde", "Entorno escasamente poblado, BVLOS, hasta 120 m y a 1 km del piloto, o 2 km con observadores"],
+      ["Personas", "Solo personas participantes dentro de la zona terrestre controlada"],
+      ["Piloto", "A1/A3 más el examen teórico STS y la formación práctica del escenario"],
+      ["Equipo", "Medio de terminación del vuelo · limitación de velocidad · contención en el volumen operacional"],
+      ["Registro", "Obligatorio · declaración operacional a AESA y seguro siempre"],
+    ],
+  },
+  {
+    k: "Sin clase",
+    m: "Menos de 250 g",
+    cat: "Abierta · A1",
+    col: "mute",
+    u: ["cond", "Sí, con las condiciones de A1, pero sin las garantías del marcado C0: extrema el cuidado y no sobrevueles aglomeraciones."],
+    f: [
+      ["Qué es", "Dron sin marcado de clase, anterior a la normativa, o de construcción privada"],
+      ["Dónde", "Hasta 120 m, en VLOS, con las condiciones de A1"],
+      ["Personas", "No sobrevolar aglomeraciones"],
+      ["Piloto", "No exige examen por debajo de 250 g"],
+      ["Registro", "Solo si lleva cámara o sensor de datos personales"],
+    ],
+  },
+  {
+    k: "Sin clase",
+    m: "De 250 g a 25 kg",
+    cat: "Abierta · A3",
+    col: "mute",
+    u: ["no", "No. Aunque tengas el certificado A2, sin marcado C2 el dron se queda en A3 y hay que alejarse 150 m."],
+    f: [
+      ["Qué es", "La situación de la mayoría de los drones comprados antes de 2024"],
+      ["Dónde", "Solo en A3: a 150 m de zonas residenciales, comerciales, industriales o recreativas"],
+      ["Personas", "Ninguna persona no participante dentro del radio de la operación"],
+      ["Piloto", "Prueba de superación de la formación en línea A1/A3"],
+      ["Registro", "Obligatorio · el A2 no sirve para acercarse: sin marcado C2 no hay A2"],
+    ],
+  },
+];
+
+const HERO = { a13: "subcategorias", a2: "viento", sts: "volumen" };
+
+const DIAGRAMAS = {
+  urbano: {
+    p: "En la normativa no existe el permiso para volar en ciudad: lo que hay son límites de personas, de zona geográfica y de clase. Estas son las tres vías que sí lo permiten.",
+    s: `<svg viewBox="0 0 340 226" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="6" width="328" height="44" rx="7" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="18" y="26" fill="var(--cy)" font-size="12.5" font-weight="600">A1 · C0, y C1 con cuidado</text>
+<text x="18" y="42" fill="var(--mute)" font-size="10">El C0 puede sobrevolar personas. El C1, no de forma intencionada</text>
+<rect x="6" y="56" width="328" height="44" rx="7" fill="rgba(242,180,65,.1)" stroke="var(--am)"/>
+<text x="18" y="76" fill="var(--am)" font-size="12.5" font-weight="600">A2 · C2 con certificado</text>
+<text x="18" y="92" fill="var(--mute)" font-size="10">30 m de las personas, o 5 m con modo de baja velocidad</text>
+<rect x="6" y="106" width="328" height="44" rx="7" fill="rgba(85,214,160,.1)" stroke="var(--ok)"/>
+<text x="18" y="126" fill="var(--ok)" font-size="12.5" font-weight="600">STS-01 · C5, categoría específica</text>
+<text x="18" y="142" fill="var(--mute)" font-size="10">Zona en tierra acotada y declaración operacional a AESA</text>
+<rect x="6" y="156" width="328" height="34" rx="7" fill="rgba(240,122,110,.08)" stroke="var(--no)" stroke-dasharray="5 4"/>
+<text x="18" y="177" fill="var(--no)" font-size="12" font-weight="600">A3 · C3, C4 y drones sin marcado: fuera de la ciudad</text>
+<path d="M14 173h312" stroke="var(--no)" stroke-width="1.2" opacity=".5"/>
+<rect x="6" y="196" width="328" height="24" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="212" fill="var(--text)" font-size="10.5" text-anchor="middle">Y siempre: zona geográfica permitida, ordenanza municipal y privacidad</text>
+</svg>`,
+  },
+  normativa: {
+    p: "Dos reglamentos europeos y su desarrollo español. Debajo, quién responde de qué en cada operación.",
+    s: `<svg viewBox="0 0 340 178" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="8" width="104" height="46" rx="7" fill="rgba(92,200,232,.12)" stroke="var(--cy)"/>
+<text x="58" y="27" fill="var(--cy)" font-size="12.5" font-weight="600" text-anchor="middle">2019/947</text>
+<text x="58" y="43" fill="var(--mute)" font-size="10.5" text-anchor="middle">operaciones</text>
+<rect x="118" y="8" width="104" height="46" rx="7" fill="rgba(92,200,232,.12)" stroke="var(--cy)"/>
+<text x="170" y="27" fill="var(--cy)" font-size="12.5" font-weight="600" text-anchor="middle">2019/945</text>
+<text x="170" y="43" fill="var(--mute)" font-size="10.5" text-anchor="middle">producto y clases</text>
+<rect x="230" y="8" width="104" height="46" rx="7" fill="rgba(242,180,65,.12)" stroke="var(--am)"/>
+<text x="282" y="27" fill="var(--am)" font-size="12.5" font-weight="600" text-anchor="middle">RD 517/2024</text>
+<text x="282" y="43" fill="var(--mute)" font-size="10.5" text-anchor="middle">España</text>
+<path d="M58 58v12M170 58v12M282 58v12" stroke="var(--line)" stroke-width="1.4"/>
+<line x1="58" y1="70" x2="282" y2="70" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M170 70v14" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M170 86l-4-8h8z" fill="var(--line)"/>
+<rect x="88" y="88" width="164" height="26" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="106" fill="var(--text)" font-size="12" text-anchor="middle">Tu operación</text>
+<g font-size="10.5">
+<rect x="6" y="128" width="102" height="42" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="57" y="145" fill="var(--cy)" font-size="12" text-anchor="middle" font-weight="600">Operador</text>
+<text x="57" y="160" fill="var(--mute)" text-anchor="middle">responde de todo</text>
+<rect x="118" y="128" width="104" height="42" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="145" fill="var(--cy)" font-size="12" text-anchor="middle" font-weight="600">Piloto</text>
+<text x="170" y="160" fill="var(--mute)" text-anchor="middle">decide y vuela</text>
+<rect x="232" y="128" width="102" height="42" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="283" y="145" fill="var(--am)" font-size="12" text-anchor="middle" font-weight="600">AESA</text>
+<text x="283" y="160" fill="var(--mute)" text-anchor="middle">registra e inspecciona</text>
+</g></svg>`,
+  },
+
+  categorias: {
+    p: "La categoría no la eliges: la determina el riesgo de la operación. Al subir un peldaño, suben los requisitos.",
+    s: `<svg viewBox="0 0 340 188" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="8" y="118" width="104" height="56" rx="7" fill="rgba(85,214,160,.12)" stroke="var(--ok)"/>
+<text x="60" y="138" fill="var(--ok)" font-size="13" font-weight="600" text-anchor="middle">ABIERTA</text>
+<text x="60" y="153" fill="var(--mute)" font-size="10" text-anchor="middle">sin trámite previo</text>
+<text x="60" y="166" fill="var(--mute)" font-size="10" text-anchor="middle">A1 · A2 · A3</text>
+<rect x="118" y="74" width="104" height="100" rx="7" fill="rgba(242,180,65,.12)" stroke="var(--am)"/>
+<text x="170" y="94" fill="var(--am)" font-size="13" font-weight="600" text-anchor="middle">ESPECÍFICA</text>
+<text x="170" y="110" fill="var(--mute)" font-size="10" text-anchor="middle">declaración STS</text>
+<text x="170" y="124" fill="var(--mute)" font-size="10" text-anchor="middle">o autorización SORA</text>
+<text x="170" y="138" fill="var(--mute)" font-size="10" text-anchor="middle">o certificado LUC</text>
+<rect x="228" y="30" width="104" height="144" rx="7" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="280" y="50" fill="var(--no)" font-size="13" font-weight="600" text-anchor="middle">CERTIFICADA</text>
+<text x="280" y="66" fill="var(--mute)" font-size="10" text-anchor="middle">aeronave certificada</text>
+<text x="280" y="80" fill="var(--mute)" font-size="10" text-anchor="middle">operador certificado</text>
+<text x="280" y="94" fill="var(--mute)" font-size="10" text-anchor="middle">piloto con licencia</text>
+<line x1="8" y1="18" x2="332" y2="18" stroke="var(--line)" stroke-width="1.3"/>
+<path d="M332 18l-8-4v8z" fill="var(--line)"/>
+<text x="10" y="13" fill="var(--mute)" font-size="10.5">riesgo de la operación y requisitos</text>
+</svg>`,
+  },
+
+  registro: {
+    p: "El número de operador va pegado al dron y además se emite por radio en tiempo real junto con el resto de datos.",
+    s: `<svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(74,62)"><line x1="-24" y1="0" x2="24" y2="0" stroke="var(--cy)" stroke-width="2.2"/><ellipse cx="-24" cy="-4" rx="13" ry="3.4" fill="var(--cy)" opacity=".5"/><ellipse cx="24" cy="-4" rx="13" ry="3.4" fill="var(--cy)" opacity=".5"/><rect x="-11" y="-6" width="22" height="12" rx="3" fill="var(--cy)"/></g>
+<rect x="46" y="80" width="58" height="17" rx="3" fill="var(--am)"/>
+<text x="75" y="93" fill="#21180a" font-size="10" font-weight="700" text-anchor="middle">ESP-XXXXX</text>
+<text x="75" y="112" fill="var(--am)" font-size="10.5" text-anchor="middle">visible en la aeronave</text>
+<g stroke="var(--ok)" fill="none" stroke-width="1.5" opacity=".8">
+<path d="M112 62a26 26 0 0 1 0-28"/><path d="M122 70a40 40 0 0 0 0-44"/>
+</g>
+<rect x="140" y="14" width="196" height="96" rx="7" fill="var(--panel2)" stroke="var(--ok)"/>
+<text x="150" y="32" fill="var(--ok)" font-size="11.5" font-weight="600">Identificación a distancia</text>
+<g fill="var(--mute)" font-size="10.5">
+<text x="150" y="49">nº de operador y nº de serie</text>
+<text x="150" y="64">posición, altura y velocidad</text>
+<text x="150" y="79">posición del piloto</text>
+<text x="150" y="94">marca temporal</text>
+</g>
+<text x="14" y="140" fill="var(--mute)" font-size="10.5">Registro obligatorio si MTOM ≥ 250 g</text>
+<text x="14" y="156" fill="var(--mute)" font-size="10.5">o si lleva cámara o sensor de datos personales</text>
+</svg>`,
+  },
+
+  zonas: {
+    p: "Vista desde arriba. Antes de volar hay que cruzar todas estas capas, y las municipales o ambientales se suman a las aeronáuticas.",
+    s: `<svg viewBox="0 0 340 176" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="8" width="328" height="160" rx="8" fill="rgba(4,11,16,.35)" stroke="var(--line)"/>
+<circle cx="80" cy="66" r="46" fill="rgba(240,122,110,.12)" stroke="var(--no)" stroke-dasharray="5 4"/>
+<path d="M62 78l36-24M62 54l36 24" stroke="var(--no)" stroke-width="1.4" opacity=".5"/>
+<text x="80" y="70" fill="var(--no)" font-size="11" text-anchor="middle" font-weight="600">aeródromo</text>
+<circle cx="232" cy="52" r="26" fill="rgba(242,180,65,.14)" stroke="var(--am)" stroke-dasharray="4 3"/>
+<text x="232" y="50" fill="var(--am)" font-size="10.5" text-anchor="middle">helipuerto</text>
+<text x="232" y="62" fill="var(--am)" font-size="10.5" text-anchor="middle">hospital</text>
+<path d="M258 118q30-30 66-14v50h-88z" fill="rgba(85,214,160,.12)" stroke="var(--ok)" stroke-dasharray="4 3"/>
+<text x="290" y="146" fill="var(--ok)" font-size="10.5" text-anchor="middle">espacio</text>
+<text x="290" y="158" fill="var(--ok)" font-size="10.5" text-anchor="middle">protegido</text>
+<rect x="120" y="108" width="96" height="48" rx="5" fill="rgba(138,166,182,.1)" stroke="var(--mute)" stroke-dasharray="4 3"/>
+<text x="168" y="130" fill="var(--mute)" font-size="10.5" text-anchor="middle">ordenanza</text>
+<text x="168" y="144" fill="var(--mute)" font-size="10.5" text-anchor="middle">municipal</text>
+<g transform="translate(160,74)"><line x1="-10" y1="0" x2="10" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-10" cy="-2" rx="5.5" ry="1.6" fill="var(--cy)" opacity=".55"/><ellipse cx="10" cy="-2" rx="5.5" ry="1.6" fill="var(--cy)" opacity=".55"/><rect x="-3.5" y="-2.5" width="7" height="5" rx="1.5" fill="var(--cy)"/></g>
+<text x="160" y="94" fill="var(--cy)" font-size="10" text-anchor="middle">¿puedo volar aquí?</text>
+</svg>`,
+  },
+
+  sistema: {
+    p: "El UAS es el conjunto completo. Perder el vídeo es incómodo; perder el enlace de mando y control es una emergencia.",
+    s: `<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g fill="var(--mute)" opacity=".55">
+<path d="M40 16l6 10-6 10-6-10zM150 10l6 10-6 10-6-10zM266 18l6 10-6 10-6-10z"/>
+</g>
+<text x="150" y="44" fill="var(--mute)" font-size="10" text-anchor="middle">GNSS</text>
+<g stroke="var(--mute)" stroke-width="1" stroke-dasharray="3 4" opacity=".6">
+<path d="M42 36L248 66M152 32L250 64M266 40L256 62"/>
+</g>
+<g transform="translate(256,72)"><line x1="-22" y1="0" x2="22" y2="0" stroke="var(--cy)" stroke-width="2.2"/><ellipse cx="-22" cy="-4" rx="12" ry="3.2" fill="var(--cy)" opacity=".5"/><ellipse cx="22" cy="-4" rx="12" ry="3.2" fill="var(--cy)" opacity=".5"/><rect x="-10" y="-5.5" width="20" height="11" rx="3" fill="var(--cy)"/></g>
+<text x="256" y="100" fill="var(--cy)" font-size="11" text-anchor="middle">aeronave</text>
+<rect x="24" y="86" width="62" height="42" rx="6" fill="var(--panel2)" stroke="var(--cy)"/>
+<rect x="32" y="94" width="46" height="26" rx="3" fill="rgba(92,200,232,.2)"/>
+<text x="55" y="144" fill="var(--cy)" font-size="11" text-anchor="middle">estación de pilotaje</text>
+<path d="M92 100h140" stroke="var(--ok)" stroke-width="2"/>
+<path d="M232 100l-9-4.5v9z" fill="var(--ok)"/>
+<path d="M232 112H92" stroke="var(--am)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<path d="M92 112l9-4.5v9z" fill="var(--am)"/>
+<text x="162" y="94" fill="var(--ok)" font-size="10.5" text-anchor="middle">enlace C2 · mando y control</text>
+<text x="162" y="126" fill="var(--am)" font-size="10.5" text-anchor="middle">telemetría y vídeo</text>
+<text x="14" y="162" fill="var(--mute)" font-size="10.5">Sin C2 no hay control: es la emergencia que hay que tener prevista</text>
+</svg>`,
+  },
+
+  fases: {
+    p: "Las cuatro fases de toda operación. Casi todos los incidentes se incuban en las dos primeras.",
+    s: `<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="18" y1="42" x2="322" y2="42" stroke="var(--line)" stroke-width="2"/>
+<g>
+<circle cx="42" cy="42" r="9" fill="var(--cy)"/><text x="42" y="30" fill="var(--cy)" font-size="11" text-anchor="middle" font-weight="600">1</text>
+<circle cx="135" cy="42" r="9" fill="var(--cy)"/><text x="135" y="30" fill="var(--cy)" font-size="11" text-anchor="middle" font-weight="600">2</text>
+<circle cx="228" cy="42" r="9" fill="var(--am)"/><text x="228" y="30" fill="var(--am)" font-size="11" text-anchor="middle" font-weight="600">3</text>
+<circle cx="310" cy="42" r="9" fill="var(--ok)"/><text x="310" y="30" fill="var(--ok)" font-size="11" text-anchor="middle" font-weight="600">4</text>
+</g>
+<g font-size="11.5" fill="var(--text)">
+<text x="42" y="66" text-anchor="middle">Planificar</text>
+<text x="135" y="66" text-anchor="middle">Prevuelo</text>
+<text x="228" y="66" text-anchor="middle">Vuelo</text>
+<text x="310" y="66" text-anchor="middle">Postvuelo</text>
+</g>
+<g font-size="10" fill="var(--mute)">
+<text x="42" y="88" text-anchor="middle">zonas y NOTAM</text>
+<text x="42" y="101" text-anchor="middle">meteorología</text>
+<text x="42" y="114" text-anchor="middle">obstáculos</text>
+<text x="42" y="127" text-anchor="middle">plan alternativo</text>
+<text x="135" y="88" text-anchor="middle">hélices y batería</text>
+<text x="135" y="101" text-anchor="middle">calibraciones</text>
+<text x="135" y="114" text-anchor="middle">failsafe</text>
+<text x="135" y="127" text-anchor="middle">altura de RTH</text>
+<text x="228" y="88" text-anchor="middle">VLOS constante</text>
+<text x="228" y="101" text-anchor="middle">vigilar el aire</text>
+<text x="228" y="114" text-anchor="middle">margen de batería</text>
+<text x="310" y="88" text-anchor="middle">inspección</text>
+<text x="310" y="101" text-anchor="middle">registro del vuelo</text>
+<text x="310" y="114" text-anchor="middle">baterías</text>
+</g>
+<text x="18" y="156" fill="var(--am)" font-size="10.5">Decide antes de despegar qué harás si algo falla</text>
+</svg>`,
+  },
+
+  atencion: {
+    p: "Conciencia situacional: percibir, comprender y anticipar. Si la mirada se queda pegada a la pantalla, se pierde el primer nivel.",
+    s: `<svg viewBox="0 0 340 180" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<circle cx="170" cy="92" r="26" fill="var(--panel2)" stroke="var(--cy)"/>
+<text x="170" y="89" fill="var(--cy)" font-size="11" text-anchor="middle">piloto</text>
+<text x="170" y="102" fill="var(--mute)" font-size="9.5" text-anchor="middle">atención</text>
+<g stroke="var(--cy)" stroke-width="1.5" fill="none">
+<path d="M170 66V42"/><path d="M148 106L84 138"/><path d="M192 106l64 32"/>
+</g>
+<g fill="var(--cy)"><path d="M170 40l-4 8h8zM84 138l8-3v8zM256 138l-8-3v8z"/></g>
+<rect x="116" y="14" width="108" height="26" rx="6" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="170" y="32" fill="var(--cy)" font-size="11.5" text-anchor="middle">el dron</text>
+<rect x="18" y="138" width="104" height="26" rx="6" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="70" y="156" fill="var(--cy)" font-size="11.5" text-anchor="middle">el entorno</text>
+<rect x="222" y="138" width="104" height="26" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="274" y="156" fill="var(--no)" font-size="11.5" text-anchor="middle">la pantalla</text>
+<text x="274" y="128" fill="var(--no)" font-size="10" text-anchor="middle">efecto túnel</text>
+<g fill="var(--mute)" font-size="10">
+<text x="14" y="26">fatiga</text><text x="14" y="42">estrés</text><text x="14" y="58">prisa</text><text x="14" y="74">rutina</text>
+</g>
+<path d="M52 36q26 14 46 30" stroke="var(--no)" stroke-width="1.2" fill="none" stroke-dasharray="3 3"/>
+</svg>`,
+  },
+
+  privacidad: {
+    p: "La cámara de un dron capta mucho más de lo que se pretende. Todo lo que permite identificar a una persona es dato personal.",
+    s: `<svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(78,26)"><line x1="-18" y1="0" x2="18" y2="0" stroke="var(--cy)" stroke-width="2"/><ellipse cx="-18" cy="-3" rx="10" ry="2.6" fill="var(--cy)" opacity=".5"/><ellipse cx="18" cy="-3" rx="10" ry="2.6" fill="var(--cy)" opacity=".5"/><rect x="-8" y="-4" width="16" height="9" rx="2.5" fill="var(--cy)"/></g>
+<path d="M78 34L14 140h128z" fill="rgba(92,200,232,.1)" stroke="var(--cy)" stroke-dasharray="4 4"/>
+<line x1="8" y1="140" x2="332" y2="140" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(58,140)"><circle cx="0" cy="-19" r="3.4" fill="var(--no)"/><path d="M0 -16v8M-4.5 0l4.5-8 4.5 8M-4.5 -12h9" stroke="var(--no)" stroke-width="1.6" fill="none"/></g>
+<g transform="translate(104,140)"><circle cx="0" cy="-19" r="3.4" fill="var(--no)"/><path d="M0 -16v8M-4.5 0l4.5-8 4.5 8M-4.5 -12h9" stroke="var(--no)" stroke-width="1.6" fill="none"/></g>
+<rect x="160" y="96" width="46" height="44" fill="var(--line)" opacity=".75"/>
+<rect x="168" y="106" width="12" height="12" fill="var(--no)" opacity=".5"/>
+<text x="183" y="90" fill="var(--no)" font-size="10" text-anchor="middle">interior</text>
+<rect x="222" y="20" width="112" height="98" rx="8" fill="var(--panel2)" stroke="var(--am)"/>
+<text x="232" y="40" fill="var(--am)" font-size="11.5" font-weight="600">Reglas</text>
+<g fill="var(--mute)" font-size="10.5">
+<text x="232" y="58">base legal</text>
+<text x="232" y="74">minimizar</text>
+<text x="232" y="90">informar</text>
+<text x="232" y="106">conservar poco</text>
+</g>
+<text x="14" y="162" fill="var(--mute)" font-size="10.5">RGPD y LOPDGDD · y la LO 1/1982 para intimidad e imagen</text>
+</svg>`,
+  },
+
+  seguro: {
+    p: "Árbol de decisión del seguro según el artículo 8 del RD 517/2024. Que no sea obligatorio no significa que no sea recomendable.",
+    s: `<svg viewBox="0 0 340 186" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="112" y="6" width="116" height="26" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="24" fill="var(--text)" font-size="11.5" text-anchor="middle">¿Qué operación es?</text>
+<path d="M170 32v14M56 46h228M56 46v12M170 46v12M284 46v12" stroke="var(--line)" stroke-width="1.3" fill="none"/>
+<rect x="8" y="58" width="96" height="30" rx="6" fill="rgba(85,214,160,.12)" stroke="var(--ok)"/>
+<text x="56" y="70" fill="var(--ok)" font-size="11" text-anchor="middle" font-weight="600">A1</text>
+<text x="56" y="83" fill="var(--mute)" font-size="10" text-anchor="middle">A3 bajo 20 kg</text>
+<rect x="122" y="58" width="96" height="30" rx="6" fill="rgba(242,180,65,.12)" stroke="var(--am)"/>
+<text x="170" y="70" fill="var(--am)" font-size="11" text-anchor="middle" font-weight="600">A2</text>
+<text x="170" y="83" fill="var(--mute)" font-size="10" text-anchor="middle">resto bajo 20 kg</text>
+<rect x="236" y="58" width="96" height="30" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="284" y="70" fill="var(--no)" font-size="11" text-anchor="middle" font-weight="600">20 kg o más</text>
+<text x="284" y="83" fill="var(--mute)" font-size="10" text-anchor="middle">específica</text>
+<path d="M56 88v18M170 88v18M284 88v18" stroke="var(--line)" stroke-width="1.3"/>
+<rect x="8" y="106" width="96" height="34" rx="6" fill="var(--panel2)" stroke="var(--ok)"/>
+<text x="56" y="128" fill="var(--ok)" font-size="12" text-anchor="middle" font-weight="600">No exigible</text>
+<rect x="122" y="106" width="96" height="34" rx="6" fill="var(--panel2)" stroke="var(--am)"/>
+<text x="170" y="122" fill="var(--am)" font-size="12" text-anchor="middle" font-weight="600">Obligatorio</text>
+<text x="170" y="135" fill="var(--mute)" font-size="10" text-anchor="middle">RD 37/2001</text>
+<rect x="236" y="106" width="96" height="34" rx="6" fill="var(--panel2)" stroke="var(--no)"/>
+<text x="284" y="122" fill="var(--no)" font-size="12" text-anchor="middle" font-weight="600">Obligatorio</text>
+<text x="284" y="135" fill="var(--mute)" font-size="10" text-anchor="middle">785/2004</text>
+<text x="170" y="166" fill="var(--mute)" font-size="10.5" text-anchor="middle">Los daños a terceros los pagas igual, haya seguro o no</text>
+</svg>`,
+  },
+
+  security: {
+    p: "Protección frente a actos ilícitos. El jamming bloquea la señal; el spoofing la falsifica, que es peor porque el dron cree estar donde no está.",
+    s: `<svg viewBox="0 0 340 162" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(170,52)"><line x1="-22" y1="0" x2="22" y2="0" stroke="var(--cy)" stroke-width="2.2"/><ellipse cx="-22" cy="-4" rx="12" ry="3.2" fill="var(--cy)" opacity=".5"/><ellipse cx="22" cy="-4" rx="12" ry="3.2" fill="var(--cy)" opacity=".5"/><rect x="-10" y="-5.5" width="20" height="11" rx="3" fill="var(--cy)"/></g>
+<g stroke="var(--no)" stroke-width="1.6" fill="none">
+<path d="M64 40l32 14"/><path d="M276 40l-32 14"/><path d="M170 106V74"/>
+</g>
+<g fill="var(--no)"><path d="M96 54l-9-3v8zM244 54l9-3v8zM170 74l-4 9h8z"/></g>
+<rect x="6" y="18" width="104" height="28" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="58" y="37" fill="var(--no)" font-size="11.5" text-anchor="middle">jamming</text>
+<rect x="230" y="18" width="104" height="28" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="282" y="37" fill="var(--no)" font-size="11.5" text-anchor="middle">spoofing</text>
+<rect x="112" y="106" width="116" height="28" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="170" y="125" fill="var(--no)" font-size="11.5" text-anchor="middle">acceso no autorizado</text>
+<g fill="var(--ok)" font-size="10.5">
+<text x="8" y="70">firmware al día</text>
+<text x="8" y="86">contraseñas</text>
+<text x="8" y="102">red propia</text>
+<text x="252" y="70">equipo vigilado</text>
+<text x="252" y="86">tarjetas cifradas</text>
+<text x="252" y="102">avisar del intento</text>
+</g>
+<text x="170" y="152" fill="var(--mute)" font-size="10.5" text-anchor="middle">Un dron desatendido es un dron comprometido</text>
+</svg>`,
+  },
+
+  bajavelocidad: {
+    p: "El modo de baja velocidad es la llave de los 5 metros en A2: si no está activado, la distancia vuelve a ser de 30.",
+    s: `<svg viewBox="0 0 340 150" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="118" x2="332" y2="118" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(300,118)"><circle cx="0" cy="-20" r="3.4" fill="var(--mute)"/><path d="M0 -17v8M-4.5 0l4.5-8 4.5 8M-4.5 -13h9" stroke="var(--mute)" stroke-width="1.6" fill="none"/></g>
+<g transform="translate(40,46)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--cy)" stroke-width="1.7"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><rect x="-4" y="-3" width="8" height="6" rx="1.5" fill="var(--cy)"/></g>
+<line x1="42" y1="62" x2="292" y2="62" stroke="var(--cy)" stroke-width="1.4"/>
+<path d="M42 62l7-3.5v7zM292 62l-7-3.5v7z" fill="var(--cy)"/>
+<text x="167" y="56" fill="var(--cy)" font-size="12" text-anchor="middle" font-weight="600">30 m · modo normal</text>
+<g transform="translate(252,92)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--am)" stroke-width="1.7"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--am)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--am)" opacity=".55"/><rect x="-4" y="-3" width="8" height="6" rx="1.5" fill="var(--am)"/></g>
+<line x1="266" y1="104" x2="292" y2="104" stroke="var(--am)" stroke-width="1.4"/>
+<path d="M266 104l6-3v6zM292 104l-6-3v6z" fill="var(--am)"/>
+<text x="240" y="100" fill="var(--am)" font-size="12" text-anchor="end" font-weight="600">5 m · baja velocidad (3 m/s)</text>
+<text x="10" y="140" fill="var(--mute)" font-size="10.5">Clase C2, MTOM inferior a 4 kg, con certificado A2</text>
+</svg>`,
+  },
+
+  densidad: {
+    p: "Calor, altitud y humedad reducen la densidad del aire. Las hélices mueven menos masa y el dron rinde como si estuviera mucho más alto.",
+    s: `<svg viewBox="0 0 340 172" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="60" y1="16" x2="60" y2="146" stroke="var(--line)" stroke-width="1.6"/>
+<line x1="60" y1="146" x2="330" y2="146" stroke="var(--line)" stroke-width="1.6"/>
+<text x="16" y="24" fill="var(--mute)" font-size="10">altura</text>
+<g stroke="var(--cy)" stroke-width="1.3" stroke-dasharray="4 4">
+<path d="M60 116h262"/><path d="M60 86h262"/><path d="M60 56h262"/>
+</g>
+<g fill="var(--cy)" font-size="10.5">
+<text x="64" y="112">+2 °C</text><text x="64" y="82">+4 °C</text><text x="64" y="52">+6 °C</text>
+</g>
+<text x="176" y="140" fill="var(--mute)" font-size="10.5">15 °C y 1013,25 hPa al nivel del mar</text>
+<text x="240" y="112" fill="var(--mute)" font-size="10">cada 1000 ft</text>
+<text x="240" y="82" fill="var(--mute)" font-size="10">2000 ft</text>
+<text x="240" y="52" fill="var(--mute)" font-size="10">3000 ft</text>
+<rect x="60" y="154" width="86" height="14" rx="3" fill="var(--no)" opacity=".7"/>
+<rect x="150" y="154" width="86" height="14" rx="3" fill="var(--am)" opacity=".7"/>
+<rect x="240" y="154" width="86" height="14" rx="3" fill="var(--ok)" opacity=".7"/>
+<text x="103" y="165" fill="#140b0a" font-size="9.5" text-anchor="middle" font-weight="700">calor</text>
+<text x="193" y="165" fill="#21180a" font-size="9.5" text-anchor="middle" font-weight="700">altitud</text>
+<text x="283" y="165" fill="#06221a" font-size="9.5" text-anchor="middle" font-weight="700">humedad</text>
+<text x="14" y="52" fill="var(--am)" font-size="10.5">menos</text>
+<text x="14" y="66" fill="var(--am)" font-size="10.5">densidad</text>
+<text x="14" y="86" fill="var(--am)" font-size="10.5">menos</text>
+<text x="14" y="100" fill="var(--am)" font-size="10.5">empuje</text>
+</svg>`,
+  },
+
+  nubes: {
+    p: "El cumulonimbus concentra todos los peligros a la vez. Y cuando la temperatura se acerca al punto de rocío, la visibilidad es lo siguiente en desaparecer.",
+    s: `<svg viewBox="0 0 340 178" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<path d="M56 96q-26 0-26-20t26-18q2-24 30-24t34 22q22-4 28 14t-18 26z" fill="var(--line)" opacity=".8"/>
+<path d="M60 40q-4-18 12-24" stroke="var(--line)" stroke-width="10" fill="none" opacity=".8" stroke-linecap="round"/>
+<path d="M72 100l-10 22h12l-10 22" stroke="var(--am)" stroke-width="2" fill="none" stroke-linecap="round"/>
+<g stroke="var(--no)" stroke-width="1.4" fill="none"><path d="M100 104l8 20M112 100l8 22M124 104l6 16"/></g>
+<text x="95" y="150" fill="var(--no)" font-size="10.5" text-anchor="middle">rachas, cizalladura</text>
+<text x="95" y="164" fill="var(--no)" font-size="10.5" text-anchor="middle">y descargas: no se vuela</text>
+<line x1="190" y1="16" x2="190" y2="130" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M198 34C232 46 262 60 300 62" stroke="var(--am)" stroke-width="1.8" fill="none"/>
+<path d="M198 86C232 82 262 70 300 66" stroke="var(--cy)" stroke-width="1.8" fill="none"/>
+<circle cx="300" cy="64" r="4" fill="var(--no)"/>
+<text x="204" y="30" fill="var(--am)" font-size="10.5">temperatura</text>
+<text x="204" y="98" fill="var(--cy)" font-size="10.5">punto de rocío</text>
+<text x="252" y="90" fill="var(--no)" font-size="10.5">se juntan</text>
+<text x="252" y="103" fill="var(--no)" font-size="10.5">= niebla</text>
+<text x="190" y="150" fill="var(--mute)" font-size="10.5">METAR observa · TAF predice</text>
+</svg>`,
+  },
+
+  autonomia: {
+    p: "La ida con viento en cola engaña. El consumo real del regreso es mucho mayor, y ahí es donde se pierden las baterías.",
+    s: `<svg viewBox="0 0 340 162" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g stroke="var(--mute)" stroke-width="1.2" opacity=".6"><path d="M12 22h60M12 34h44M12 46h52"/></g>
+<g fill="var(--mute)" opacity=".6"><path d="M72 22l-7-3v6zM56 34l-7-3v6zM64 46l-7-3v6z"/></g>
+<text x="12" y="14" fill="var(--mute)" font-size="10">viento</text>
+<path d="M40 74h250" stroke="var(--ok)" stroke-width="2.4"/>
+<path d="M290 74l-10-5v10z" fill="var(--ok)"/>
+<text x="164" y="66" fill="var(--ok)" font-size="11" text-anchor="middle">ida con viento en cola · rápida y barata</text>
+<path d="M290 102H40" stroke="var(--no)" stroke-width="2.4"/>
+<path d="M40 102l10-5v10z" fill="var(--no)"/>
+<text x="164" y="120" fill="var(--no)" font-size="11" text-anchor="middle">regreso contra el viento · lento y caro</text>
+<rect x="40" y="132" width="250" height="16" rx="4" fill="var(--line)"/>
+<rect x="40" y="132" width="88" height="16" rx="4" fill="var(--ok)" opacity=".8"/>
+<rect x="128" y="132" width="122" height="16" rx="4" fill="var(--no)" opacity=".8"/>
+<rect x="250" y="132" width="40" height="16" rx="4" fill="var(--am)" opacity=".85"/>
+<text x="84" y="145" fill="#06221a" font-size="9.5" text-anchor="middle" font-weight="700">ida</text>
+<text x="189" y="145" fill="#140b0a" font-size="9.5" text-anchor="middle" font-weight="700">vuelta</text>
+<text x="270" y="145" fill="#21180a" font-size="9.5" text-anchor="middle" font-weight="700">reserva</text>
+</svg>`,
+  },
+
+  lipo: {
+    p: "Ciclo de vida de una batería. Guardarla llena o dejarla a cero acorta su vida; el frío te quita autonomía justo cuando menos lo esperas.",
+    s: `<svg viewBox="0 0 340 158" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="20" y="24" width="150" height="34" rx="5" fill="none" stroke="var(--line)" stroke-width="1.6"/>
+<rect x="170" y="34" width="6" height="14" rx="2" fill="var(--line)"/>
+<rect x="24" y="28" width="40" height="26" rx="3" fill="var(--no)" opacity=".55"/>
+<rect x="66" y="28" width="58" height="26" rx="3" fill="var(--ok)"/>
+<rect x="126" y="28" width="40" height="26" rx="3" fill="var(--no)" opacity=".55"/>
+<text x="95" y="46" fill="#06221a" font-size="11" text-anchor="middle" font-weight="700">40–60 %</text>
+<text x="44" y="72" fill="var(--no)" font-size="10" text-anchor="middle">descarga</text>
+<text x="44" y="84" fill="var(--no)" font-size="10" text-anchor="middle">profunda</text>
+<text x="146" y="72" fill="var(--no)" font-size="10" text-anchor="middle">almacenar</text>
+<text x="146" y="84" fill="var(--no)" font-size="10" text-anchor="middle">llena</text>
+<text x="95" y="16" fill="var(--ok)" font-size="11" text-anchor="middle">carga de almacenamiento</text>
+<g>
+<rect x="196" y="24" width="138" height="34" rx="6" fill="var(--panel2)" stroke="var(--cy)"/>
+<text x="206" y="45" fill="var(--cy)" font-size="11">frío: menos capacidad</text>
+<rect x="196" y="66" width="138" height="34" rx="6" fill="var(--panel2)" stroke="var(--am)"/>
+<text x="206" y="87" fill="var(--am)" font-size="11">calor y carga rápida</text>
+<rect x="196" y="108" width="138" height="34" rx="6" fill="var(--panel2)" stroke="var(--no)"/>
+<text x="206" y="129" fill="var(--no)" font-size="11">hinchada: fuera</text>
+</g>
+<text x="20" y="112" fill="var(--mute)" font-size="10.5">Nunca perforarla</text>
+<text x="20" y="128" fill="var(--mute)" font-size="10.5">ni cargarla sin</text>
+<text x="20" y="144" fill="var(--mute)" font-size="10.5">vigilancia</text>
+</svg>`,
+  },
+
+  efectosuelo: {
+    p: "Efecto suelo: cerca del terreno el flujo rebota y aumenta la sustentación. El dron flota, rebota al tomar tierra y puede irse de lado.",
+    s: `<svg viewBox="0 0 340 150" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="120" x2="332" y2="120" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(96,86)"><line x1="-20" y1="0" x2="20" y2="0" stroke="var(--cy)" stroke-width="2"/><ellipse cx="-20" cy="-3" rx="11" ry="3" fill="var(--cy)" opacity=".5"/><ellipse cx="20" cy="-3" rx="11" ry="3" fill="var(--cy)" opacity=".5"/><rect x="-8" y="-4.5" width="16" height="9" rx="2.5" fill="var(--cy)"/></g>
+<g stroke="var(--am)" stroke-width="1.5" fill="none">
+<path d="M80 92v20q0 8-16 8H40"/><path d="M112 92v20q0 8 16 8h24"/>
+<path d="M88 92v22q0 6-12 6H56"/><path d="M104 92v22q0 6 12 6h20"/>
+</g>
+<text x="96" y="140" fill="var(--am)" font-size="10.5" text-anchor="middle">el flujo rebota: más sustentación</text>
+<g transform="translate(256,36)"><line x1="-20" y1="0" x2="20" y2="0" stroke="var(--mute)" stroke-width="2"/><ellipse cx="-20" cy="-3" rx="11" ry="3" fill="var(--mute)" opacity=".5"/><ellipse cx="20" cy="-3" rx="11" ry="3" fill="var(--mute)" opacity=".5"/><rect x="-8" y="-4.5" width="16" height="9" rx="2.5" fill="var(--mute)"/></g>
+<g stroke="var(--mute)" stroke-width="1.3" fill="none" opacity=".7">
+<path d="M240 42v66"/><path d="M272 42v66"/><path d="M248 42v72"/><path d="M264 42v72"/>
+</g>
+<text x="256" y="140" fill="var(--mute)" font-size="10.5" text-anchor="middle">en altura, flujo libre</text>
+<path d="M96 100v-6" stroke="var(--ok)" stroke-width="1.4"/>
+<text x="150" y="80" fill="var(--ok)" font-size="10.5">≈ un diámetro de rotor</text>
+</svg>`,
+  },
+
+  regla11: {
+    p: "Regla 1:1 como referencia rápida: distancia horizontal al menos igual a la altura. Y recuerda que la energía crece con el cuadrado de la velocidad.",
+    s: `<svg viewBox="0 0 340 172" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="134" x2="200" y2="134" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(46,54)"><line x1="-13" y1="0" x2="13" y2="0" stroke="var(--cy)" stroke-width="1.8"/><ellipse cx="-13" cy="-2" rx="7" ry="2" fill="var(--cy)" opacity=".55"/><ellipse cx="13" cy="-2" rx="7" ry="2" fill="var(--cy)" opacity=".55"/><rect x="-5" y="-3" width="10" height="6" rx="1.5" fill="var(--cy)"/></g>
+<path d="M46 62v66" stroke="var(--am)" stroke-width="1.4" stroke-dasharray="4 3"/>
+<path d="M46 62L134 132" stroke="var(--no)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<line x1="46" y1="144" x2="134" y2="144" stroke="var(--no)" stroke-width="1.4"/>
+<path d="M46 144l7-3.5v7zM134 144l-7-3.5v7z" fill="var(--no)"/>
+<text x="24" y="100" fill="var(--am)" font-size="11" text-anchor="middle">altura</text>
+<text x="90" y="158" fill="var(--no)" font-size="11" text-anchor="middle">distancia</text>
+<text x="112" y="86" fill="var(--mute)" font-size="10">trayectoria</text>
+<text x="112" y="98" fill="var(--mute)" font-size="10">de caída</text>
+<g transform="translate(150,134)"><circle cx="0" cy="-18" r="3.2" fill="var(--mute)"/><path d="M0 -15v8M-4.5 0l4.5-8 4.5 8M-4.5 -11h9" stroke="var(--mute)" stroke-width="1.5" fill="none"/></g>
+<rect x="214" y="22" width="120" height="112" rx="8" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="274" y="42" fill="var(--text)" font-size="11.5" text-anchor="middle">energía de impacto</text>
+<rect x="234" y="108" width="24" height="16" fill="var(--ok)"/>
+<rect x="266" y="76" width="24" height="48" fill="var(--am)"/>
+<rect x="298" y="52" width="24" height="72" fill="var(--no)"/>
+<g fill="var(--mute)" font-size="10" text-anchor="middle">
+<text x="246" y="134">1×</text><text x="278" y="134">2×</text><text x="310" y="134">3×</text>
+</g>
+<text x="274" y="60" fill="var(--mute)" font-size="10" text-anchor="middle">velocidad</text>
+</svg>`,
+  },
+
+  vias: {
+    p: "Tres puertas de entrada a la categoría específica. La declaración es la más rápida, pero solo si tu operación encaja entera en el escenario.",
+    s: `<svg viewBox="0 0 340 180" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="98" y="6" width="144" height="26" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="24" fill="var(--text)" font-size="11.5" text-anchor="middle">Operación de riesgo medio</text>
+<path d="M170 32v12M58 44h224M58 44v12M170 44v12M282 44v12" stroke="var(--line)" stroke-width="1.3" fill="none"/>
+<rect x="6" y="56" width="104" height="62" rx="7" fill="rgba(85,214,160,.1)" stroke="var(--ok)"/>
+<text x="58" y="76" fill="var(--ok)" font-size="11.5" text-anchor="middle" font-weight="600">Declaración</text>
+<text x="58" y="93" fill="var(--mute)" font-size="10" text-anchor="middle">encaja en un STS</text>
+<text x="58" y="107" fill="var(--mute)" font-size="10" text-anchor="middle">acuse de AESA</text>
+<rect x="118" y="56" width="104" height="62" rx="7" fill="rgba(242,180,65,.1)" stroke="var(--am)"/>
+<text x="170" y="76" fill="var(--am)" font-size="11.5" text-anchor="middle" font-weight="600">Autorización</text>
+<text x="170" y="93" fill="var(--mute)" font-size="10" text-anchor="middle">análisis SORA</text>
+<text x="170" y="107" fill="var(--mute)" font-size="10" text-anchor="middle">o PDRA</text>
+<rect x="230" y="56" width="104" height="62" rx="7" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="282" y="76" fill="var(--cy)" font-size="11.5" text-anchor="middle" font-weight="600">LUC</text>
+<text x="282" y="93" fill="var(--mute)" font-size="10" text-anchor="middle">sistema de gestión</text>
+<text x="282" y="107" fill="var(--mute)" font-size="10" text-anchor="middle">te autoautorizas</text>
+<text x="170" y="144" fill="var(--no)" font-size="11" text-anchor="middle">El acuse de recibo NO es una autorización</text>
+<text x="170" y="162" fill="var(--mute)" font-size="10.5" text-anchor="middle">La responsabilidad sigue siendo del operador</text>
+</svg>`,
+  },
+
+  sts01: {
+    p: "STS-01: entorno poblado, pero con la zona en tierra bajo control efectivo. Si entra una persona ajena, la operación se interrumpe.",
+    s: `<svg viewBox="0 0 340 172" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="140" x2="332" y2="140" stroke="var(--line)" stroke-width="2"/>
+<g fill="var(--line)" opacity=".75"><rect x="240" y="44" width="42" height="96"/><rect x="288" y="66" width="36" height="74"/></g>
+<g fill="var(--ink)" opacity=".8">
+<rect x="248" y="56" width="8" height="8"/><rect x="264" y="56" width="8" height="8"/><rect x="248" y="76" width="8" height="8"/><rect x="264" y="76" width="8" height="8"/><rect x="248" y="96" width="8" height="8"/><rect x="264" y="96" width="8" height="8"/>
+<rect x="296" y="80" width="8" height="8"/><rect x="310" y="80" width="8" height="8"/><rect x="296" y="100" width="8" height="8"/><rect x="310" y="100" width="8" height="8"/></g>
+<rect x="30" y="112" width="190" height="28" rx="4" fill="rgba(242,180,65,.14)" stroke="var(--am)" stroke-dasharray="6 4"/>
+<text x="125" y="131" fill="var(--am)" font-size="11" text-anchor="middle">zona terrestre controlada</text>
+<g transform="translate(60,112)"><circle cx="0" cy="-17" r="3.2" fill="var(--cy)"/><path d="M0 -14v7M-4.5 0l4.5-7 4.5 7M-4.5 -10h9" stroke="var(--cy)" stroke-width="1.5" fill="none"/></g>
+<g transform="translate(96,112)"><circle cx="0" cy="-17" r="3.2" fill="var(--cy)"/><path d="M0 -14v7M-4.5 0l4.5-7 4.5 7M-4.5 -10h9" stroke="var(--cy)" stroke-width="1.5" fill="none"/></g>
+<text x="125" y="104" fill="var(--cy)" font-size="10" text-anchor="middle">solo personas participantes</text>
+<g transform="translate(150,56)"><line x1="-16" y1="0" x2="16" y2="0" stroke="var(--cy)" stroke-width="2"/><ellipse cx="-16" cy="-3" rx="9" ry="2.6" fill="var(--cy)" opacity=".5"/><ellipse cx="16" cy="-3" rx="9" ry="2.6" fill="var(--cy)" opacity=".5"/><rect x="-6" y="-4" width="12" height="8" rx="2" fill="var(--cy)"/></g>
+<path d="M62 92L142 60" stroke="var(--ok)" stroke-width="1.3" stroke-dasharray="4 3"/>
+<text x="92" y="72" fill="var(--ok)" font-size="10">VLOS</text>
+<text x="150" y="34" fill="var(--cy)" font-size="11" text-anchor="middle">clase C5 · máx. 120 m</text>
+<g transform="translate(300,140)"><circle cx="0" cy="-17" r="3.2" fill="var(--no)"/><path d="M0 -14v7M-4.5 0l4.5-7 4.5 7M-4.5 -10h9" stroke="var(--no)" stroke-width="1.5" fill="none"/></g>
+<text x="300" y="162" fill="var(--no)" font-size="10" text-anchor="middle">ajeno: fuera</text>
+</svg>`,
+  },
+
+  c5c6: {
+    p: "Las dos clases de la categoría específica. Comparten el límite de 25 kg y el medio de terminación del vuelo.",
+    s: `<svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="8" width="158" height="128" rx="8" fill="rgba(92,200,232,.08)" stroke="var(--cy)"/>
+<text x="85" y="32" fill="var(--cy)" font-size="16" text-anchor="middle" font-weight="700">C5</text>
+<text x="85" y="48" fill="var(--mute)" font-size="10.5" text-anchor="middle">STS-01 · VLOS</text>
+<g fill="var(--text)" font-size="10.5">
+<text x="20" y="70">terminación del vuelo</text>
+<text x="20" y="88">modo de baja velocidad</text>
+<text x="20" y="106">luces y ID a distancia</text>
+<text x="20" y="124">conversión desde un C3</text>
+</g>
+<rect x="176" y="8" width="158" height="128" rx="8" fill="rgba(242,180,65,.08)" stroke="var(--am)"/>
+<text x="255" y="32" fill="var(--am)" font-size="16" text-anchor="middle" font-weight="700">C6</text>
+<text x="255" y="48" fill="var(--mute)" font-size="10.5" text-anchor="middle">STS-02 · BVLOS</text>
+<g fill="var(--text)" font-size="10.5">
+<text x="190" y="70">terminación del vuelo</text>
+<text x="190" y="88">límite de velocidad</text>
+<text x="190" y="106">conciencia geográfica</text>
+<text x="190" y="124">contención del volumen</text>
+</g>
+<text x="170" y="158" fill="var(--mute)" font-size="10.5" text-anchor="middle">Ambas: MTOM máxima de 25 kg</text>
+</svg>`,
+  },
+
+  sora: {
+    p: "La cadena lógica del SORA. Cuanto más alto el SAIL, más robustas deben ser las pruebas que presentes.",
+    s: `<svg viewBox="0 0 340 172" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="14" width="128" height="40" rx="7" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="70" y="32" fill="var(--no)" font-size="12" text-anchor="middle" font-weight="600">GRC</text>
+<text x="70" y="46" fill="var(--mute)" font-size="10" text-anchor="middle">riesgo en tierra</text>
+<rect x="6" y="66" width="128" height="40" rx="7" fill="rgba(92,200,232,.12)" stroke="var(--cy)"/>
+<text x="70" y="84" fill="var(--cy)" font-size="12" text-anchor="middle" font-weight="600">ARC</text>
+<text x="70" y="98" fill="var(--mute)" font-size="10" text-anchor="middle">riesgo en el aire</text>
+<path d="M136 34h28v26M136 86h28V60M164 60h12" stroke="var(--line)" stroke-width="1.4" fill="none"/>
+<path d="M180 60l-9-4v8z" fill="var(--line)"/>
+<rect x="182" y="40" width="66" height="40" rx="7" fill="rgba(242,180,65,.14)" stroke="var(--am)"/>
+<text x="215" y="58" fill="var(--am)" font-size="12" text-anchor="middle" font-weight="600">SAIL</text>
+<text x="215" y="72" fill="var(--mute)" font-size="10" text-anchor="middle">I a VI</text>
+<path d="M250 60h20" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M274 60l-9-4v8z" fill="var(--line)"/>
+<rect x="276" y="40" width="58" height="40" rx="7" fill="rgba(85,214,160,.12)" stroke="var(--ok)"/>
+<text x="305" y="58" fill="var(--ok)" font-size="12" text-anchor="middle" font-weight="600">OSO</text>
+<text x="305" y="72" fill="var(--mute)" font-size="10" text-anchor="middle">objetivos</text>
+<g fill="var(--mute)" font-size="10">
+<text x="150" y="128">mitigaciones que bajan el GRC: menos personas expuestas,</text>
+<text x="150" y="142">zona controlada, terminación del vuelo</text>
+<text x="150" y="160">y el ARC: horarios, volúmenes y observadores</text>
+</g>
+</svg>`,
+  },
+
+  manual: {
+    p: "El manual de operaciones y sus registros. Es lo que se mira en una inspección, y lo que da coherencia cuando trabajan varias personas.",
+    s: `<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="14" y="12" width="128" height="140" rx="7" fill="var(--panel2)" stroke="var(--cy)"/>
+<text x="78" y="36" fill="var(--cy)" font-size="12.5" text-anchor="middle" font-weight="600">Manual de</text>
+<text x="78" y="52" fill="var(--cy)" font-size="12.5" text-anchor="middle" font-weight="600">operaciones</text>
+<g stroke="var(--line)" stroke-width="1.2"><path d="M30 66h96M30 82h96M30 98h96M30 114h72"/></g>
+<g fill="var(--mute)" font-size="9.5">
+<text x="30" y="78">alcance y organización</text>
+<text x="30" y="94">procedimientos</text>
+<text x="30" y="110">emergencias</text>
+<text x="30" y="128">competencias</text>
+</g>
+<path d="M148 82h26" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M178 82l-9-4v8z" fill="var(--line)"/>
+<g font-size="10.5">
+<rect x="184" y="14" width="150" height="30" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="196" y="33" fill="var(--text)">registro de vuelos</text>
+<rect x="184" y="50" width="150" height="30" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="196" y="69" fill="var(--text)">mantenimiento</text>
+<rect x="184" y="86" width="150" height="30" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="196" y="105" fill="var(--text)">formación del personal</text>
+<rect x="184" y="122" width="150" height="30" rx="6" fill="var(--panel2)" stroke="var(--am)"/>
+<text x="196" y="141" fill="var(--am)">sucesos e incidencias</text>
+</g>
+</svg>`,
+  },
+
+  emergencias: {
+    p: "Dos niveles con respuestas distintas. La terminación del vuelo es el último recurso, y hay que tener decidido de antemano quién la activa.",
+    s: `<svg viewBox="0 0 340 180" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="14" width="158" height="120" rx="8" fill="rgba(242,180,65,.08)" stroke="var(--am)"/>
+<text x="85" y="36" fill="var(--am)" font-size="13" text-anchor="middle" font-weight="600">Contingencia</text>
+<text x="85" y="52" fill="var(--mute)" font-size="10" text-anchor="middle">aún hay control</text>
+<g fill="var(--text)" font-size="10.5">
+<text x="20" y="74">enlace degradado</text>
+<text x="20" y="92">pierdes posición</text>
+<text x="20" y="110">empeora el tiempo</text>
+<text x="20" y="128">batería por debajo</text>
+</g>
+<rect x="176" y="14" width="158" height="120" rx="8" fill="rgba(240,122,110,.08)" stroke="var(--no)"/>
+<text x="255" y="36" fill="var(--no)" font-size="13" text-anchor="middle" font-weight="600">Emergencia</text>
+<text x="255" y="52" fill="var(--mute)" font-size="10" text-anchor="middle">ya no se puede seguir</text>
+<g fill="var(--text)" font-size="10.5">
+<text x="190" y="74">fallo de propulsión</text>
+<text x="190" y="92">pérdida total del C2</text>
+<text x="190" y="110">aeronave tripulada</text>
+<text x="190" y="128">intrusión en la zona</text>
+</g>
+<path d="M85 138v10h170v-10" stroke="var(--line)" stroke-width="1.3" fill="none"/>
+<path d="M170 148v10" stroke="var(--line)" stroke-width="1.3"/>
+<text x="170" y="172" fill="var(--mute)" font-size="10.5" text-anchor="middle">Punto de aterrizaje previsto · terminación del vuelo · notificar</text>
+</svg>`,
+  },
+
+  ruta: {
+    p: "El camino completo hasta poder operar en un escenario estándar. El práctico es específico de cada escenario: no se transfiere.",
+    s: `<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="30" y1="46" x2="310" y2="46" stroke="var(--line)" stroke-width="2"/>
+<g>
+<circle cx="40" cy="46" r="10" fill="var(--cy)"/>
+<circle cx="130" cy="46" r="10" fill="var(--panel2)" stroke="var(--cy)" stroke-width="2"/>
+<circle cx="220" cy="46" r="10" fill="var(--am)"/>
+<circle cx="300" cy="46" r="10" fill="var(--ok)"/>
+</g>
+<g font-size="11.5" fill="var(--text)" text-anchor="middle">
+<text x="40" y="76">A1/A3</text>
+<text x="130" y="76">A2</text>
+<text x="220" y="76">Teórico STS</text>
+<text x="300" y="76">Práctico</text>
+</g>
+<g font-size="10" fill="var(--mute)" text-anchor="middle">
+<text x="40" y="94">40 preguntas</text>
+<text x="40" y="106">obligatorio</text>
+<text x="130" y="94">30 preguntas</text>
+<text x="130" y="106">opcional</text>
+<text x="220" y="94">40 en 40 min</text>
+<text x="220" y="106">30 en 30 con A2</text>
+<text x="300" y="94">por escenario</text>
+<text x="300" y="106">entidad reconocida</text>
+</g>
+<text x="130" y="26" fill="var(--mute)" font-size="10" text-anchor="middle">acorta el STS</text>
+<rect x="60" y="126" width="220" height="28" rx="6" fill="rgba(85,214,160,.1)" stroke="var(--ok)"/>
+<text x="170" y="145" fill="var(--ok)" font-size="11.5" text-anchor="middle">Declaración operacional y a volar</text>
+<text x="14" y="145" fill="var(--am)" font-size="10">5 años</text>
+<text x="14" y="158" fill="var(--am)" font-size="10">de validez</text>
+</svg>`,
+  },
+
+  subcategorias: {
+    p: "Las tres subcategorías de la abierta. La distancia se mide en horizontal respecto a personas no participantes.",
+    s: `<svg viewBox="0 0 340 250" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g stroke-linecap="round">
+<text x="4" y="40" fill="var(--cy)" font-size="15" font-weight="600">A1</text>
+<line x1="30" y1="72" x2="336" y2="72" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(90,34)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><rect x="-4" y="-2.5" width="8" height="5" rx="1.5" fill="var(--cy)"/></g>
+<line x1="90" y1="42" x2="90" y2="62" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="3 3"/>
+<g transform="translate(90,72)"><circle cx="0" cy="-19" r="3.2" fill="var(--mute)"/><path d="M0 -16v8M-4.5 0l4.5-8 4.5 8M-4.5 -12h9" stroke="var(--mute)" stroke-width="1.5" fill="none"/></g>
+<text x="118" y="36" fill="var(--text)" font-size="10.5">Sobrevuelo de personas solo con C0</text>
+<text x="118" y="50" fill="var(--mute)" font-size="10.5">C1: nunca de forma intencionada</text>
+<text x="118" y="64" fill="var(--no)" font-size="10.5">Aglomeraciones: prohibido siempre</text>
+
+<text x="4" y="120" fill="var(--cy)" font-size="15" font-weight="600">A2</text>
+<line x1="30" y1="152" x2="336" y2="152" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(70,112)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><rect x="-4" y="-2.5" width="8" height="5" rx="1.5" fill="var(--cy)"/></g>
+<g transform="translate(300,152)"><circle cx="0" cy="-19" r="3.2" fill="var(--mute)"/><path d="M0 -16v8M-4.5 0l4.5-8 4.5 8M-4.5 -12h9" stroke="var(--mute)" stroke-width="1.5" fill="none"/></g>
+<line x1="72" y1="136" x2="292" y2="136" stroke="var(--am)" stroke-width="1.4"/>
+<path d="M72 136l7-3.5v7zM292 136l-7-3.5v7z" fill="var(--am)"/>
+<text x="182" y="130" fill="var(--am)" font-size="11.5" text-anchor="middle" font-weight="600">30 m</text>
+<text x="182" y="112" fill="var(--mute)" font-size="10.5" text-anchor="middle">5 m con modo de baja velocidad</text>
+
+<text x="4" y="200" fill="var(--cy)" font-size="15" font-weight="600">A3</text>
+<line x1="30" y1="232" x2="336" y2="232" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(58,192)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><rect x="-4" y="-2.5" width="8" height="5" rx="1.5" fill="var(--cy)"/></g>
+<g fill="var(--line)"><rect x="272" y="196" width="24" height="36" rx="2"/><rect x="300" y="182" width="20" height="50" rx="2"/><rect x="324" y="204" width="12" height="28" rx="2"/></g>
+<g fill="var(--ink)" opacity=".85"><rect x="277" y="202" width="5" height="5"/><rect x="286" y="202" width="5" height="5"/><rect x="277" y="212" width="5" height="5"/><rect x="286" y="212" width="5" height="5"/><rect x="305" y="190" width="5" height="5"/><rect x="313" y="190" width="5" height="5"/><rect x="305" y="202" width="5" height="5"/><rect x="313" y="202" width="5" height="5"/></g>
+<line x1="60" y1="216" x2="266" y2="216" stroke="var(--am)" stroke-width="1.4"/>
+<path d="M60 216l7-3.5v7zM266 216l-7-3.5v7z" fill="var(--am)"/>
+<text x="163" y="210" fill="var(--am)" font-size="11.5" text-anchor="middle" font-weight="600">150 m</text>
+<text x="163" y="192" fill="var(--mute)" font-size="10.5" text-anchor="middle">zonas residenciales, comerciales,</text>
+<text x="163" y="180" fill="var(--mute)" font-size="10.5" text-anchor="middle">industriales o recreativas</text>
+</g></svg>`,
+  },
+
+  altura120: {
+    p: "Los 120 m se miden sobre el punto más cercano de la superficie, no sobre el punto de despegue. Por eso en pendiente el límite acompaña al terreno.",
+    s: `<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<path d="M8 178 H108 L178 138 H236 L332 178 Z" fill="var(--line)" opacity=".45"/>
+<path d="M8 178 H108 L178 138 H236 L332 178" fill="none" stroke="var(--line)" stroke-width="2"/>
+<path d="M8 108 H108 L178 68 H236 L332 108" fill="none" stroke="var(--cy)" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="12" y="102" fill="var(--cy)" font-size="10.5">techo de 120 m, paralelo al terreno</text>
+<line x1="60" y1="110" x2="60" y2="176" stroke="var(--am)" stroke-width="1.3"/>
+<path d="M60 110l-3.5 7h7zM60 176l-3.5-7h7z" fill="var(--am)"/>
+<text x="68" y="148" fill="var(--am)" font-size="12" font-weight="600">120 m</text>
+<g transform="translate(206,58)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><rect x="-4" y="-2.5" width="8" height="5" rx="1.5" fill="var(--cy)"/></g>
+<line x1="296" y1="168" x2="296" y2="46" stroke="var(--mute)" stroke-width="2.5"/>
+<path d="M290 60h12M288 78h16M286 96h20" stroke="var(--mute)" stroke-width="1.4"/>
+<line x1="272" y1="32" x2="332" y2="32" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="272" y="26" fill="var(--ok)" font-size="10.5">+15 m sobre el obstáculo</text>
+<text x="240" y="186" fill="var(--mute)" font-size="10" text-anchor="middle">obstáculo de más de 105 m</text>
+</svg>`,
+  },
+
+  clases: {
+    p: "Cada clase determina en qué subcategoría puedes volar. Los drones sin marcado de clase de hasta 25 kg quedan en A3.",
+    s: `<svg viewBox="0 0 340 128" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g font-size="11">
+<rect x="4" y="8" width="60" height="38" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="34" y="26" fill="var(--cy)" font-size="14" font-weight="600" text-anchor="middle">C0</text>
+<text x="34" y="39" fill="var(--mute)" text-anchor="middle">&lt; 250 g</text>
+<rect x="72" y="8" width="60" height="38" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="102" y="26" fill="var(--cy)" font-size="14" font-weight="600" text-anchor="middle">C1</text>
+<text x="102" y="39" fill="var(--mute)" text-anchor="middle">&lt; 900 g</text>
+<rect x="140" y="8" width="60" height="38" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="26" fill="var(--cy)" font-size="14" font-weight="600" text-anchor="middle">C2</text>
+<text x="170" y="39" fill="var(--mute)" text-anchor="middle">&lt; 4 kg</text>
+<rect x="208" y="8" width="60" height="38" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="238" y="26" fill="var(--cy)" font-size="14" font-weight="600" text-anchor="middle">C3</text>
+<text x="238" y="39" fill="var(--mute)" text-anchor="middle">&lt; 25 kg</text>
+<rect x="276" y="8" width="60" height="38" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="306" y="26" fill="var(--cy)" font-size="14" font-weight="600" text-anchor="middle">C4</text>
+<text x="306" y="39" fill="var(--mute)" text-anchor="middle">sin autom.</text>
+<path d="M68 52v8M136 52v8M204 52v8M272 52v8" stroke="var(--line)" stroke-width="1.2"/>
+<path d="M34 50v14M102 50v14M170 50v14M238 50v14M306 50v14" stroke="var(--mute)" stroke-width="1.2" stroke-dasharray="3 3"/>
+<rect x="4" y="66" width="128" height="30" rx="6" fill="rgba(92,200,232,.14)" stroke="var(--cy)"/>
+<text x="68" y="86" fill="var(--cy)" font-size="14" font-weight="600" text-anchor="middle">A1</text>
+<rect x="140" y="66" width="60" height="30" rx="6" fill="rgba(242,180,65,.14)" stroke="var(--am)"/>
+<text x="170" y="86" fill="var(--am)" font-size="14" font-weight="600" text-anchor="middle">A2</text>
+<rect x="208" y="66" width="128" height="30" rx="6" fill="rgba(85,214,160,.12)" stroke="var(--ok)"/>
+<text x="272" y="86" fill="var(--ok)" font-size="14" font-weight="600" text-anchor="middle">A3</text>
+<text x="170" y="116" fill="var(--mute)" font-size="10.5" text-anchor="middle">Sin marcado de clase: &lt; 250 g a A1 · hasta 25 kg a A3</text>
+</g></svg>`,
+  },
+
+  espacio: {
+    p: "Corte vertical del entorno de un aeródromo. El vuelo de dron ocurre en la franja baja, justo donde despegan y aterrizan las aeronaves tripuladas.",
+    s: `<svg viewBox="0 0 340 190" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="70" y="30" width="250" height="52" rx="4" fill="rgba(92,200,232,.07)" stroke="var(--line)" stroke-dasharray="5 4"/>
+<text x="78" y="46" fill="var(--mute)" font-size="11">TMA · área terminal</text>
+<rect x="96" y="82" width="170" height="78" rx="4" fill="rgba(92,200,232,.1)" stroke="var(--cy)" stroke-dasharray="5 4"/>
+<text x="104" y="98" fill="var(--cy)" font-size="11">CTR · desde la superficie</text>
+<text x="104" y="112" fill="var(--mute)" font-size="10">ATZ en el interior</text>
+<line x1="8" y1="160" x2="332" y2="160" stroke="var(--line)" stroke-width="2"/>
+<rect x="150" y="155" width="70" height="5" fill="var(--mute)" opacity=".7"/>
+<line x1="8" y1="142" x2="332" y2="142" stroke="var(--am)" stroke-width="1.3" stroke-dasharray="6 4"/>
+<text x="10" y="137" fill="var(--am)" font-size="10.5">120 m</text>
+<g transform="translate(46,128)"><line x1="-10" y1="0" x2="10" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-10" cy="-2" rx="5.5" ry="1.6" fill="var(--cy)" opacity=".55"/><ellipse cx="10" cy="-2" rx="5.5" ry="1.6" fill="var(--cy)" opacity=".55"/><rect x="-3.5" y="-2.5" width="7" height="5" rx="1.5" fill="var(--cy)"/></g>
+<path d="M232 120l26-9-4 7 12 2-12 3 4 7z" fill="var(--no)" transform="rotate(-8 246 116)"/>
+<text x="236" y="106" fill="var(--no)" font-size="10.5">prioridad absoluta</text>
+<text x="8" y="180" fill="var(--mute)" font-size="10">Consulta zonas geográficas y NOTAM antes de cada vuelo</text>
+</svg>`,
+  },
+
+  viento: {
+    p: "El viento se acelera con la altura y se desordena detrás de los obstáculos. La zona de sotavento es donde más drones se pierden.",
+    s: `<svg viewBox="0 0 340 176" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="152" x2="332" y2="152" stroke="var(--line)" stroke-width="2"/>
+<rect x="150" y="74" width="46" height="78" fill="var(--line)" opacity=".7"/>
+<g stroke="var(--cy)" stroke-width="1.5" fill="none">
+<path d="M16 46h108"/><path d="M16 74h92"/><path d="M16 102h66"/><path d="M16 128h38"/>
+</g>
+<g fill="var(--cy)">
+<path d="M124 46l-8-4v8zM108 74l-8-4v8zM82 102l-8-4v8zM54 128l-8-4v8z"/>
+</g>
+<text x="16" y="34" fill="var(--cy)" font-size="10.5">más viento cuanto más alto: gradiente</text>
+<g stroke="var(--no)" stroke-width="1.5" fill="none">
+<path d="M200 86c16 0 22 12 10 18s-22-4-10-10"/>
+<path d="M232 106c16 0 22 12 10 18s-22-4-10-10"/>
+<path d="M210 132c12 0 17 9 8 14s-17-3-8-8"/>
+</g>
+<path d="M196 74c22 2 30 14 48 16" stroke="var(--no)" stroke-width="1.4" fill="none" stroke-dasharray="4 3"/>
+<text x="206" y="66" fill="var(--no)" font-size="10.5">turbulencia y rotores</text>
+<text x="206" y="54" fill="var(--mute)" font-size="10">a sotavento del obstáculo</text>
+<text x="160" y="168" fill="var(--mute)" font-size="10">obstáculo</text>
+</svg>`,
+  },
+
+  venturi: {
+    p: "Efecto Venturi: al estrecharse el paso, el aire acelera. Entre edificios puedes encontrar mucho más viento del que mide tu anemómetro a pie de calle.",
+    s: `<svg viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="112" y="10" width="46" height="120" fill="var(--line)" opacity=".7"/>
+<rect x="196" y="24" width="46" height="106" fill="var(--line)" opacity=".7"/>
+<g stroke="var(--cy)" stroke-width="1.4" fill="none">
+<path d="M8 42C56 42 70 62 110 66"/><path d="M8 70C56 70 76 70 110 72"/><path d="M8 98C56 98 70 82 110 78"/>
+</g>
+<g stroke="var(--am)" stroke-width="1.8" fill="none">
+<path d="M158 64h40"/><path d="M158 72h40"/><path d="M158 80h40"/>
+</g>
+<g fill="var(--am)"><path d="M198 64l-9-4v8zM198 72l-9-4v8zM198 80l-9-4v8z"/></g>
+<g stroke="var(--cy)" stroke-width="1.4" fill="none">
+<path d="M242 66C276 60 292 44 332 44"/><path d="M242 74C280 74 300 72 332 72"/><path d="M242 82C276 88 292 100 332 100"/>
+</g>
+<text x="178" y="52" fill="var(--am)" font-size="11" text-anchor="middle" font-weight="600">rápido</text>
+<text x="56" y="120" fill="var(--mute)" font-size="10.5">flujo normal</text>
+<text x="284" y="120" fill="var(--mute)" font-size="10.5">flujo normal</text>
+</svg>`,
+  },
+
+  vrs: {
+    p: "Anillo de vórtices: al bajar rápido en vertical el dron cae dentro de su propia estela. Se sale desplazándose en horizontal, nunca dando más potencia.",
+    s: `<svg viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(130,58)"><line x1="-16" y1="0" x2="16" y2="0" stroke="var(--cy)" stroke-width="2"/><ellipse cx="-16" cy="-3" rx="9" ry="2.4" fill="var(--cy)" opacity=".55"/><ellipse cx="16" cy="-3" rx="9" ry="2.4" fill="var(--cy)" opacity=".55"/><rect x="-6" y="-4" width="12" height="8" rx="2" fill="var(--cy)"/></g>
+<g stroke="var(--no)" stroke-width="1.5" fill="none">
+<path d="M118 62c-16 8-22 26-6 34s26-6 16-18"/>
+<path d="M142 62c16 8 22 26 6 34s-26-6-16-18"/>
+</g>
+<path d="M130 74v46" stroke="var(--no)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<path d="M130 124l-5-9h10z" fill="var(--no)"/>
+<text x="150" y="112" fill="var(--no)" font-size="10.5">descenso vertical rápido</text>
+<text x="150" y="126" fill="var(--mute)" font-size="10">el dron reingresa en su estela</text>
+<path d="M180 58h96" stroke="var(--ok)" stroke-width="2" fill="none"/>
+<path d="M276 58l-10-5v10z" fill="var(--ok)"/>
+<text x="196" y="48" fill="var(--ok)" font-size="11" font-weight="600">salida correcta: en horizontal</text>
+<text x="14" y="150" fill="var(--mute)" font-size="10">Aumentar potencia en vertical agrava la situación</text>
+</svg>`,
+  },
+
+  volumen: {
+    p: "Así se describe una operación en categoría específica. La zona terrestre controlada debe cubrir, como mínimo, la proyección del volumen operacional y su buffer.",
+    s: `<svg viewBox="0 0 340 196" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="14" width="328" height="164" rx="8" fill="rgba(242,180,65,.06)" stroke="var(--am)" stroke-dasharray="6 4"/>
+<text x="14" y="30" fill="var(--am)" font-size="11">Zona terrestre controlada · solo personas participantes</text>
+<rect x="26" y="40" width="288" height="126" rx="7" fill="rgba(240,122,110,.06)" stroke="var(--no)" stroke-dasharray="5 4"/>
+<text x="34" y="56" fill="var(--no)" font-size="11">Buffer de riesgo terrestre</text>
+<rect x="50" y="64" width="240" height="90" rx="6" fill="rgba(138,166,182,.08)" stroke="var(--mute)"/>
+<text x="58" y="80" fill="var(--mute)" font-size="11">Volumen de contingencia</text>
+<rect x="74" y="88" width="192" height="56" rx="5" fill="rgba(92,200,232,.14)" stroke="var(--cy)"/>
+<text x="82" y="104" fill="var(--cy)" font-size="11">Volumen de vuelo</text>
+<g transform="translate(170,126)"><line x1="-12" y1="0" x2="12" y2="0" stroke="var(--cy)" stroke-width="1.7"/><ellipse cx="-12" cy="-2" rx="6.5" ry="1.8" fill="var(--cy)" opacity=".55"/><ellipse cx="12" cy="-2" rx="6.5" ry="1.8" fill="var(--cy)" opacity=".55"/><rect x="-4.5" y="-3" width="9" height="6" rx="1.5" fill="var(--cy)"/></g>
+</svg>`,
+  },
+
+  sts02: {
+    p: "STS-02: los observadores del espacio aéreo son lo que permite pasar de 1 a 2 km. No pilotan, vigilan y avisan.",
+    s: `<svg viewBox="0 0 340 150" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="118" x2="332" y2="118" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(26,118)"><circle cx="0" cy="-22" r="3.6" fill="var(--cy)"/><path d="M0 -18v9M-5 0l5-9 5 9M-5 -14h10" stroke="var(--cy)" stroke-width="1.6" fill="none"/></g>
+<text x="26" y="136" fill="var(--cy)" font-size="10" text-anchor="middle">piloto</text>
+<line x1="34" y1="58" x2="158" y2="58" stroke="var(--mute)" stroke-width="1.3"/>
+<path d="M34 58l7-3.5v7zM158 58l-7-3.5v7z" fill="var(--mute)"/>
+<text x="96" y="52" fill="var(--mute)" font-size="11" text-anchor="middle">1 km sin observadores</text>
+<g transform="translate(166,58)"><line x1="-9" y1="0" x2="9" y2="0" stroke="var(--mute)" stroke-width="1.5"/><ellipse cx="-9" cy="-2" rx="5" ry="1.5" fill="var(--mute)" opacity=".6"/><ellipse cx="9" cy="-2" rx="5" ry="1.5" fill="var(--mute)" opacity=".6"/><rect x="-3" y="-2" width="6" height="4" rx="1" fill="var(--mute)"/></g>
+<line x1="34" y1="90" x2="300" y2="90" stroke="var(--am)" stroke-width="1.4"/>
+<path d="M34 90l7-3.5v7zM300 90l-7-3.5v7z" fill="var(--am)"/>
+<text x="167" y="84" fill="var(--am)" font-size="11.5" text-anchor="middle" font-weight="600">2 km con observadores del espacio aéreo</text>
+<g transform="translate(308,90)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><rect x="-4" y="-2.5" width="8" height="5" rx="1.5" fill="var(--cy)"/></g>
+<g transform="translate(170,118)"><circle cx="0" cy="-22" r="3.6" fill="var(--am)"/><path d="M0 -18v9M-5 0l5-9 5 9M-5 -14h10" stroke="var(--am)" stroke-width="1.6" fill="none"/></g>
+<text x="170" y="136" fill="var(--am)" font-size="10" text-anchor="middle">observador</text>
+<text x="240" y="136" fill="var(--mute)" font-size="10" text-anchor="middle">altura máxima 120 m</text>
+</svg>`,
+  },
+};
+
+/* ---- tanda 2: un esquema para cada bloque restante ---- */
+const DIAGRAMAS2 = {
+  normativa: {
+    p: "Dos reglamentos europeos y su desarrollo español. Debajo, quién responde de qué en cada operación.",
+    s: `<svg viewBox="0 0 340 178" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="8" width="104" height="46" rx="7" fill="rgba(92,200,232,.12)" stroke="var(--cy)"/>
+<text x="58" y="27" fill="var(--cy)" font-size="12.5" font-weight="600" text-anchor="middle">2019/947</text>
+<text x="58" y="43" fill="var(--mute)" font-size="10.5" text-anchor="middle">operaciones</text>
+<rect x="118" y="8" width="104" height="46" rx="7" fill="rgba(92,200,232,.12)" stroke="var(--cy)"/>
+<text x="170" y="27" fill="var(--cy)" font-size="12.5" font-weight="600" text-anchor="middle">2019/945</text>
+<text x="170" y="43" fill="var(--mute)" font-size="10.5" text-anchor="middle">producto y clases</text>
+<rect x="230" y="8" width="104" height="46" rx="7" fill="rgba(242,180,65,.12)" stroke="var(--am)"/>
+<text x="282" y="27" fill="var(--am)" font-size="12.5" font-weight="600" text-anchor="middle">RD 517/2024</text>
+<text x="282" y="43" fill="var(--mute)" font-size="10.5" text-anchor="middle">España</text>
+<path d="M58 58v12M170 58v12M282 58v12" stroke="var(--line)" stroke-width="1.4"/>
+<line x1="58" y1="70" x2="282" y2="70" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M170 70v14" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M170 86l-4-8h8z" fill="var(--line)"/>
+<rect x="88" y="88" width="164" height="26" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="106" fill="var(--text)" font-size="12" text-anchor="middle">Tu operación</text>
+<g font-size="10.5">
+<rect x="6" y="128" width="102" height="42" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="57" y="145" fill="var(--cy)" font-size="12" text-anchor="middle" font-weight="600">Operador</text>
+<text x="57" y="160" fill="var(--mute)" text-anchor="middle">responde de todo</text>
+<rect x="118" y="128" width="104" height="42" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="145" fill="var(--cy)" font-size="12" text-anchor="middle" font-weight="600">Piloto</text>
+<text x="170" y="160" fill="var(--mute)" text-anchor="middle">decide y vuela</text>
+<rect x="232" y="128" width="102" height="42" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="283" y="145" fill="var(--am)" font-size="12" text-anchor="middle" font-weight="600">AESA</text>
+<text x="283" y="160" fill="var(--mute)" text-anchor="middle">registra e inspecciona</text>
+</g></svg>`,
+  },
+
+  categorias: {
+    p: "La categoría no la eliges: la determina el riesgo de la operación. Al subir un peldaño, suben los requisitos.",
+    s: `<svg viewBox="0 0 340 188" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="8" y="118" width="104" height="56" rx="7" fill="rgba(85,214,160,.12)" stroke="var(--ok)"/>
+<text x="60" y="138" fill="var(--ok)" font-size="13" font-weight="600" text-anchor="middle">ABIERTA</text>
+<text x="60" y="153" fill="var(--mute)" font-size="10" text-anchor="middle">sin trámite previo</text>
+<text x="60" y="166" fill="var(--mute)" font-size="10" text-anchor="middle">A1 · A2 · A3</text>
+<rect x="118" y="74" width="104" height="100" rx="7" fill="rgba(242,180,65,.12)" stroke="var(--am)"/>
+<text x="170" y="94" fill="var(--am)" font-size="13" font-weight="600" text-anchor="middle">ESPECÍFICA</text>
+<text x="170" y="110" fill="var(--mute)" font-size="10" text-anchor="middle">declaración STS</text>
+<text x="170" y="124" fill="var(--mute)" font-size="10" text-anchor="middle">o autorización SORA</text>
+<text x="170" y="138" fill="var(--mute)" font-size="10" text-anchor="middle">o certificado LUC</text>
+<rect x="228" y="30" width="104" height="144" rx="7" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="280" y="50" fill="var(--no)" font-size="13" font-weight="600" text-anchor="middle">CERTIFICADA</text>
+<text x="280" y="66" fill="var(--mute)" font-size="10" text-anchor="middle">aeronave certificada</text>
+<text x="280" y="80" fill="var(--mute)" font-size="10" text-anchor="middle">operador certificado</text>
+<text x="280" y="94" fill="var(--mute)" font-size="10" text-anchor="middle">piloto con licencia</text>
+<line x1="8" y1="18" x2="332" y2="18" stroke="var(--line)" stroke-width="1.3"/>
+<path d="M332 18l-8-4v8z" fill="var(--line)"/>
+<text x="10" y="13" fill="var(--mute)" font-size="10.5">riesgo de la operación y requisitos</text>
+</svg>`,
+  },
+
+  registro: {
+    p: "El número de operador va pegado al dron y además se emite por radio en tiempo real junto con el resto de datos.",
+    s: `<svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(74,62)"><line x1="-24" y1="0" x2="24" y2="0" stroke="var(--cy)" stroke-width="2.2"/><ellipse cx="-24" cy="-4" rx="13" ry="3.4" fill="var(--cy)" opacity=".5"/><ellipse cx="24" cy="-4" rx="13" ry="3.4" fill="var(--cy)" opacity=".5"/><rect x="-11" y="-6" width="22" height="12" rx="3" fill="var(--cy)"/></g>
+<rect x="46" y="80" width="58" height="17" rx="3" fill="var(--am)"/>
+<text x="75" y="93" fill="#21180a" font-size="10" font-weight="700" text-anchor="middle">ESP-XXXXX</text>
+<text x="75" y="112" fill="var(--am)" font-size="10.5" text-anchor="middle">visible en la aeronave</text>
+<g stroke="var(--ok)" fill="none" stroke-width="1.5" opacity=".8">
+<path d="M112 62a26 26 0 0 1 0-28"/><path d="M122 70a40 40 0 0 0 0-44"/>
+</g>
+<rect x="140" y="14" width="196" height="96" rx="7" fill="var(--panel2)" stroke="var(--ok)"/>
+<text x="150" y="32" fill="var(--ok)" font-size="11.5" font-weight="600">Identificación a distancia</text>
+<g fill="var(--mute)" font-size="10.5">
+<text x="150" y="49">nº de operador y nº de serie</text>
+<text x="150" y="64">posición, altura y velocidad</text>
+<text x="150" y="79">posición del piloto</text>
+<text x="150" y="94">marca temporal</text>
+</g>
+<text x="14" y="140" fill="var(--mute)" font-size="10.5">Registro obligatorio si MTOM ≥ 250 g</text>
+<text x="14" y="156" fill="var(--mute)" font-size="10.5">o si lleva cámara o sensor de datos personales</text>
+</svg>`,
+  },
+
+  zonas: {
+    p: "Vista desde arriba. Antes de volar hay que cruzar todas estas capas, y las municipales o ambientales se suman a las aeronáuticas.",
+    s: `<svg viewBox="0 0 340 176" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="8" width="328" height="160" rx="8" fill="rgba(4,11,16,.35)" stroke="var(--line)"/>
+<circle cx="80" cy="66" r="46" fill="rgba(240,122,110,.12)" stroke="var(--no)" stroke-dasharray="5 4"/>
+<path d="M62 78l36-24M62 54l36 24" stroke="var(--no)" stroke-width="1.4" opacity=".5"/>
+<text x="80" y="70" fill="var(--no)" font-size="11" text-anchor="middle" font-weight="600">aeródromo</text>
+<circle cx="232" cy="52" r="26" fill="rgba(242,180,65,.14)" stroke="var(--am)" stroke-dasharray="4 3"/>
+<text x="232" y="50" fill="var(--am)" font-size="10.5" text-anchor="middle">helipuerto</text>
+<text x="232" y="62" fill="var(--am)" font-size="10.5" text-anchor="middle">hospital</text>
+<path d="M258 118q30-30 66-14v50h-88z" fill="rgba(85,214,160,.12)" stroke="var(--ok)" stroke-dasharray="4 3"/>
+<text x="290" y="146" fill="var(--ok)" font-size="10.5" text-anchor="middle">espacio</text>
+<text x="290" y="158" fill="var(--ok)" font-size="10.5" text-anchor="middle">protegido</text>
+<rect x="120" y="108" width="96" height="48" rx="5" fill="rgba(138,166,182,.1)" stroke="var(--mute)" stroke-dasharray="4 3"/>
+<text x="168" y="130" fill="var(--mute)" font-size="10.5" text-anchor="middle">ordenanza</text>
+<text x="168" y="144" fill="var(--mute)" font-size="10.5" text-anchor="middle">municipal</text>
+<g transform="translate(160,74)"><line x1="-10" y1="0" x2="10" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-10" cy="-2" rx="5.5" ry="1.6" fill="var(--cy)" opacity=".55"/><ellipse cx="10" cy="-2" rx="5.5" ry="1.6" fill="var(--cy)" opacity=".55"/><rect x="-3.5" y="-2.5" width="7" height="5" rx="1.5" fill="var(--cy)"/></g>
+<text x="160" y="94" fill="var(--cy)" font-size="10" text-anchor="middle">¿puedo volar aquí?</text>
+</svg>`,
+  },
+
+  sistema: {
+    p: "El UAS es el conjunto completo. Perder el vídeo es incómodo; perder el enlace de mando y control es una emergencia.",
+    s: `<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g fill="var(--mute)" opacity=".55">
+<path d="M40 16l6 10-6 10-6-10zM150 10l6 10-6 10-6-10zM266 18l6 10-6 10-6-10z"/>
+</g>
+<text x="150" y="44" fill="var(--mute)" font-size="10" text-anchor="middle">GNSS</text>
+<g stroke="var(--mute)" stroke-width="1" stroke-dasharray="3 4" opacity=".6">
+<path d="M42 36L248 66M152 32L250 64M266 40L256 62"/>
+</g>
+<g transform="translate(256,72)"><line x1="-22" y1="0" x2="22" y2="0" stroke="var(--cy)" stroke-width="2.2"/><ellipse cx="-22" cy="-4" rx="12" ry="3.2" fill="var(--cy)" opacity=".5"/><ellipse cx="22" cy="-4" rx="12" ry="3.2" fill="var(--cy)" opacity=".5"/><rect x="-10" y="-5.5" width="20" height="11" rx="3" fill="var(--cy)"/></g>
+<text x="256" y="100" fill="var(--cy)" font-size="11" text-anchor="middle">aeronave</text>
+<rect x="24" y="86" width="62" height="42" rx="6" fill="var(--panel2)" stroke="var(--cy)"/>
+<rect x="32" y="94" width="46" height="26" rx="3" fill="rgba(92,200,232,.2)"/>
+<text x="55" y="144" fill="var(--cy)" font-size="11" text-anchor="middle">estación de pilotaje</text>
+<path d="M92 100h140" stroke="var(--ok)" stroke-width="2"/>
+<path d="M232 100l-9-4.5v9z" fill="var(--ok)"/>
+<path d="M232 112H92" stroke="var(--am)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<path d="M92 112l9-4.5v9z" fill="var(--am)"/>
+<text x="162" y="94" fill="var(--ok)" font-size="10.5" text-anchor="middle">enlace C2 · mando y control</text>
+<text x="162" y="126" fill="var(--am)" font-size="10.5" text-anchor="middle">telemetría y vídeo</text>
+<text x="14" y="162" fill="var(--mute)" font-size="10.5">Sin C2 no hay control: es la emergencia que hay que tener prevista</text>
+</svg>`,
+  },
+
+  fases: {
+    p: "Las cuatro fases de toda operación. Casi todos los incidentes se incuban en las dos primeras.",
+    s: `<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="18" y1="42" x2="322" y2="42" stroke="var(--line)" stroke-width="2"/>
+<g>
+<circle cx="42" cy="42" r="9" fill="var(--cy)"/><text x="42" y="30" fill="var(--cy)" font-size="11" text-anchor="middle" font-weight="600">1</text>
+<circle cx="135" cy="42" r="9" fill="var(--cy)"/><text x="135" y="30" fill="var(--cy)" font-size="11" text-anchor="middle" font-weight="600">2</text>
+<circle cx="228" cy="42" r="9" fill="var(--am)"/><text x="228" y="30" fill="var(--am)" font-size="11" text-anchor="middle" font-weight="600">3</text>
+<circle cx="310" cy="42" r="9" fill="var(--ok)"/><text x="310" y="30" fill="var(--ok)" font-size="11" text-anchor="middle" font-weight="600">4</text>
+</g>
+<g font-size="11.5" fill="var(--text)">
+<text x="42" y="66" text-anchor="middle">Planificar</text>
+<text x="135" y="66" text-anchor="middle">Prevuelo</text>
+<text x="228" y="66" text-anchor="middle">Vuelo</text>
+<text x="310" y="66" text-anchor="middle">Postvuelo</text>
+</g>
+<g font-size="10" fill="var(--mute)">
+<text x="42" y="88" text-anchor="middle">zonas y NOTAM</text>
+<text x="42" y="101" text-anchor="middle">meteorología</text>
+<text x="42" y="114" text-anchor="middle">obstáculos</text>
+<text x="42" y="127" text-anchor="middle">plan alternativo</text>
+<text x="135" y="88" text-anchor="middle">hélices y batería</text>
+<text x="135" y="101" text-anchor="middle">calibraciones</text>
+<text x="135" y="114" text-anchor="middle">failsafe</text>
+<text x="135" y="127" text-anchor="middle">altura de RTH</text>
+<text x="228" y="88" text-anchor="middle">VLOS constante</text>
+<text x="228" y="101" text-anchor="middle">vigilar el aire</text>
+<text x="228" y="114" text-anchor="middle">margen de batería</text>
+<text x="310" y="88" text-anchor="middle">inspección</text>
+<text x="310" y="101" text-anchor="middle">registro del vuelo</text>
+<text x="310" y="114" text-anchor="middle">baterías</text>
+</g>
+<text x="18" y="156" fill="var(--am)" font-size="10.5">Decide antes de despegar qué harás si algo falla</text>
+</svg>`,
+  },
+
+  atencion: {
+    p: "Conciencia situacional: percibir, comprender y anticipar. Si la mirada se queda pegada a la pantalla, se pierde el primer nivel.",
+    s: `<svg viewBox="0 0 340 180" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<circle cx="170" cy="92" r="26" fill="var(--panel2)" stroke="var(--cy)"/>
+<text x="170" y="89" fill="var(--cy)" font-size="11" text-anchor="middle">piloto</text>
+<text x="170" y="102" fill="var(--mute)" font-size="9.5" text-anchor="middle">atención</text>
+<g stroke="var(--cy)" stroke-width="1.5" fill="none">
+<path d="M170 66V42"/><path d="M148 106L84 138"/><path d="M192 106l64 32"/>
+</g>
+<g fill="var(--cy)"><path d="M170 40l-4 8h8zM84 138l8-3v8zM256 138l-8-3v8z"/></g>
+<rect x="116" y="14" width="108" height="26" rx="6" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="170" y="32" fill="var(--cy)" font-size="11.5" text-anchor="middle">el dron</text>
+<rect x="18" y="138" width="104" height="26" rx="6" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="70" y="156" fill="var(--cy)" font-size="11.5" text-anchor="middle">el entorno</text>
+<rect x="222" y="138" width="104" height="26" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="274" y="156" fill="var(--no)" font-size="11.5" text-anchor="middle">la pantalla</text>
+<text x="274" y="128" fill="var(--no)" font-size="10" text-anchor="middle">efecto túnel</text>
+<g fill="var(--mute)" font-size="10">
+<text x="14" y="26">fatiga</text><text x="14" y="42">estrés</text><text x="14" y="58">prisa</text><text x="14" y="74">rutina</text>
+</g>
+<path d="M52 36q26 14 46 30" stroke="var(--no)" stroke-width="1.2" fill="none" stroke-dasharray="3 3"/>
+</svg>`,
+  },
+
+  privacidad: {
+    p: "La cámara de un dron capta mucho más de lo que se pretende. Todo lo que permite identificar a una persona es dato personal.",
+    s: `<svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(78,26)"><line x1="-18" y1="0" x2="18" y2="0" stroke="var(--cy)" stroke-width="2"/><ellipse cx="-18" cy="-3" rx="10" ry="2.6" fill="var(--cy)" opacity=".5"/><ellipse cx="18" cy="-3" rx="10" ry="2.6" fill="var(--cy)" opacity=".5"/><rect x="-8" y="-4" width="16" height="9" rx="2.5" fill="var(--cy)"/></g>
+<path d="M78 34L14 140h128z" fill="rgba(92,200,232,.1)" stroke="var(--cy)" stroke-dasharray="4 4"/>
+<line x1="8" y1="140" x2="332" y2="140" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(58,140)"><circle cx="0" cy="-19" r="3.4" fill="var(--no)"/><path d="M0 -16v8M-4.5 0l4.5-8 4.5 8M-4.5 -12h9" stroke="var(--no)" stroke-width="1.6" fill="none"/></g>
+<g transform="translate(104,140)"><circle cx="0" cy="-19" r="3.4" fill="var(--no)"/><path d="M0 -16v8M-4.5 0l4.5-8 4.5 8M-4.5 -12h9" stroke="var(--no)" stroke-width="1.6" fill="none"/></g>
+<rect x="160" y="96" width="46" height="44" fill="var(--line)" opacity=".75"/>
+<rect x="168" y="106" width="12" height="12" fill="var(--no)" opacity=".5"/>
+<text x="183" y="90" fill="var(--no)" font-size="10" text-anchor="middle">interior</text>
+<rect x="222" y="20" width="112" height="98" rx="8" fill="var(--panel2)" stroke="var(--am)"/>
+<text x="232" y="40" fill="var(--am)" font-size="11.5" font-weight="600">Reglas</text>
+<g fill="var(--mute)" font-size="10.5">
+<text x="232" y="58">base legal</text>
+<text x="232" y="74">minimizar</text>
+<text x="232" y="90">informar</text>
+<text x="232" y="106">conservar poco</text>
+</g>
+<text x="14" y="162" fill="var(--mute)" font-size="10.5">RGPD y LOPDGDD · y la LO 1/1982 para intimidad e imagen</text>
+</svg>`,
+  },
+
+  seguro: {
+    p: "Árbol de decisión del seguro según el artículo 8 del RD 517/2024. Que no sea obligatorio no significa que no sea recomendable.",
+    s: `<svg viewBox="0 0 340 186" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="112" y="6" width="116" height="26" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="24" fill="var(--text)" font-size="11.5" text-anchor="middle">¿Qué operación es?</text>
+<path d="M170 32v14M56 46h228M56 46v12M170 46v12M284 46v12" stroke="var(--line)" stroke-width="1.3" fill="none"/>
+<rect x="8" y="58" width="96" height="30" rx="6" fill="rgba(85,214,160,.12)" stroke="var(--ok)"/>
+<text x="56" y="70" fill="var(--ok)" font-size="11" text-anchor="middle" font-weight="600">A1</text>
+<text x="56" y="83" fill="var(--mute)" font-size="10" text-anchor="middle">A3 bajo 20 kg</text>
+<rect x="122" y="58" width="96" height="30" rx="6" fill="rgba(242,180,65,.12)" stroke="var(--am)"/>
+<text x="170" y="70" fill="var(--am)" font-size="11" text-anchor="middle" font-weight="600">A2</text>
+<text x="170" y="83" fill="var(--mute)" font-size="10" text-anchor="middle">resto bajo 20 kg</text>
+<rect x="236" y="58" width="96" height="30" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="284" y="70" fill="var(--no)" font-size="11" text-anchor="middle" font-weight="600">20 kg o más</text>
+<text x="284" y="83" fill="var(--mute)" font-size="10" text-anchor="middle">específica</text>
+<path d="M56 88v18M170 88v18M284 88v18" stroke="var(--line)" stroke-width="1.3"/>
+<rect x="8" y="106" width="96" height="34" rx="6" fill="var(--panel2)" stroke="var(--ok)"/>
+<text x="56" y="128" fill="var(--ok)" font-size="12" text-anchor="middle" font-weight="600">No exigible</text>
+<rect x="122" y="106" width="96" height="34" rx="6" fill="var(--panel2)" stroke="var(--am)"/>
+<text x="170" y="122" fill="var(--am)" font-size="12" text-anchor="middle" font-weight="600">Obligatorio</text>
+<text x="170" y="135" fill="var(--mute)" font-size="10" text-anchor="middle">RD 37/2001</text>
+<rect x="236" y="106" width="96" height="34" rx="6" fill="var(--panel2)" stroke="var(--no)"/>
+<text x="284" y="122" fill="var(--no)" font-size="12" text-anchor="middle" font-weight="600">Obligatorio</text>
+<text x="284" y="135" fill="var(--mute)" font-size="10" text-anchor="middle">785/2004</text>
+<text x="170" y="166" fill="var(--mute)" font-size="10.5" text-anchor="middle">Los daños a terceros los pagas igual, haya seguro o no</text>
+</svg>`,
+  },
+
+  security: {
+    p: "Protección frente a actos ilícitos. El jamming bloquea la señal; el spoofing la falsifica, que es peor porque el dron cree estar donde no está.",
+    s: `<svg viewBox="0 0 340 162" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(170,52)"><line x1="-22" y1="0" x2="22" y2="0" stroke="var(--cy)" stroke-width="2.2"/><ellipse cx="-22" cy="-4" rx="12" ry="3.2" fill="var(--cy)" opacity=".5"/><ellipse cx="22" cy="-4" rx="12" ry="3.2" fill="var(--cy)" opacity=".5"/><rect x="-10" y="-5.5" width="20" height="11" rx="3" fill="var(--cy)"/></g>
+<g stroke="var(--no)" stroke-width="1.6" fill="none">
+<path d="M64 40l32 14"/><path d="M276 40l-32 14"/><path d="M170 106V74"/>
+</g>
+<g fill="var(--no)"><path d="M96 54l-9-3v8zM244 54l9-3v8zM170 74l-4 9h8z"/></g>
+<rect x="6" y="18" width="104" height="28" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="58" y="37" fill="var(--no)" font-size="11.5" text-anchor="middle">jamming</text>
+<rect x="230" y="18" width="104" height="28" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="282" y="37" fill="var(--no)" font-size="11.5" text-anchor="middle">spoofing</text>
+<rect x="112" y="106" width="116" height="28" rx="6" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="170" y="125" fill="var(--no)" font-size="11.5" text-anchor="middle">acceso no autorizado</text>
+<g fill="var(--ok)" font-size="10.5">
+<text x="8" y="70">firmware al día</text>
+<text x="8" y="86">contraseñas</text>
+<text x="8" y="102">red propia</text>
+<text x="252" y="70">equipo vigilado</text>
+<text x="252" y="86">tarjetas cifradas</text>
+<text x="252" y="102">avisar del intento</text>
+</g>
+<text x="170" y="152" fill="var(--mute)" font-size="10.5" text-anchor="middle">Un dron desatendido es un dron comprometido</text>
+</svg>`,
+  },
+
+  bajavelocidad: {
+    p: "El modo de baja velocidad es la llave de los 5 metros en A2: si no está activado, la distancia vuelve a ser de 30.",
+    s: `<svg viewBox="0 0 340 150" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="118" x2="332" y2="118" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(300,118)"><circle cx="0" cy="-20" r="3.4" fill="var(--mute)"/><path d="M0 -17v8M-4.5 0l4.5-8 4.5 8M-4.5 -13h9" stroke="var(--mute)" stroke-width="1.6" fill="none"/></g>
+<g transform="translate(40,46)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--cy)" stroke-width="1.7"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><rect x="-4" y="-3" width="8" height="6" rx="1.5" fill="var(--cy)"/></g>
+<line x1="42" y1="62" x2="292" y2="62" stroke="var(--cy)" stroke-width="1.4"/>
+<path d="M42 62l7-3.5v7zM292 62l-7-3.5v7z" fill="var(--cy)"/>
+<text x="167" y="56" fill="var(--cy)" font-size="12" text-anchor="middle" font-weight="600">30 m · modo normal</text>
+<g transform="translate(252,92)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--am)" stroke-width="1.7"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--am)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--am)" opacity=".55"/><rect x="-4" y="-3" width="8" height="6" rx="1.5" fill="var(--am)"/></g>
+<line x1="266" y1="104" x2="292" y2="104" stroke="var(--am)" stroke-width="1.4"/>
+<path d="M266 104l6-3v6zM292 104l-6-3v6z" fill="var(--am)"/>
+<text x="240" y="100" fill="var(--am)" font-size="12" text-anchor="end" font-weight="600">5 m · baja velocidad (3 m/s)</text>
+<text x="10" y="140" fill="var(--mute)" font-size="10.5">Clase C2, MTOM inferior a 4 kg, con certificado A2</text>
+</svg>`,
+  },
+
+  densidad: {
+    p: "Calor, altitud y humedad reducen la densidad del aire. Las hélices mueven menos masa y el dron rinde como si estuviera mucho más alto.",
+    s: `<svg viewBox="0 0 340 172" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="60" y1="16" x2="60" y2="146" stroke="var(--line)" stroke-width="1.6"/>
+<line x1="60" y1="146" x2="330" y2="146" stroke="var(--line)" stroke-width="1.6"/>
+<text x="16" y="24" fill="var(--mute)" font-size="10">altura</text>
+<g stroke="var(--cy)" stroke-width="1.3" stroke-dasharray="4 4">
+<path d="M60 116h262"/><path d="M60 86h262"/><path d="M60 56h262"/>
+</g>
+<g fill="var(--cy)" font-size="10.5">
+<text x="64" y="112">+2 °C</text><text x="64" y="82">+4 °C</text><text x="64" y="52">+6 °C</text>
+</g>
+<text x="176" y="140" fill="var(--mute)" font-size="10.5">15 °C y 1013,25 hPa al nivel del mar</text>
+<text x="240" y="112" fill="var(--mute)" font-size="10">cada 1000 ft</text>
+<text x="240" y="82" fill="var(--mute)" font-size="10">2000 ft</text>
+<text x="240" y="52" fill="var(--mute)" font-size="10">3000 ft</text>
+<rect x="60" y="154" width="86" height="14" rx="3" fill="var(--no)" opacity=".7"/>
+<rect x="150" y="154" width="86" height="14" rx="3" fill="var(--am)" opacity=".7"/>
+<rect x="240" y="154" width="86" height="14" rx="3" fill="var(--ok)" opacity=".7"/>
+<text x="103" y="165" fill="#140b0a" font-size="9.5" text-anchor="middle" font-weight="700">calor</text>
+<text x="193" y="165" fill="#21180a" font-size="9.5" text-anchor="middle" font-weight="700">altitud</text>
+<text x="283" y="165" fill="#06221a" font-size="9.5" text-anchor="middle" font-weight="700">humedad</text>
+<text x="14" y="52" fill="var(--am)" font-size="10.5">menos</text>
+<text x="14" y="66" fill="var(--am)" font-size="10.5">densidad</text>
+<text x="14" y="86" fill="var(--am)" font-size="10.5">menos</text>
+<text x="14" y="100" fill="var(--am)" font-size="10.5">empuje</text>
+</svg>`,
+  },
+
+  nubes: {
+    p: "El cumulonimbus concentra todos los peligros a la vez. Y cuando la temperatura se acerca al punto de rocío, la visibilidad es lo siguiente en desaparecer.",
+    s: `<svg viewBox="0 0 340 178" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<path d="M56 96q-26 0-26-20t26-18q2-24 30-24t34 22q22-4 28 14t-18 26z" fill="var(--line)" opacity=".8"/>
+<path d="M60 40q-4-18 12-24" stroke="var(--line)" stroke-width="10" fill="none" opacity=".8" stroke-linecap="round"/>
+<path d="M72 100l-10 22h12l-10 22" stroke="var(--am)" stroke-width="2" fill="none" stroke-linecap="round"/>
+<g stroke="var(--no)" stroke-width="1.4" fill="none"><path d="M100 104l8 20M112 100l8 22M124 104l6 16"/></g>
+<text x="95" y="150" fill="var(--no)" font-size="10.5" text-anchor="middle">rachas, cizalladura</text>
+<text x="95" y="164" fill="var(--no)" font-size="10.5" text-anchor="middle">y descargas: no se vuela</text>
+<line x1="190" y1="16" x2="190" y2="130" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M198 34C232 46 262 60 300 62" stroke="var(--am)" stroke-width="1.8" fill="none"/>
+<path d="M198 86C232 82 262 70 300 66" stroke="var(--cy)" stroke-width="1.8" fill="none"/>
+<circle cx="300" cy="64" r="4" fill="var(--no)"/>
+<text x="204" y="30" fill="var(--am)" font-size="10.5">temperatura</text>
+<text x="204" y="98" fill="var(--cy)" font-size="10.5">punto de rocío</text>
+<text x="252" y="90" fill="var(--no)" font-size="10.5">se juntan</text>
+<text x="252" y="103" fill="var(--no)" font-size="10.5">= niebla</text>
+<text x="190" y="150" fill="var(--mute)" font-size="10.5">METAR observa · TAF predice</text>
+</svg>`,
+  },
+
+  autonomia: {
+    p: "La ida con viento en cola engaña. El consumo real del regreso es mucho mayor, y ahí es donde se pierden las baterías.",
+    s: `<svg viewBox="0 0 340 162" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g stroke="var(--mute)" stroke-width="1.2" opacity=".6"><path d="M12 22h60M12 34h44M12 46h52"/></g>
+<g fill="var(--mute)" opacity=".6"><path d="M72 22l-7-3v6zM56 34l-7-3v6zM64 46l-7-3v6z"/></g>
+<text x="12" y="14" fill="var(--mute)" font-size="10">viento</text>
+<path d="M40 74h250" stroke="var(--ok)" stroke-width="2.4"/>
+<path d="M290 74l-10-5v10z" fill="var(--ok)"/>
+<text x="164" y="66" fill="var(--ok)" font-size="11" text-anchor="middle">ida con viento en cola · rápida y barata</text>
+<path d="M290 102H40" stroke="var(--no)" stroke-width="2.4"/>
+<path d="M40 102l10-5v10z" fill="var(--no)"/>
+<text x="164" y="120" fill="var(--no)" font-size="11" text-anchor="middle">regreso contra el viento · lento y caro</text>
+<rect x="40" y="132" width="250" height="16" rx="4" fill="var(--line)"/>
+<rect x="40" y="132" width="88" height="16" rx="4" fill="var(--ok)" opacity=".8"/>
+<rect x="128" y="132" width="122" height="16" rx="4" fill="var(--no)" opacity=".8"/>
+<rect x="250" y="132" width="40" height="16" rx="4" fill="var(--am)" opacity=".85"/>
+<text x="84" y="145" fill="#06221a" font-size="9.5" text-anchor="middle" font-weight="700">ida</text>
+<text x="189" y="145" fill="#140b0a" font-size="9.5" text-anchor="middle" font-weight="700">vuelta</text>
+<text x="270" y="145" fill="#21180a" font-size="9.5" text-anchor="middle" font-weight="700">reserva</text>
+</svg>`,
+  },
+
+  lipo: {
+    p: "Ciclo de vida de una batería. Guardarla llena o dejarla a cero acorta su vida; el frío te quita autonomía justo cuando menos lo esperas.",
+    s: `<svg viewBox="0 0 340 158" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="20" y="24" width="150" height="34" rx="5" fill="none" stroke="var(--line)" stroke-width="1.6"/>
+<rect x="170" y="34" width="6" height="14" rx="2" fill="var(--line)"/>
+<rect x="24" y="28" width="40" height="26" rx="3" fill="var(--no)" opacity=".55"/>
+<rect x="66" y="28" width="58" height="26" rx="3" fill="var(--ok)"/>
+<rect x="126" y="28" width="40" height="26" rx="3" fill="var(--no)" opacity=".55"/>
+<text x="95" y="46" fill="#06221a" font-size="11" text-anchor="middle" font-weight="700">40–60 %</text>
+<text x="44" y="72" fill="var(--no)" font-size="10" text-anchor="middle">descarga</text>
+<text x="44" y="84" fill="var(--no)" font-size="10" text-anchor="middle">profunda</text>
+<text x="146" y="72" fill="var(--no)" font-size="10" text-anchor="middle">almacenar</text>
+<text x="146" y="84" fill="var(--no)" font-size="10" text-anchor="middle">llena</text>
+<text x="95" y="16" fill="var(--ok)" font-size="11" text-anchor="middle">carga de almacenamiento</text>
+<g>
+<rect x="196" y="24" width="138" height="34" rx="6" fill="var(--panel2)" stroke="var(--cy)"/>
+<text x="206" y="45" fill="var(--cy)" font-size="11">frío: menos capacidad</text>
+<rect x="196" y="66" width="138" height="34" rx="6" fill="var(--panel2)" stroke="var(--am)"/>
+<text x="206" y="87" fill="var(--am)" font-size="11">calor y carga rápida</text>
+<rect x="196" y="108" width="138" height="34" rx="6" fill="var(--panel2)" stroke="var(--no)"/>
+<text x="206" y="129" fill="var(--no)" font-size="11">hinchada: fuera</text>
+</g>
+<text x="20" y="112" fill="var(--mute)" font-size="10.5">Nunca perforarla</text>
+<text x="20" y="128" fill="var(--mute)" font-size="10.5">ni cargarla sin</text>
+<text x="20" y="144" fill="var(--mute)" font-size="10.5">vigilancia</text>
+</svg>`,
+  },
+
+  efectosuelo: {
+    p: "Efecto suelo: cerca del terreno el flujo rebota y aumenta la sustentación. El dron flota, rebota al tomar tierra y puede irse de lado.",
+    s: `<svg viewBox="0 0 340 150" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="120" x2="332" y2="120" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(96,86)"><line x1="-20" y1="0" x2="20" y2="0" stroke="var(--cy)" stroke-width="2"/><ellipse cx="-20" cy="-3" rx="11" ry="3" fill="var(--cy)" opacity=".5"/><ellipse cx="20" cy="-3" rx="11" ry="3" fill="var(--cy)" opacity=".5"/><rect x="-8" y="-4.5" width="16" height="9" rx="2.5" fill="var(--cy)"/></g>
+<g stroke="var(--am)" stroke-width="1.5" fill="none">
+<path d="M80 92v20q0 8-16 8H40"/><path d="M112 92v20q0 8 16 8h24"/>
+<path d="M88 92v22q0 6-12 6H56"/><path d="M104 92v22q0 6 12 6h20"/>
+</g>
+<text x="96" y="140" fill="var(--am)" font-size="10.5" text-anchor="middle">el flujo rebota: más sustentación</text>
+<g transform="translate(256,36)"><line x1="-20" y1="0" x2="20" y2="0" stroke="var(--mute)" stroke-width="2"/><ellipse cx="-20" cy="-3" rx="11" ry="3" fill="var(--mute)" opacity=".5"/><ellipse cx="20" cy="-3" rx="11" ry="3" fill="var(--mute)" opacity=".5"/><rect x="-8" y="-4.5" width="16" height="9" rx="2.5" fill="var(--mute)"/></g>
+<g stroke="var(--mute)" stroke-width="1.3" fill="none" opacity=".7">
+<path d="M240 42v66"/><path d="M272 42v66"/><path d="M248 42v72"/><path d="M264 42v72"/>
+</g>
+<text x="256" y="140" fill="var(--mute)" font-size="10.5" text-anchor="middle">en altura, flujo libre</text>
+<path d="M96 100v-6" stroke="var(--ok)" stroke-width="1.4"/>
+<text x="150" y="80" fill="var(--ok)" font-size="10.5">≈ un diámetro de rotor</text>
+</svg>`,
+  },
+
+  regla11: {
+    p: "Regla 1:1 como referencia rápida: distancia horizontal al menos igual a la altura. Y recuerda que la energía crece con el cuadrado de la velocidad.",
+    s: `<svg viewBox="0 0 340 172" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="134" x2="200" y2="134" stroke="var(--line)" stroke-width="2"/>
+<g transform="translate(46,54)"><line x1="-13" y1="0" x2="13" y2="0" stroke="var(--cy)" stroke-width="1.8"/><ellipse cx="-13" cy="-2" rx="7" ry="2" fill="var(--cy)" opacity=".55"/><ellipse cx="13" cy="-2" rx="7" ry="2" fill="var(--cy)" opacity=".55"/><rect x="-5" y="-3" width="10" height="6" rx="1.5" fill="var(--cy)"/></g>
+<path d="M46 62v66" stroke="var(--am)" stroke-width="1.4" stroke-dasharray="4 3"/>
+<path d="M46 62L134 132" stroke="var(--no)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<line x1="46" y1="144" x2="134" y2="144" stroke="var(--no)" stroke-width="1.4"/>
+<path d="M46 144l7-3.5v7zM134 144l-7-3.5v7z" fill="var(--no)"/>
+<text x="24" y="100" fill="var(--am)" font-size="11" text-anchor="middle">altura</text>
+<text x="90" y="158" fill="var(--no)" font-size="11" text-anchor="middle">distancia</text>
+<text x="112" y="86" fill="var(--mute)" font-size="10">trayectoria</text>
+<text x="112" y="98" fill="var(--mute)" font-size="10">de caída</text>
+<g transform="translate(150,134)"><circle cx="0" cy="-18" r="3.2" fill="var(--mute)"/><path d="M0 -15v8M-4.5 0l4.5-8 4.5 8M-4.5 -11h9" stroke="var(--mute)" stroke-width="1.5" fill="none"/></g>
+<rect x="214" y="22" width="120" height="112" rx="8" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="274" y="42" fill="var(--text)" font-size="11.5" text-anchor="middle">energía de impacto</text>
+<rect x="234" y="108" width="24" height="16" fill="var(--ok)"/>
+<rect x="266" y="76" width="24" height="48" fill="var(--am)"/>
+<rect x="298" y="52" width="24" height="72" fill="var(--no)"/>
+<g fill="var(--mute)" font-size="10" text-anchor="middle">
+<text x="246" y="134">1×</text><text x="278" y="134">2×</text><text x="310" y="134">3×</text>
+</g>
+<text x="274" y="60" fill="var(--mute)" font-size="10" text-anchor="middle">velocidad</text>
+</svg>`,
+  },
+
+  vias: {
+    p: "Tres puertas de entrada a la categoría específica. La declaración es la más rápida, pero solo si tu operación encaja entera en el escenario.",
+    s: `<svg viewBox="0 0 340 180" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="98" y="6" width="144" height="26" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="24" fill="var(--text)" font-size="11.5" text-anchor="middle">Operación de riesgo medio</text>
+<path d="M170 32v12M58 44h224M58 44v12M170 44v12M282 44v12" stroke="var(--line)" stroke-width="1.3" fill="none"/>
+<rect x="6" y="56" width="104" height="62" rx="7" fill="rgba(85,214,160,.1)" stroke="var(--ok)"/>
+<text x="58" y="76" fill="var(--ok)" font-size="11.5" text-anchor="middle" font-weight="600">Declaración</text>
+<text x="58" y="93" fill="var(--mute)" font-size="10" text-anchor="middle">encaja en un STS</text>
+<text x="58" y="107" fill="var(--mute)" font-size="10" text-anchor="middle">acuse de AESA</text>
+<rect x="118" y="56" width="104" height="62" rx="7" fill="rgba(242,180,65,.1)" stroke="var(--am)"/>
+<text x="170" y="76" fill="var(--am)" font-size="11.5" text-anchor="middle" font-weight="600">Autorización</text>
+<text x="170" y="93" fill="var(--mute)" font-size="10" text-anchor="middle">análisis SORA</text>
+<text x="170" y="107" fill="var(--mute)" font-size="10" text-anchor="middle">o PDRA</text>
+<rect x="230" y="56" width="104" height="62" rx="7" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="282" y="76" fill="var(--cy)" font-size="11.5" text-anchor="middle" font-weight="600">LUC</text>
+<text x="282" y="93" fill="var(--mute)" font-size="10" text-anchor="middle">sistema de gestión</text>
+<text x="282" y="107" fill="var(--mute)" font-size="10" text-anchor="middle">te autoautorizas</text>
+<text x="170" y="144" fill="var(--no)" font-size="11" text-anchor="middle">El acuse de recibo NO es una autorización</text>
+<text x="170" y="162" fill="var(--mute)" font-size="10.5" text-anchor="middle">La responsabilidad sigue siendo del operador</text>
+</svg>`,
+  },
+
+  sts01: {
+    p: "STS-01: entorno poblado, pero con la zona en tierra bajo control efectivo. Si entra una persona ajena, la operación se interrumpe.",
+    s: `<svg viewBox="0 0 340 172" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="140" x2="332" y2="140" stroke="var(--line)" stroke-width="2"/>
+<g fill="var(--line)" opacity=".75"><rect x="240" y="44" width="42" height="96"/><rect x="288" y="66" width="36" height="74"/></g>
+<g fill="var(--ink)" opacity=".8">
+<rect x="248" y="56" width="8" height="8"/><rect x="264" y="56" width="8" height="8"/><rect x="248" y="76" width="8" height="8"/><rect x="264" y="76" width="8" height="8"/><rect x="248" y="96" width="8" height="8"/><rect x="264" y="96" width="8" height="8"/>
+<rect x="296" y="80" width="8" height="8"/><rect x="310" y="80" width="8" height="8"/><rect x="296" y="100" width="8" height="8"/><rect x="310" y="100" width="8" height="8"/></g>
+<rect x="30" y="112" width="190" height="28" rx="4" fill="rgba(242,180,65,.14)" stroke="var(--am)" stroke-dasharray="6 4"/>
+<text x="125" y="131" fill="var(--am)" font-size="11" text-anchor="middle">zona terrestre controlada</text>
+<g transform="translate(60,112)"><circle cx="0" cy="-17" r="3.2" fill="var(--cy)"/><path d="M0 -14v7M-4.5 0l4.5-7 4.5 7M-4.5 -10h9" stroke="var(--cy)" stroke-width="1.5" fill="none"/></g>
+<g transform="translate(96,112)"><circle cx="0" cy="-17" r="3.2" fill="var(--cy)"/><path d="M0 -14v7M-4.5 0l4.5-7 4.5 7M-4.5 -10h9" stroke="var(--cy)" stroke-width="1.5" fill="none"/></g>
+<text x="125" y="104" fill="var(--cy)" font-size="10" text-anchor="middle">solo personas participantes</text>
+<g transform="translate(150,56)"><line x1="-16" y1="0" x2="16" y2="0" stroke="var(--cy)" stroke-width="2"/><ellipse cx="-16" cy="-3" rx="9" ry="2.6" fill="var(--cy)" opacity=".5"/><ellipse cx="16" cy="-3" rx="9" ry="2.6" fill="var(--cy)" opacity=".5"/><rect x="-6" y="-4" width="12" height="8" rx="2" fill="var(--cy)"/></g>
+<path d="M62 92L142 60" stroke="var(--ok)" stroke-width="1.3" stroke-dasharray="4 3"/>
+<text x="92" y="72" fill="var(--ok)" font-size="10">VLOS</text>
+<text x="150" y="34" fill="var(--cy)" font-size="11" text-anchor="middle">clase C5 · máx. 120 m</text>
+<g transform="translate(300,140)"><circle cx="0" cy="-17" r="3.2" fill="var(--no)"/><path d="M0 -14v7M-4.5 0l4.5-7 4.5 7M-4.5 -10h9" stroke="var(--no)" stroke-width="1.5" fill="none"/></g>
+<text x="300" y="162" fill="var(--no)" font-size="10" text-anchor="middle">ajeno: fuera</text>
+</svg>`,
+  },
+
+  c5c6: {
+    p: "Las dos clases de la categoría específica. Comparten el límite de 25 kg y el medio de terminación del vuelo.",
+    s: `<svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="8" width="158" height="128" rx="8" fill="rgba(92,200,232,.08)" stroke="var(--cy)"/>
+<text x="85" y="32" fill="var(--cy)" font-size="16" text-anchor="middle" font-weight="700">C5</text>
+<text x="85" y="48" fill="var(--mute)" font-size="10.5" text-anchor="middle">STS-01 · VLOS</text>
+<g fill="var(--text)" font-size="10.5">
+<text x="20" y="70">terminación del vuelo</text>
+<text x="20" y="88">modo de baja velocidad</text>
+<text x="20" y="106">luces y ID a distancia</text>
+<text x="20" y="124">conversión desde un C3</text>
+</g>
+<rect x="176" y="8" width="158" height="128" rx="8" fill="rgba(242,180,65,.08)" stroke="var(--am)"/>
+<text x="255" y="32" fill="var(--am)" font-size="16" text-anchor="middle" font-weight="700">C6</text>
+<text x="255" y="48" fill="var(--mute)" font-size="10.5" text-anchor="middle">STS-02 · BVLOS</text>
+<g fill="var(--text)" font-size="10.5">
+<text x="190" y="70">terminación del vuelo</text>
+<text x="190" y="88">límite de velocidad</text>
+<text x="190" y="106">conciencia geográfica</text>
+<text x="190" y="124">contención del volumen</text>
+</g>
+<text x="170" y="158" fill="var(--mute)" font-size="10.5" text-anchor="middle">Ambas: MTOM máxima de 25 kg</text>
+</svg>`,
+  },
+
+  sora: {
+    p: "La cadena lógica del SORA. Cuanto más alto el SAIL, más robustas deben ser las pruebas que presentes.",
+    s: `<svg viewBox="0 0 340 172" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="14" width="128" height="40" rx="7" fill="rgba(240,122,110,.12)" stroke="var(--no)"/>
+<text x="70" y="32" fill="var(--no)" font-size="12" text-anchor="middle" font-weight="600">GRC</text>
+<text x="70" y="46" fill="var(--mute)" font-size="10" text-anchor="middle">riesgo en tierra</text>
+<rect x="6" y="66" width="128" height="40" rx="7" fill="rgba(92,200,232,.12)" stroke="var(--cy)"/>
+<text x="70" y="84" fill="var(--cy)" font-size="12" text-anchor="middle" font-weight="600">ARC</text>
+<text x="70" y="98" fill="var(--mute)" font-size="10" text-anchor="middle">riesgo en el aire</text>
+<path d="M136 34h28v26M136 86h28V60M164 60h12" stroke="var(--line)" stroke-width="1.4" fill="none"/>
+<path d="M180 60l-9-4v8z" fill="var(--line)"/>
+<rect x="182" y="40" width="66" height="40" rx="7" fill="rgba(242,180,65,.14)" stroke="var(--am)"/>
+<text x="215" y="58" fill="var(--am)" font-size="12" text-anchor="middle" font-weight="600">SAIL</text>
+<text x="215" y="72" fill="var(--mute)" font-size="10" text-anchor="middle">I a VI</text>
+<path d="M250 60h20" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M274 60l-9-4v8z" fill="var(--line)"/>
+<rect x="276" y="40" width="58" height="40" rx="7" fill="rgba(85,214,160,.12)" stroke="var(--ok)"/>
+<text x="305" y="58" fill="var(--ok)" font-size="12" text-anchor="middle" font-weight="600">OSO</text>
+<text x="305" y="72" fill="var(--mute)" font-size="10" text-anchor="middle">objetivos</text>
+<g fill="var(--mute)" font-size="10">
+<text x="150" y="128">mitigaciones que bajan el GRC: menos personas expuestas,</text>
+<text x="150" y="142">zona controlada, terminación del vuelo</text>
+<text x="150" y="160">y el ARC: horarios, volúmenes y observadores</text>
+</g>
+</svg>`,
+  },
+
+  manual: {
+    p: "El manual de operaciones y sus registros. Es lo que se mira en una inspección, y lo que da coherencia cuando trabajan varias personas.",
+    s: `<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="14" y="12" width="128" height="140" rx="7" fill="var(--panel2)" stroke="var(--cy)"/>
+<text x="78" y="36" fill="var(--cy)" font-size="12.5" text-anchor="middle" font-weight="600">Manual de</text>
+<text x="78" y="52" fill="var(--cy)" font-size="12.5" text-anchor="middle" font-weight="600">operaciones</text>
+<g stroke="var(--line)" stroke-width="1.2"><path d="M30 66h96M30 82h96M30 98h96M30 114h72"/></g>
+<g fill="var(--mute)" font-size="9.5">
+<text x="30" y="78">alcance y organización</text>
+<text x="30" y="94">procedimientos</text>
+<text x="30" y="110">emergencias</text>
+<text x="30" y="128">competencias</text>
+</g>
+<path d="M148 82h26" stroke="var(--line)" stroke-width="1.4"/>
+<path d="M178 82l-9-4v8z" fill="var(--line)"/>
+<g font-size="10.5">
+<rect x="184" y="14" width="150" height="30" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="196" y="33" fill="var(--text)">registro de vuelos</text>
+<rect x="184" y="50" width="150" height="30" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="196" y="69" fill="var(--text)">mantenimiento</text>
+<rect x="184" y="86" width="150" height="30" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="196" y="105" fill="var(--text)">formación del personal</text>
+<rect x="184" y="122" width="150" height="30" rx="6" fill="var(--panel2)" stroke="var(--am)"/>
+<text x="196" y="141" fill="var(--am)">sucesos e incidencias</text>
+</g>
+</svg>`,
+  },
+
+  emergencias: {
+    p: "Dos niveles con respuestas distintas. La terminación del vuelo es el último recurso, y hay que tener decidido de antemano quién la activa.",
+    s: `<svg viewBox="0 0 340 180" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="14" width="158" height="120" rx="8" fill="rgba(242,180,65,.08)" stroke="var(--am)"/>
+<text x="85" y="36" fill="var(--am)" font-size="13" text-anchor="middle" font-weight="600">Contingencia</text>
+<text x="85" y="52" fill="var(--mute)" font-size="10" text-anchor="middle">aún hay control</text>
+<g fill="var(--text)" font-size="10.5">
+<text x="20" y="74">enlace degradado</text>
+<text x="20" y="92">pierdes posición</text>
+<text x="20" y="110">empeora el tiempo</text>
+<text x="20" y="128">batería por debajo</text>
+</g>
+<rect x="176" y="14" width="158" height="120" rx="8" fill="rgba(240,122,110,.08)" stroke="var(--no)"/>
+<text x="255" y="36" fill="var(--no)" font-size="13" text-anchor="middle" font-weight="600">Emergencia</text>
+<text x="255" y="52" fill="var(--mute)" font-size="10" text-anchor="middle">ya no se puede seguir</text>
+<g fill="var(--text)" font-size="10.5">
+<text x="190" y="74">fallo de propulsión</text>
+<text x="190" y="92">pérdida total del C2</text>
+<text x="190" y="110">aeronave tripulada</text>
+<text x="190" y="128">intrusión en la zona</text>
+</g>
+<path d="M85 138v10h170v-10" stroke="var(--line)" stroke-width="1.3" fill="none"/>
+<path d="M170 148v10" stroke="var(--line)" stroke-width="1.3"/>
+<text x="170" y="172" fill="var(--mute)" font-size="10.5" text-anchor="middle">Punto de aterrizaje previsto · terminación del vuelo · notificar</text>
+</svg>`,
+  },
+
+  ruta: {
+    p: "El camino completo hasta poder operar en un escenario estándar. El práctico es específico de cada escenario: no se transfiere.",
+    s: `<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="30" y1="46" x2="310" y2="46" stroke="var(--line)" stroke-width="2"/>
+<g>
+<circle cx="40" cy="46" r="10" fill="var(--cy)"/>
+<circle cx="130" cy="46" r="10" fill="var(--panel2)" stroke="var(--cy)" stroke-width="2"/>
+<circle cx="220" cy="46" r="10" fill="var(--am)"/>
+<circle cx="300" cy="46" r="10" fill="var(--ok)"/>
+</g>
+<g font-size="11.5" fill="var(--text)" text-anchor="middle">
+<text x="40" y="76">A1/A3</text>
+<text x="130" y="76">A2</text>
+<text x="220" y="76">Teórico STS</text>
+<text x="300" y="76">Práctico</text>
+</g>
+<g font-size="10" fill="var(--mute)" text-anchor="middle">
+<text x="40" y="94">40 preguntas</text>
+<text x="40" y="106">obligatorio</text>
+<text x="130" y="94">30 preguntas</text>
+<text x="130" y="106">opcional</text>
+<text x="220" y="94">40 en 40 min</text>
+<text x="220" y="106">30 en 30 con A2</text>
+<text x="300" y="94">por escenario</text>
+<text x="300" y="106">entidad reconocida</text>
+</g>
+<text x="130" y="26" fill="var(--mute)" font-size="10" text-anchor="middle">acorta el STS</text>
+<rect x="60" y="126" width="220" height="28" rx="6" fill="rgba(85,214,160,.1)" stroke="var(--ok)"/>
+<text x="170" y="145" fill="var(--ok)" font-size="11.5" text-anchor="middle">Declaración operacional y a volar</text>
+<text x="14" y="145" fill="var(--am)" font-size="10">5 años</text>
+<text x="14" y="158" fill="var(--am)" font-size="10">de validez</text>
+</svg>`,
+  },
+};
+
+Object.assign(DIAGRAMAS, DIAGRAMAS2);
+
+const TEMARIO = {
+  a13: [
+    {
+      t: "1 · Marco normativo y quién es quién",
+      d: ["normativa"],
+      d: ["normativa"],
+      p: [
+        "La normativa europea de drones descansa sobre dos reglamentos. El Reglamento de Ejecución (UE) 2019/947 regula las operaciones: qué puedes hacer, dónde, con qué competencia. El Reglamento Delegado (UE) 2019/945 regula el producto: los requisitos técnicos que debe cumplir un dron para llevar el marcado de clase C0 a C6.",
+        "En España los desarrolla el Real Decreto 517/2024, en vigor desde el 25 de junio de 2024, que sustituyó al RD 1036/2017. Regula el uso del espacio aéreo por UAS, las zonas geográficas, el régimen de seguro y los requisitos nacionales complementarios.",
+        "El operador de UAS es la persona física o jurídica que explota la aeronave. Es quien se registra, quien responde legalmente de la operación y quien debe asegurarse de que sus pilotos están cualificados. En el vuelo recreativo suele coincidir con el piloto, pero jurídicamente son figuras distintas.",
+        "El piloto a distancia es quien maneja los mandos y toma las decisiones de vuelo en tiempo real. Debe acreditar su competencia, conocer la zona y decidir si la operación se puede realizar con seguridad. Puede y debe negarse a volar si no lo ve claro, aunque el cliente insista.",
+        "AESA es la autoridad aeronáutica nacional: registra operadores, emite y revalida certificados, recibe las declaraciones operacionales, concede autorizaciones y ejerce la inspección y la potestad sancionadora. EASA es la agencia europea que elabora la normativa técnica.",
+      ],
+      k: ["2019/947 = operaciones · 2019/945 = producto", "RD 517/2024 en vigor desde el 25/06/2024", "Operador ≠ piloto a distancia"],
+    },
+    {
+      t: "2 · Las tres categorías de operación",
+      d: ["categorias"],
+      d: ["categorias"],
+      p: [
+        "La normativa no clasifica por uso recreativo o profesional, sino por riesgo. El mismo vuelo puede ser de ocio o de trabajo: lo que importa es el riesgo que genera.",
+        "Categoría abierta: bajo riesgo. No requiere autorización ni declaración previa. A cambio, opera dentro de límites estrictos: menos de 25 kg, VLOS, 120 m de altura, sin sobrevolar aglomeraciones y sin transporte de mercancías peligrosas. Se divide en A1, A2 y A3.",
+        "Categoría específica: riesgo medio. Aparece en cuanto sales de alguno de esos límites, por ejemplo volando BVLOS, por encima de 120 m o más cerca de personas de lo permitido. Requiere una declaración operacional bajo escenario estándar, una autorización operacional tras un análisis SORA, o un certificado LUC.",
+        "Categoría certificada: alto riesgo. Transporte de personas, de mercancías peligrosas con riesgo elevado para terceros u operaciones sobre aglomeraciones con aeronaves de gran tamaño. Exige certificación de la aeronave, certificación del operador y licencia del piloto, con un régimen equivalente al de la aviación tripulada.",
+        "La categoría no la eliges tú: viene determinada por las características de la operación que quieres hacer. Si tu operación no cabe en la abierta, la solución no es volar igualmente, sino subir de categoría.",
+      ],
+      k: ["Abierta, específica y certificada", "La clasificación es por riesgo, no por uso recreativo o profesional"],
+    },
+    {
+      t: "3 · Registro, marcado e identificación a distancia",
+      d: ["registro"],
+      d: ["registro"],
+      p: [
+        "El registro como operador de UAS es obligatorio cuando el dron tiene una MTOM de 250 g o más, o cuando lleva una cámara u otro sensor capaz de captar datos personales, salvo que sea un juguete conforme a la directiva correspondiente. Es decir: un dron de 150 g con cámara también obliga a registrarse.",
+        "El registro se hace en la sede electrónica de AESA y proporciona un número de operador de UAS. Ese número hay que marcarlo de forma legible en todas las aeronaves del operador y además cargarlo en el sistema de identificación a distancia del UAS.",
+        "El registro es del operador, no del dron. Un mismo número sirve para toda tu flota. Tiene una vigencia limitada y hay que renovarlo; conviene tenerlo controlado porque volar con el registro caducado es una infracción.",
+        "La identificación a distancia directa emite en tiempo real, por radiodifusión, el número de operador, el número de serie del UAS, su posición, altura, rumbo y velocidad, la posición del piloto o del punto de despegue, y una marca temporal. Es lo que permite a las autoridades identificar un dron en vuelo.",
+        "Las clases C1, C2, C3, C5 y C6 incorporan identificación a distancia directa y geoconciencia, esta última avisa al piloto cuando se aproxima a los límites de una zona geográfica de UAS. El C0 no la lleva por su bajo riesgo.",
+      ],
+      k: ["Registro si MTOM ≥ 250 g o sensor de datos personales", "Número visible en el dron + cargado en la ID a distancia", "El registro es del operador, no de cada dron"],
+    },
+    {
+      t: "4 · Límites de la categoría abierta",
+      d: ["altura120"],
+      p: [
+        "MTOM inferior a 25 kg. La masa máxima de despegue incluye el dron, la batería y todo lo que lleve montado: no es el peso que viene en la caja.",
+        "Vuelo siempre en VLOS, contacto visual directo y continuo con la aeronave sin ayudas ópticas más allá de las gafas o lentillas correctoras. El objetivo del VLOS no es ver la cámara, sino ver el dron y el espacio aéreo que lo rodea.",
+        "Altura máxima de 120 m sobre el punto más cercano de la superficie terrestre. Esto es importante en terreno con pendiente: si despegas en un valle y avanzas ladera arriba, la referencia va cambiando y el altímetro del mando, que mide respecto al despegue, te engaña.",
+        "Excepción para obstáculos: si sobrevuelas un obstáculo de más de 105 m de altura, puedes llegar hasta 15 m por encima de su altura máxima, siempre a petición de la persona responsable del obstáculo. Es lo que permite inspeccionar antenas, chimeneas o aerogeneradores.",
+        "Prohibido sobrevolar aglomeraciones de personas en cualquier subcategoría. No hay excepción, ni con un dron de 100 g, ni con seguro, ni con permiso municipal.",
+        "Prohibido transportar mercancías peligrosas y prohibido lanzar o soltar cualquier material desde el UAS.",
+        "El piloto debe mantener el dron alejado de aeronaves tripuladas y cederles siempre el paso. Ante la aparición de una aeronave tripulada, la reacción correcta es descender y aterrizar o alejarse de inmediato, nunca subir para que te vea.",
+        "Un solo piloto a distancia por aeronave en cada momento, y sin volar bajo los efectos del alcohol, drogas o medicación que afecte a la capacidad.",
+      ],
+      k: ["25 kg · VLOS · 120 m", "+15 m sobre obstáculos de más de 105 m", "Nunca aglomeraciones, mercancías peligrosas ni suelta de objetos"],
+    },
+    {
+      t: "5 · Subcategorías A1, A2 y A3",
+      d: ["subcategorias", "clases"],
+      p: [
+        "A1 — volar cerca de personas. Admite las clases C0 y C1. Con un C0, de menos de 250 g, puedes sobrevolar personas no participantes, aunque nunca aglomeraciones. Con un C1, de menos de 900 g o con energía de impacto por debajo de 80 J, no debes sobrevolar intencionadamente a personas no participantes y, si ocurre de forma imprevista, tienes que reducir al mínimo el tiempo de sobrevuelo.",
+        "A2 — volar a distancia segura de personas. Admite la clase C2, de menos de 4 kg. Exige mantener al menos 30 m horizontales respecto a personas no participantes, distancia reducible a 5 m si el UAS dispone de modo de baja velocidad y lo tienes activado. Requiere el certificado de competencia A2.",
+        "A3 — volar lejos de personas. Admite las clases C3 y C4, además de los drones sin marcado de clase de hasta 25 kg. Hay que operar a 150 m como mínimo de zonas residenciales, comerciales, industriales o recreativas, y en un área donde razonablemente no vaya a haber ninguna persona no participante dentro del radio de la operación.",
+        "Drones sin marcado de clase, heredados o de construcción privada: si pesan menos de 250 g pueden volar en A1; hasta 25 kg, solo en A3. Es la situación de la mayoría de los drones anteriores a 2024 que siguen en uso.",
+        "Características de las clases: el C0 no supera los 19 m/s ni permite superar los 120 m; el C1 añade identificación a distancia, geoconciencia, luces y aviso de batería baja; el C2 incorpora el modo de baja velocidad limitado a 3 m/s; el C3 llega hasta 25 kg con una dimensión máxima de 3 m; el C4 está pensado para aeromodelismo y no dispone de modos automáticos de control, salvo la estabilización.",
+      ],
+      k: ["A1: C0 y C1 · A2: C2 · A3: C3, C4 y sin clase", "C0 < 250 g · C1 < 900 g u 80 J · C2 < 4 kg · C3 < 25 kg"],
+    },
+    {
+      t: "6 · Seguridad aérea y espacio aéreo",
+      d: ["espacio"],
+      p: [
+        "El espacio aéreo se clasifica de la A a la G. De la A a la E es espacio aéreo controlado, donde existe servicio de control de tránsito aéreo. F y G son no controlados. La mayoría de los vuelos de dron se realizan en espacio G, pero eso no significa que sea espacio libre.",
+        "Estructuras que debes reconocer: el FIR es la región de información de vuelo; el CTR es la zona de control en torno a un aeródromo, desde la superficie hacia arriba; el ATZ es la zona de tránsito de aeródromo; el TMA es el área terminal donde convergen las llegadas y salidas; las aerovías son rutas del tránsito en ruta.",
+        "También hay zonas con restricciones específicas publicadas en la AIP: prohibidas, restringidas y peligrosas. En España se identifican con los códigos LEP, LER y LED seguidos de un número.",
+        "El NOTAM es un aviso a los navegantes aéreos que informa de situaciones temporales: trabajos, incendios forestales con medios aéreos, actos aéreos, vuelos de autoridades. Un NOTAM puede cerrar una zona que ayer estaba disponible.",
+        "El tráfico que más riesgo supone para un dron es el que vuela bajo: helicópteros sanitarios y de rescate, aeronaves de extinción de incendios, trabajos agrícolas, aeronaves ligeras en circuito de aeródromo, paramotores y globos. Ninguno espera encontrarse un dron.",
+        "Si hay medios aéreos trabajando en un incendio o en un rescate, no se vuela. Un dron puede obligar a suspender la operación de extinción, con consecuencias graves y responsabilidad penal.",
+      ],
+      k: ["A–E controlado · F y G no controlado", "CTR, ATZ, TMA, FIR, LEP, LER, LED", "Ante aeronave tripulada: ceder el paso siempre"],
+    },
+    {
+      t: "7 · Zonas geográficas de UAS",
+      d: ["zonas"],
+      d: ["zonas"],
+      p: [
+        "Las zonas geográficas de UAS son áreas donde el vuelo está prohibido, limitado o sujeto a condiciones. Las establecen los Estados por motivos de seguridad aérea, seguridad pública, privacidad o protección medioambiental.",
+        "En España se consultan en la aplicación y el visor ENAIRE Drones y en la información publicada por AESA. La consulta previa no es un consejo, es parte de la preparación obligatoria del vuelo.",
+        "Casos típicos que limitan el vuelo: entornos de aeropuertos y aeródromos, incluidos los helipuertos de hospitales, que a menudo pasan desapercibidos; instalaciones militares y centrales nucleares; espacios naturales protegidos con normativa propia de la comunidad autónoma; entornos urbanos con espacio aéreo controlado por encima.",
+        "Hay restricciones que no son aeronáuticas y que se suman a las anteriores: ordenanzas municipales, normas de parques naturales, permisos de propiedad privada y autorizaciones de filmación. Cumplir la norma aeronáutica no te exime del resto.",
+        "Antes de cada vuelo conviene una rutina fija: zonas geográficas, NOTAM, meteorología, estado del equipo y plan alternativo. Cinco minutos de consulta evitan la mayoría de los problemas.",
+      ],
+      k: ["ENAIRE Drones e información de AESA antes de cada vuelo", "Las restricciones municipales y ambientales se suman a las aeronáuticas"],
+    },
+    {
+      t: "8 · Conocimiento general del UAS",
+      d: ["sistema"],
+      d: ["sistema"],
+      p: [
+        "Un UAS es el conjunto de la aeronave, la estación de pilotaje, el enlace de mando y control y cualquier otro elemento necesario para la operación. El dron por sí solo no es el sistema completo.",
+        "El enlace de mando y control, conocido como C2, transmite las órdenes y la telemetría. Trabaja en bandas compartidas y es sensible a interferencias, obstáculos y distancia. Perder el vídeo no es lo mismo que perder el C2: lo primero es incómodo, lo segundo es una emergencia.",
+        "El posicionamiento se apoya en constelaciones GNSS, y se complementa con barómetro, unidad inercial, brújula y sensores visuales. En entornos urbanos las señales rebotan en las fachadas, lo que provoca errores de posición y derivas.",
+        "La brújula y la IMU requieren calibración periódica, siempre lejos de estructuras metálicas, armaduras de hormigón, vehículos y campos magnéticos. Una calibración contaminada provoca errores de rumbo y el efecto de giro en círculos conocido como toilet bowl.",
+        "Baterías de polímero de litio: son el componente más delicado. No se cargan ni se usan muy frías, no se descargan a fondo, se almacenan en torno al 40 o 60 por ciento de carga y una batería hinchada o dañada se retira de servicio y no se perfora nunca.",
+        "Hélices: cualquier muesca, grieta o deformación desequilibra el conjunto, genera vibraciones y degrada la estabilidad y la imagen. Se sustituyen por parejas y con recambios del fabricante.",
+        "El firmware actualizado corrige fallos conocidos, pero conviene actualizar en casa y probar el dron antes de un trabajo, nunca en el sitio y con el cliente esperando.",
+      ],
+      k: ["UAS = aeronave + estación + enlace C2", "Calibrar lejos de metal · LiPo al 40–60 % para almacenar"],
+    },
+    {
+      t: "9 · Procedimientos operacionales",
+      d: ["fases"],
+      d: ["fases"],
+      p: [
+        "Planificación: definir el objetivo del vuelo, estudiar la zona, comprobar zonas geográficas y NOTAM, revisar la meteorología prevista, identificar obstáculos y tendidos eléctricos, elegir punto de despegue y una zona alternativa de aterrizaje.",
+        "Prevuelo: inspección visual del dron, hélices, tren, sensores y cámara, estado y temperatura de baterías, tarjeta de memoria, niveles de firmware, calibraciones, comprobación del enlace y ajuste del failsafe y de la altura de retorno automático.",
+        "La altura de retorno debe estar siempre por encima del obstáculo más alto de la ruta de vuelta. Es uno de los errores que más drones cuesta: el RTH se activa y el dron regresa en línea recta contra un edificio o una arboleda.",
+        "Delimitación y briefing: marcar la zona de despegue, informar a las personas participantes de los riesgos y de qué deben hacer, y decidir de antemano qué se hace si aparece alguien ajeno a la operación.",
+        "Durante el vuelo: mantener el VLOS, vigilar el espacio aéreo tanto como el dron, controlar el consumo real de batería y respetar el margen de retorno fijado, no el aviso de batería crítica.",
+        "Emergencias previstas: pérdida del enlace C2, pérdida de posicionamiento, fallo de motor, aviso de batería baja en el punto más alejado, aparición de aeronave tripulada, entrada de personas en la zona y condiciones meteorológicas que se deterioran. Cada una debe tener una respuesta decidida antes de despegar.",
+        "Postvuelo: inspección del equipo, registro del vuelo y de las incidencias, gestión de las baterías y copia de los datos. Un registro de vuelos bien llevado es la mejor defensa ante cualquier reclamación.",
+        "Notificación de sucesos: los accidentes e incidentes se notifican a AESA conforme al Reglamento (UE) 376/2014. El sistema es de cultura justa, orientado a aprender, no a castigar.",
+      ],
+      k: ["Altura de RTH por encima del obstáculo más alto", "Margen de retorno propio, no el aviso de batería crítica", "Notificación de sucesos: Reglamento (UE) 376/2014"],
+    },
+    {
+      t: "10 · Limitaciones del rendimiento humano",
+      d: ["atencion"],
+      d: ["atencion"],
+      p: [
+        "La conciencia situacional consiste en tres niveles: percibir lo que ocurre, comprender qué significa y anticipar qué va a pasar. Perder cualquiera de los tres es el origen de la mayoría de los incidentes.",
+        "La visión tiene límites que afectan al pilotaje. La visión central, la única nítida, abarca un campo estrecho; la periférica detecta movimiento pero no detalle. A partir de cierta distancia dejas de distinguir la orientación del dron aunque sigas viéndolo como un punto.",
+        "Un error clásico de percepción: cuando el dron viene de frente hacia ti, la respuesta a los mandos se percibe invertida. Practicar esa situación en zona despejada es lo que evita el bloqueo el día que ocurre de verdad.",
+        "La atención es un recurso limitado. El efecto túnel o fijación consiste en concentrarse en la pantalla o en un detalle y dejar de percibir el entorno. La solución práctica es alternar deliberadamente la mirada entre el dron, el entorno y la pantalla.",
+        "Fatiga y estrés reducen la capacidad de anticipación y multiplican los errores. El estrés agudo estrecha la atención; la fatiga crónica degrada el juicio sin que lo notes.",
+        "La presión por terminar, sea del cliente o propia, es el factor que más decisiones malas provoca: volar con viento excesivo, con poca batería o con luz insuficiente. Conviene fijar los límites antes de llegar al sitio, cuando todavía se piensa con frialdad.",
+        "La complacencia aparece cuando todo ha ido bien muchas veces: se saltan pasos del checklist y se asume que la zona sigue igual que el mes pasado.",
+        "Los accidentes rara vez tienen una sola causa: son una cadena de pequeños fallos alineados. Romper cualquier eslabón evita el suceso.",
+        "Alcohol, drogas y medicación que afecte a la capacidad: prohibición directa. Una autoevaluación honesta del estado físico y mental antes de volar forma parte del procedimiento.",
+      ],
+      k: ["Percibir, comprender y anticipar", "Efecto túnel, complacencia y presión por terminar", "Cadena de errores: basta con romper un eslabón"],
+    },
+    {
+      t: "11 · Privacidad y protección de datos",
+      d: ["privacidad"],
+      d: ["privacidad"],
+      p: [
+        "Captar imágenes de personas identificables es un tratamiento de datos personales, y lo es aunque ocurra en la vía pública. Se aplican el Reglamento General de Protección de Datos (UE) 2016/679 y la Ley Orgánica 3/2018, con la Agencia Española de Protección de Datos como autoridad de control.",
+        "Principios que debes poder justificar: licitud, con una base legal como el consentimiento o el interés legítimo; minimización, captando solo lo necesario; limitación de la finalidad; y conservación limitada de las grabaciones.",
+        "Obligación de informar: señalización en la zona, avisos y, en proyectos con tratamiento intensivo, evaluación de impacto. Si trabajas para un cliente, conviene dejar por escrito quién es el responsable del tratamiento.",
+        "Al margen de la protección de datos, la Ley Orgánica 1/1982 protege el derecho al honor, a la intimidad personal y familiar y a la propia imagen. Grabar el interior de una vivienda, una piscina privada o una terraza puede vulnerar ese derecho aunque no publiques nada.",
+        "Buenas prácticas: encuadrar hacia donde no hay personas, desactivar la grabación en los desplazamientos, difuminar caras y matrículas en el material que se difunde y custodiar las tarjetas de memoria.",
+      ],
+      k: ["RGPD y LOPDGDD 3/2018 · autoridad: AEPD", "LO 1/1982: honor, intimidad y propia imagen"],
+    },
+    {
+      t: "12 · Seguro",
+      d: ["seguro"],
+      d: ["seguro"],
+      p: [
+        "Conforme al artículo 8 del Real Decreto 517/2024, el seguro de responsabilidad civil no es exigible en la subcategoría A1, ni en A3 cuando la MTOM es inferior a 20 kg.",
+        "Sí es obligatorio en el resto de las operaciones de categoría abierta por debajo de 20 kg, lo que en la práctica significa la subcategoría A2, conforme al Real Decreto 37/2001.",
+        "Para todo UAS con MTOM de 20 kg o más se aplica el Reglamento (CE) 785/2004, con límites de cobertura superiores.",
+        "En las categorías específica y certificada el seguro es siempre obligatorio, sin excepciones.",
+        "Que no sea legalmente exigible no significa que sea prescindible. Los daños a terceros los pagas igual, y un dron pequeño que cae sobre un parabrisas o sobre una persona genera responsabilidad civil completa.",
+      ],
+      k: ["Sin seguro obligatorio: A1 y A3 bajo 20 kg", "Con seguro: A2, todo UAS ≥ 20 kg, específica y certificada"],
+    },
+    {
+      t: "13 · Seguridad frente a actos ilícitos",
+      d: ["security"],
+      d: ["security"],
+      p: [
+        "La seguridad en sentido de protección, lo que en inglés se llama security, cubre la protección del sistema frente a interferencias, accesos no autorizados y usos indebidos.",
+        "Riesgos habituales: interferencia o bloqueo de la señal GNSS, suplantación de la señal de posición, interceptación del enlace de mando y control, acceso no autorizado a la aplicación o a la cuenta, y robo o pérdida del equipo con material grabado dentro.",
+        "Medidas básicas: firmware y aplicaciones actualizados, contraseñas robustas y distintas, redes wifi propias y protegidas, cifrado de los soportes, control de quién manipula el equipo y no dejar nunca el dron desatendido.",
+        "En el ámbito de la operación: reservar los datos sensibles de infraestructuras críticas, no publicar planes de vuelo detallados de instalaciones sensibles y comunicar a la autoridad cualquier intento de manipulación o uso indebido.",
+      ],
+      k: ["Jamming y spoofing de GNSS", "Firmware al día, accesos protegidos, equipo nunca desatendido"],
+    },
+  ],
+  a2: [
+    {
+      t: "1 · Qué añade el certificado A2",
+      d: ["bajavelocidad"],
+      d: ["bajavelocidad"],
+      p: [
+        "El A2 permite operar UAS de clase C2, de menos de 4 kg, acercándose a personas no participantes más de lo que permite A3. Todo lo demás de la categoría abierta sigue vigente: 120 m, VLOS y prohibición de sobrevolar aglomeraciones.",
+        "La distancia mínima general es de 30 m horizontales respecto a personas no participantes. Se puede reducir a 5 m si el UAS dispone de modo de baja velocidad y está activado, lo que limita la velocidad a 3 m/s.",
+        "Para presentarse hay que tener la prueba de superación de la formación en línea A1/A3 y haber completado una autoformación práctica en condiciones equivalentes a A3, que el propio piloto declara.",
+        "El examen consta de 30 preguntas y exige 23 aciertos. Es televigilado, con cámara, micrófono y pantalla compartida. El certificado tiene una validez de 5 años.",
+        "El temario añadido sobre el de A1/A3 es de tres materias: meteorología, rendimiento de vuelo del UAS y medidas técnicas y operacionales de mitigación del riesgo en tierra.",
+      ],
+      k: ["30 m, o 5 m con modo de baja velocidad a 3 m/s", "30 preguntas, 23 aciertos, validez 5 años"],
+    },
+    {
+      t: "2 · Meteorología I: atmósfera, presión y densidad",
+      d: ["densidad"],
+      d: ["densidad"],
+      p: [
+        "La atmósfera estándar internacional toma como referencia 15 °C y 1013,25 hPa al nivel del mar, con una disminución de la temperatura de aproximadamente 2 °C por cada 1000 ft de ascenso, unos 6,5 °C por kilómetro.",
+        "La densidad del aire es lo que determina el rendimiento. Cuanta menos densidad, menos masa de aire mueven las hélices y menos empuje generan para el mismo régimen de motor.",
+        "Tres factores reducen la densidad: la temperatura alta, la altitud elevada y la humedad alta. Los tres juntos, un día de verano en montaña, producen una pérdida de rendimiento muy notable: el dron sube peor, responde con pereza y consume más.",
+        "El concepto de altitud de densidad resume esa idea: un dron volando a 1500 m en un día muy caluroso se comporta como si estuviera bastante más alto.",
+        "Presión y altimetría: el QNH es el reglaje que hace que el altímetro marque la altitud sobre el nivel del mar; el QFE marca altura sobre un punto concreto. Los drones habituales miden altura relativa al punto de despegue mediante barómetro, y ese dato se desajusta si la presión cambia durante una sesión larga.",
+      ],
+      k: ["ISA: 15 °C y 1013,25 hPa · –2 °C por cada 1000 ft", "Calor, altitud y humedad bajan la densidad y el rendimiento"],
+    },
+    {
+      t: "3 · Meteorología II: viento y turbulencia",
+      d: ["viento", "venturi"],
+      p: [
+        "El viento aumenta con la altura porque el rozamiento con el terreno frena las capas bajas. Es el gradiente de viento: lo que notas en la mano al despegar no es lo que va a encontrar el dron a 100 m.",
+        "La turbulencia mecánica se genera a sotavento de obstáculos: edificios, arboledas, crestas y muros. Aparecen rotores y corrientes descendentes que pueden hacer perder altura de golpe.",
+        "El efecto Venturi acelera el viento al estrecharse el paso: entre dos edificios, en un desfiladero o en un collado. Es una de las trampas clásicas del vuelo urbano y del vuelo en montaña.",
+        "La turbulencia térmica o convectiva aparece en días soleados por el calentamiento desigual del terreno, con ascendencias sobre superficies oscuras y secas y descendencias sobre zonas frescas o arboladas.",
+        "La cizalladura es un cambio brusco de dirección o intensidad del viento en poco espacio. Para un dron pequeño supone una pérdida repentina de control de la actitud.",
+        "Las ráfagas son picos instantáneos por encima del viento medio. La referencia útil no es la media prevista, sino la ráfaga máxima comparada con la velocidad máxima del dron: si la ráfaga se acerca a su velocidad punta, el dron puede no ser capaz de regresar contra el viento.",
+        "Brisas locales: de valle ascendente durante el día y de montaña descendente por la noche, y brisas de mar y tierra en la costa, que cambian de sentido a lo largo de la jornada.",
+      ],
+      k: ["Gradiente de viento: más viento arriba que abajo", "Turbulencia mecánica a sotavento · Venturi entre edificios", "Compara la ráfaga máxima con la velocidad punta del dron"],
+    },
+    {
+      t: "4 · Meteorología III: nubes, visibilidad e información",
+      d: ["nubes"],
+      d: ["nubes"],
+      p: [
+        "Nubes de desarrollo vertical: el cumulonimbus es la nube de tormenta. Su entorno reúne rachas violentas, cizalladura, corrientes descendentes, granizo y actividad eléctrica, y todo eso puede aparecer antes de que caiga la primera gota. No se vuela.",
+        "Cuando la temperatura y el punto de rocío se aproximan, el aire está cerca de la saturación y aumenta la probabilidad de niebla o de nubes bajas. Una diferencia pequeña es una señal de alerta de visibilidad.",
+        "La niebla de radiación se forma en noches despejadas y sin viento, típicamente al amanecer en valles y zonas húmedas: precisamente las horas y los sitios del vuelo de paisaje. La niebla de advección se produce cuando aire húmedo y templado se desplaza sobre una superficie más fría.",
+        "La humedad y la lluvia son un riesgo eléctrico directo para la mayoría de los drones civiles, que no están protegidos. Con temperaturas cercanas a cero puede haber engelamiento en las palas, que altera el perfil y hace perder sustentación de forma acelerada.",
+        "El METAR es un informe de observación real de un aeródromo; el TAF es una predicción para un periodo. En ambos se leen dirección e intensidad del viento con sus ráfagas, visibilidad, fenómenos significativos, nubosidad con su altura, temperatura, punto de rocío y presión.",
+        "Fuentes prácticas: AEMET, la información aeronáutica de ENAIRE y los modelos de viento en altura. Conviene contrastar al menos dos y valorar la tendencia, no solo la foto del momento.",
+      ],
+      k: ["Cumulonimbus = tormenta = no se vuela", "Temperatura y rocío próximos = riesgo de niebla", "METAR observa · TAF predice"],
+    },
+    {
+      t: "5 · Rendimiento de vuelo del UAS",
+      d: ["autonomia"],
+      d: ["autonomia"],
+      p: [
+        "La masa condiciona todo. Cada gramo añadido exige más empuje, reduce la autonomía, alarga la distancia de frenado, empeora la capacidad de ascenso y deja menos margen de potencia para responder a una ráfaga.",
+        "La autonomía real no es la del catálogo. Esa cifra se mide en vuelo estacionario, sin viento y a temperatura ideal. Con viento, frío, maniobras y carga de pago puede caer a la mitad.",
+        "El viento afecta de forma asimétrica. La ida con viento en cola es rápida y engañosamente barata; el regreso con viento en cara consume mucho más y es donde se producen la mayoría de los aterrizajes forzosos por batería.",
+        "Velocidad respecto al aire y respecto al suelo: el dron vuela respecto a la masa de aire, pero avanza sobre el terreno. Con viento fuerte en cara la velocidad respecto al suelo puede acercarse a cero aunque los motores estén a tope.",
+        "El margen de potencia es lo que te queda disponible para corregir. Cuanto más cargado, más caliente el aire y más alto vueles, menos margen tienes y más brusca es la pérdida de control ante una racha.",
+        "Reserva de batería: fija un porcentaje de retorno antes de despegar, calculado con el viento del regreso, y respétalo. El aviso de batería crítica no es una planificación, es una alarma.",
+      ],
+      k: ["Más peso: menos autonomía y más distancia de frenado", "La autonomía de catálogo no es la real", "Fija tu margen de retorno antes de despegar"],
+    },
+    {
+      t: "6 · Baterías y sistemas",
+      d: ["lipo"],
+      d: ["lipo"],
+      p: [
+        "Las baterías de polímero de litio ofrecen mucha energía por unidad de masa a cambio de ser exigentes. Su tensión cae bajo carga y se degradan con los ciclos, el calor y las descargas profundas.",
+        "El frío reduce la capacidad disponible y provoca caídas bruscas de tensión: el porcentaje se desploma sin aviso. En invierno conviene transportarlas templadas y no despegar con la batería fría.",
+        "El calor extremo, la carga rápida y las descargas profundas aceleran el envejecimiento. Para almacenamiento prolongado se dejan en torno al 40 o 60 por ciento de carga, unos 3,8 V por celda.",
+        "Una batería hinchada, deformada o que se calienta de forma anómala está dañada y se retira de servicio. No se perfora, no se deja cargando sin vigilancia y se transporta en contenedor resistente al fuego.",
+        "Motores y hélices: vibraciones, ruidos anómalos o juego en los ejes son señales de desgaste. Una hélice con una muesca mínima desequilibra el conjunto y degrada tanto la estabilidad como la imagen.",
+        "Sensores: la brújula se calibra lejos de metal, la IMU sobre superficie nivelada y estable, y los sensores de obstáculos no funcionan bien con superficies transparentes, reflectantes, uniformes o con poca luz.",
+      ],
+      k: ["Frío: menos capacidad y caídas de tensión", "Almacenar al 40–60 % · retirar baterías hinchadas"],
+    },
+    {
+      t: "7 · Fenómenos de vuelo que conviene conocer",
+      d: ["vrs", "efectosuelo"],
+      p: [
+        "Efecto suelo: cerca del suelo, a menos de aproximadamente un diámetro de rotor, el flujo se ve alterado y aumenta la sustentación. El dron parece flotar, rebota al aterrizar y puede desplazarse lateralmente de forma inesperada.",
+        "Anillo de vórtices: al descender vertical y rápido, el dron cae dentro de su propia estela descendente. Pierde sustentación, oscila y deja de responder a la potencia. La salida correcta es un desplazamiento lateral o hacia delante para salir del aire sucio, nunca aumentar potencia en vertical.",
+        "Autorrotación no existe en un multirrotor: si falla la propulsión, cae. Por eso las mitigaciones pasan por el paracaídas y por no situar el dron donde la caída sea inaceptable.",
+        "Saturación de los mandos: cuando el viento exige casi todo el empuje disponible para mantener la posición, cualquier orden adicional ya no se puede ejecutar. El dron parece estable hasta que deja de serlo, de golpe.",
+        "Interferencia magnética en cubiertas, estructuras metálicas o cerca de tendidos eléctricos: provoca errores de rumbo y el giro en círculos amplios conocido como toilet bowl. La respuesta es pilotar en manual, alejarse de la fuente y aterrizar para recalibrar.",
+        "Pérdida de posicionamiento en entorno urbano por rebotes de la señal: la posición salta, el dron deriva. Conviene tener practicado el pilotaje en modo sin asistencia de posición, con referencia visual directa.",
+      ],
+      k: ["Efecto suelo cerca del terreno", "Anillo de vórtices: salir en horizontal, no con más potencia"],
+    },
+    {
+      t: "8 · Mitigación del riesgo en tierra",
+      d: ["regla11"],
+      d: ["regla11"],
+      p: [
+        "La energía de un impacto depende de la masa y del cuadrado de la velocidad. Duplicar la velocidad multiplica por cuatro la energía. Por eso el modo de baja velocidad reduce el daño potencial de forma drástica sin cambiar el dron.",
+        "La regla 1:1 es una referencia práctica de zona de seguridad: mantener una distancia horizontal al menos igual a la altura de vuelo, porque un dron que pierde control describe una trayectoria, no cae en vertical.",
+        "Más altura implica mayor área de dispersión posible y más energía al llegar al suelo. Volar más alto no siempre es más seguro para quien está debajo.",
+        "Selección del emplazamiento: superficie firme y nivelada, despejada de obstáculos que generen turbulencia, alejada de personas no participantes, de vías de circulación y de tendidos, y con una zona alternativa de aterrizaje identificada.",
+        "Persona participante es la que está informada de los riesgos, ha dado su consentimiento y se encuentra bajo el control del operador. Quien no reúne las tres condiciones es persona no participante, aunque sea un conocido o el cliente.",
+        "Gestión de terceros: delimitación visible de la zona, señalización, un ayudante que vigile los accesos cuando el entorno lo requiera, y una decisión tomada de antemano sobre qué hacer si alguien entra: aumentar la distancia, interrumpir la maniobra o aterrizar.",
+        "Mitigaciones técnicas: modo de baja velocidad, limitación de altura, geovallado, protectores de hélice y sistemas de terminación del vuelo o paracaídas, que reducen la energía del impacto.",
+        "Mitigaciones operacionales: elegir horarios de poca afluencia, planificar trayectorias que no sobrevuelen zonas sensibles y mantener siempre una vía de escape hacia una zona despejada.",
+      ],
+      k: ["La energía crece con el cuadrado de la velocidad", "Regla 1:1 como zona de seguridad", "Participante: informada, consintiente y bajo control"],
+    },
+  ],
+  sts: [
+    {
+      t: "1 · Cómo se accede a la categoría específica",
+      d: ["vias"],
+      d: ["vias"],
+      p: [
+        "Se entra en categoría específica en cuanto la operación excede los límites de la abierta: vuelo BVLOS, por encima de 120 m, con más de 25 kg, más cerca de personas de lo permitido o con suelta de materiales, entre otros supuestos.",
+        "Primera vía: declaración operacional bajo un escenario estándar. El operador declara ante AESA que su operación se ajusta íntegramente a un STS publicado y que cumple todos sus requisitos. AESA emite un acuse de recibo e integridad.",
+        "Segunda vía: autorización operacional. Cuando la operación no encaja en un escenario estándar ni en un PDRA, el operador realiza un análisis de riesgos SORA y solicita autorización individual, que AESA concede con las condiciones que estime.",
+        "Tercera vía: certificado LUC, de operador ligero de UAS. Acredita que la organización tiene un sistema de gestión capaz de evaluar sus propios riesgos, y le permite autoautorizar operaciones dentro del alcance aprobado.",
+        "Un PDRA es un escenario de riesgo predefinido: un SORA ya resuelto para un tipo de operación frecuente, que ahorra buena parte del análisis pero sigue exigiendo autorización.",
+        "El acuse de recibo de una declaración no es una autorización. La responsabilidad de que la operación cumpla lo declarado recae íntegramente en el operador.",
+      ],
+      k: ["Declaración (STS), autorización (SORA) o LUC", "El acuse de la declaración no es una autorización"],
+    },
+    {
+      t: "2 · STS-01 en detalle",
+      d: ["sts01"],
+      d: ["sts01"],
+      p: [
+        "Escenario de operaciones en VLOS sobre una zona terrestre controlada, en un entorno que puede ser poblado. Es el escenario típico del trabajo aéreo urbano: inspección de fachadas, obra, coberturas de evento en zona acotada.",
+        "Exige UAS de clase C5. El C5 puede ser un equipo diseñado como tal o un C3 al que se le ha instalado un kit de conversión que cumpla los requisitos de la clase.",
+        "La aeronave se mantiene siempre en contacto visual directo con el piloto, y la altura máxima es de 120 m, con la misma excepción de 15 m sobre obstáculos de más de 105 m a petición de su responsable.",
+        "La zona terrestre controlada es el elemento clave: un área en tierra delimitada por el operador dentro de la cual solo pueden encontrarse personas participantes. El operador debe poder garantizar ese control durante toda la operación, y no solo al empezar.",
+        "En la práctica eso implica vallado o balizamiento, señalización, personal de vigilancia en los accesos y coordinación previa con quien gestione el espacio, ya sea el ayuntamiento, la propiedad o la dirección de obra.",
+        "Si el control de la zona se pierde, por ejemplo porque entra un peatón, la operación se interrumpe. No hay margen de tolerancia sobre este punto.",
+      ],
+      k: ["VLOS · entorno poblado · clase C5 · 120 m", "Zona terrestre controlada solo con personas participantes"],
+    },
+    {
+      t: "3 · STS-02 en detalle",
+      d: ["sts02"],
+      p: [
+        "Escenario de operaciones BVLOS, más allá del alcance visual, sobre una zona terrestre controlada en un entorno escasamente poblado. Es el escenario de las inspecciones lineales, la agricultura extensiva y los levantamientos de gran superficie.",
+        "Exige UAS de clase C6, que incorpora limitación de velocidad, conciencia geográfica y medio de terminación del vuelo.",
+        "Distancias máximas respecto al piloto a distancia: hasta 1 km si no se emplean observadores del espacio aéreo, y hasta 2 km cuando se utilizan. La altura máxima sigue siendo de 120 m.",
+        "El observador del espacio aéreo es una persona que vigila el espacio aéreo circundante para detectar tráfico y que mantiene comunicación efectiva y continua con el piloto. No pilota ni sustituye al piloto a distancia: su función es alertar a tiempo.",
+        "La comunicación tiene que ser fiable. Un fallo del enlace de radio con los observadores es motivo suficiente para interrumpir la operación, porque sin ellos se pierde la base del escenario.",
+        "El entorno escasamente poblado no es una apreciación subjetiva: hay que justificarlo con datos de densidad de población y con el reconocimiento previo del terreno, incluidas carreteras y edificaciones aisladas.",
+      ],
+      k: ["BVLOS · escasamente poblado · clase C6", "1 km sin observadores · 2 km con observadores"],
+    },
+    {
+      t: "4 · Clases C5 y C6",
+      d: ["c5c6"],
+      d: ["c5c6"],
+      p: [
+        "Ambas clases comparten el límite de 25 kg de MTOM y la obligación de contar con un medio de terminación del vuelo, que permite finalizar la operación reduciendo la energía del impacto, normalmente mediante paracaídas.",
+        "El C5 incorpora además modo de baja velocidad seleccionable, luces para la visibilidad, enlace robusto con aviso al piloto ante degradación, identificación a distancia directa y geoconciencia.",
+        "El C6 añade limitación de la velocidad respecto al suelo seleccionable y medios para mantener la aeronave dentro del volumen operacional, algo indispensable cuando no la estás viendo.",
+        "Ninguna de las dos clases lleva atadura obligatoria ni exige certificación de aeronavegabilidad: siguen siendo productos regulados por el Reglamento 2019/945, no aeronaves certificadas.",
+        "La posibilidad de convertir un C3 en C5 mediante un kit acreditado fue determinante para la transición, porque permitió reutilizar equipos ya en servicio en lugar de renovar toda la flota.",
+      ],
+      k: ["C5 para STS-01 · C6 para STS-02", "Ambas: 25 kg y medio de terminación del vuelo"],
+    },
+    {
+      t: "5 · Volumen operacional, buffers y zonas",
+      d: ["volumen"],
+      p: [
+        "El volumen de vuelo es el espacio donde está previsto que opere la aeronave en condiciones normales, definido en horizontal y en vertical.",
+        "El volumen de contingencia lo rodea y absorbe las desviaciones razonables: errores de posición, inercia, reacción del piloto y deriva por viento. Volumen de vuelo más volumen de contingencia forman el volumen operacional.",
+        "Alrededor del volumen operacional se define el buffer de riesgo terrestre, que delimita la zona donde la aeronave podría acabar impactando tras una pérdida total de control. Se dimensiona a partir de la altura, la velocidad y el comportamiento del UAS en fallo.",
+        "La zona terrestre controlada debe cubrir, como mínimo, la proyección del volumen operacional y su buffer, porque es ahí donde no puede haber personas ajenas a la operación.",
+        "Ese conjunto de volúmenes es lo que permite demostrar que el riesgo está contenido, y es también el lenguaje con el que se describe la operación en la declaración y en el manual.",
+      ],
+      k: ["Vuelo + contingencia = volumen operacional", "Buffer de riesgo terrestre: dónde podría caer"],
+    },
+    {
+      t: "6 · SORA: la lógica del análisis de riesgos",
+      d: ["sora"],
+      d: ["sora"],
+      p: [
+        "El SORA es la metodología para evaluar operaciones que no encajan en un escenario predefinido. Su objetivo es demostrar que el riesgo, en tierra y en el aire, está en un nivel aceptable.",
+        "Riesgo en tierra: se parte de una clase de riesgo intrínseco que depende de la dimensión del UAS y del tipo de escenario, y se corrige con mitigaciones como la reducción de personas expuestas, la contención de la zona o los sistemas de reducción del efecto del impacto.",
+        "Riesgo en el aire: se determina según el tipo de espacio aéreo, la altura y el entorno, y refleja la probabilidad de encuentro con tráfico tripulado. Se mitiga con procedimientos estratégicos, como volar en horarios o volúmenes de bajo tráfico, y tácticos, como los observadores del espacio aéreo.",
+        "De la combinación de ambos sale el nivel SAIL, que expresa el grado de confianza que debe tener la operación. Cuanto más alto el SAIL, más robustas deben ser las evidencias.",
+        "El SAIL determina qué objetivos de seguridad operacional, los OSO, hay que cumplir y con qué nivel de robustez: competencia del personal, fiabilidad del UAS, procedimientos, mantenimiento, condiciones ambientales y respuesta a emergencias.",
+        "La contención del volumen es un requisito transversal: hay que demostrar que la aeronave no va a salir del volumen operacional, o que si sale, la zona adyacente sigue siendo aceptable.",
+      ],
+      k: ["Riesgo en tierra (GRC) + riesgo en el aire (ARC) → SAIL → OSO", "A mayor SAIL, más robustez exigida"],
+    },
+    {
+      t: "7 · Manual de operaciones y organización",
+      d: ["manual"],
+      d: ["manual"],
+      p: [
+        "El manual de operaciones es el documento que estructura toda la actividad del operador: alcance, organización y responsabilidades, descripción de los UAS, procedimientos normales, anormales y de emergencia, requisitos de competencia, mantenimiento y registros.",
+        "No es papeleo decorativo. Es el documento con el que se demuestra el cumplimiento en una inspección y el que da coherencia a la operación cuando hay varias personas implicadas.",
+        "Debe mantenerse actualizado: cada cambio de equipo, de procedimiento o de escenario exige revisarlo, y las revisiones se controlan con un registro de versiones.",
+        "Registros que hay que llevar: vuelos realizados, mantenimiento de las aeronaves, competencias y formación del personal, y sucesos e incidencias.",
+        "Responsabilidades: el operador responde de la organización y del cumplimiento; el piloto a distancia, de la conducción segura del vuelo; los observadores y el resto de personal, de las funciones que el manual les asigne y para las que hayan sido instruidos.",
+      ],
+      k: ["Manual de operaciones: procedimientos, competencias y emergencias", "Registros de vuelo, mantenimiento, formación y sucesos"],
+    },
+    {
+      t: "8 · Emergencias y contingencias",
+      d: ["emergencias"],
+      d: ["emergencias"],
+      p: [
+        "Procedimiento de contingencia es el que se aplica cuando algo se desvía de lo normal pero la situación sigue bajo control: degradación del enlace, pérdida de posicionamiento, meteorología que empeora, batería por debajo de lo previsto.",
+        "Procedimiento de emergencia es el que se aplica cuando ya no se puede continuar: fallo de propulsión, pérdida total del enlace, intrusión de una aeronave tripulada, incendio de batería o entrada de personas en la zona controlada.",
+        "En BVLOS hay que definir con antelación puntos de aterrizaje de contingencia a lo largo de la ruta, y qué comportamiento automático tiene la aeronave ante cada fallo.",
+        "La terminación del vuelo es el último recurso: se activa cuando la aeronave amenaza con abandonar el volumen operacional hacia una zona no protegida. Debe estar decidido de antemano quién tiene autoridad para activarla y con qué criterio.",
+        "Tras cualquier suceso: asegurar la zona, atender a las personas, preservar los datos de vuelo y notificar conforme al Reglamento (UE) 376/2014. Las grabaciones y los registros de telemetría son la mejor prueba de lo ocurrido.",
+      ],
+      k: ["Contingencia: aún hay control · Emergencia: ya no", "Terminación del vuelo: criterio y autoridad definidos antes"],
+    },
+    {
+      t: "9 · Formación, certificados y requisitos del piloto",
+      d: ["ruta"],
+      d: ["ruta"],
+      p: [
+        "Requisito previo para el examen teórico STS: tener la prueba de superación de la formación en línea A1/A3. El certificado A2 no es obligatorio, pero si lo tienes el examen se reduce.",
+        "Formato del examen de AESA: 40 preguntas en 40 minutos si partes del A1/A3, cubriendo ocho materias; 30 preguntas en 30 minutos si ya tienes el A2, cubriendo cinco. En ambos casos se exige el 75 por ciento de aciertos.",
+        "Tras aprobar el teórico, hace falta formación práctica específica del escenario, impartida por una entidad reconocida o por un operador declarado para ello, con evaluación continua y acreditación de aptitudes prácticas.",
+        "La acreditación práctica es por escenario: haberla obtenido para STS-01 no habilita para STS-02.",
+        "Revalidación: se solicita dentro de los tres meses anteriores a la fecha de caducidad y amplía la validez cinco años. Si dejas caducar el certificado, el proceso es más largo.",
+        "Edad mínima de 16 años y seguro de responsabilidad civil obligatorio en toda operación de categoría específica.",
+        "Los escenarios nacionales STS-ES-01 y STS-ES-02 dejaron de ser válidos el 31 de diciembre de 2025. Desde 2026 se opera bajo los escenarios europeos STS-01 y STS-02, con las clases C5 y C6.",
+      ],
+      k: ["40 preguntas/40 min desde A1/A3 · 30/30 con A2", "Práctica por escenario · revalidación 3 meses antes", "Los STS-ES nacionales caducaron el 31/12/2025"],
+    },
+  ],
+};
+
+const Q = [
+  // ---------------- A1/A3 ----------------
+  { t: "a13", tema: "Límites operacionales", q: "¿Cuál es la altura máxima general de vuelo en categoría abierta?", o: ["100 m sobre el nivel del mar", "120 m sobre el punto más cercano de la superficie terrestre", "150 m sobre el punto de despegue"], c: 1, e: "Son 120 m medidos sobre el punto más cercano de la superficie, no sobre el punto de despegue. En terreno con pendiente esto cambia mucho el cálculo." },
+  { t: "a13", tema: "Límites operacionales", q: "Vas a inspeccionar una antena de 140 m. ¿Hasta qué altura puedes subir?", o: ["120 m, sin excepción", "Hasta 155 m, es decir 15 m por encima del obstáculo, a petición del responsable del obstáculo", "Hasta la altura del obstáculo"], c: 1, e: "Si el obstáculo supera los 105 m, puedes volar hasta 15 m por encima de su altura, siempre a petición de la persona responsable del obstáculo." },
+  { t: "a13", tema: "Límites operacionales", q: "La MTOM máxima de un UAS en categoría abierta es:", o: ["25 kg", "20 kg", "4 kg"], c: 0, e: "Por encima de 25 kg la operación sale de la categoría abierta." },
+  { t: "a13", tema: "Límites operacionales", q: "¿Puede volarse sobre una aglomeración de personas en categoría abierta?", o: ["Sí, en A1 con un C0", "Sí, si se tiene seguro", "No, en ninguna subcategoría"], c: 2, e: "El sobrevuelo de aglomeraciones está prohibido en toda la categoría abierta, con cualquier clase de dron." },
+  { t: "a13", tema: "Subcategorías", q: "En A1 con un UAS de clase C0 (menos de 250 g):", o: ["Puede sobrevolarse a personas no participantes, pero nunca aglomeraciones", "No puede sobrevolarse a ninguna persona", "Puede sobrevolarse cualquier grupo de personas"], c: 0, e: "El C0 permite el sobrevuelo de personas no participantes por su baja energía de impacto, pero la prohibición de aglomeraciones se mantiene siempre." },
+  { t: "a13", tema: "Subcategorías", q: "Un UAS de clase C1 debe tener una MTOM inferior a:", o: ["900 g, o una energía de impacto inferior a 80 J", "500 g", "4 kg"], c: 0, e: "C1: menos de 900 g o energía transmitida al impacto por debajo de 80 J. Con C1 no se sobrevuela intencionadamente a personas no participantes." },
+  { t: "a13", tema: "Subcategorías", q: "En A3, la distancia mínima a zonas residenciales, comerciales, industriales o recreativas es:", o: ["50 m", "150 m", "500 m"], c: 1, e: "150 m horizontales, y además no puede haber ninguna persona no participante dentro del radio de la operación." },
+  { t: "a13", tema: "Subcategorías", q: "Tienes un dron de 1,2 kg comprado en 2020, sin marcado de clase. ¿En qué subcategoría puedes volarlo?", o: ["A1", "A2 con el certificado correspondiente", "A3"], c: 2, e: "Los UAS sin marcado de clase de menos de 25 kg solo pueden operar en A3. Por debajo de 250 g irían a A1." },
+  { t: "a13", tema: "Registro", q: "¿Cuándo es obligatorio registrarse como operador de UAS?", o: ["Solo si se vuela con fines profesionales", "Cuando el UAS tiene MTOM de 250 g o más, o lleva cámara o sensor capaz de captar datos personales", "Solo a partir de 900 g"], c: 1, e: "Un dron de 150 g con cámara obliga a registrarse igual que uno de 2 kg. La excepción son los juguetes sin sensor de datos personales." },
+  { t: "a13", tema: "Registro", q: "¿Qué debe hacerse con el número de operador de UAS?", o: ["Guardarlo, basta con poder enseñarlo si lo piden", "Marcarlo de forma visible en el dron y cargarlo en el sistema de identificación a distancia", "Enviarlo al fabricante"], c: 1, e: "Va físicamente en la aeronave y también cargado en el sistema de identificación a distancia del UAS." },
+  { t: "a13", tema: "Formación", q: "El examen A1/A3 de AESA consta de:", o: ["40 preguntas, con un 75 % de aciertos para aprobar", "30 preguntas, con un 60 % para aprobar", "20 preguntas sin nota mínima"], c: 0, e: "40 preguntas y 30 aciertos como mínimo. Los fallos no restan." },
+  { t: "a13", tema: "Formación", q: "La validez del certificado de A1/A3 es de:", o: ["2 años", "5 años", "Indefinida"], c: 1, e: "Cinco años, con posibilidad de revalidación antes de que caduque." },
+  { t: "a13", tema: "Espacio aéreo", q: "Estás volando y aparece un helicóptero sanitario a baja altura. ¿Qué haces?", o: ["Mantengo la altura y espero a que pase", "Desciendo y aterrizo o me alejo de inmediato: el UAS cede siempre el paso", "Subo para que me vea"], c: 1, e: "La aeronave tripulada tiene siempre prioridad. La respuesta correcta es alejarse o aterrizar sin demora." },
+  { t: "a13", tema: "Espacio aéreo", q: "¿Qué debes consultar obligatoriamente antes de volar?", o: ["Solo la previsión del tiempo", "Las zonas geográficas de UAS y los NOTAM aplicables, además de la meteorología", "Nada, si el dron pesa menos de 900 g"], c: 1, e: "Zonas geográficas de UAS (en España vía ENAIRE Drones e información de AESA), NOTAM, meteorología y estado del equipo." },
+  { t: "a13", tema: "Espacio aéreo", q: "Las clases de espacio aéreo controlado son:", o: ["De la A a la E", "F y G", "Solo la A"], c: 0, e: "De A a E es espacio aéreo controlado; F y G son no controlados. Entrar en controlado exige coordinación o autorización." },
+  { t: "a13", tema: "Límites operacionales", q: "El transporte de mercancías peligrosas con un dron en categoría abierta:", o: ["Está permitido si se declara", "Está prohibido", "Solo está permitido en A3"], c: 1, e: "Prohibido en categoría abierta, igual que soltar o lanzar objetos desde el UAS." },
+  { t: "a13", tema: "Procedimientos", q: "¿Qué significa volar en VLOS?", o: ["Volar con las gafas FPV puestas", "Mantener contacto visual directo y continuo con el UAS sin ayudas ópticas", "Volar siguiendo el vídeo de la cámara"], c: 1, e: "Contacto visual directo sin ayudas, más allá de las gafas correctoras. El vuelo con FPV requiere un observador del UAS a tu lado." },
+  { t: "a13", tema: "Procedimientos", q: "En modo de seguimiento automático del piloto (follow-me), el UAS debe permanecer a un máximo de:", o: ["50 m del piloto a distancia", "120 m del piloto", "500 m del piloto"], c: 0, e: "El modo de seguimiento solo se admite hasta 50 m del piloto a distancia." },
+  { t: "a13", tema: "Procedimientos", q: "Para volar de noche en categoría abierta, el UAS debe:", o: ["Llevar activada una luz verde intermitente que lo haga visible", "Llevar luces rojas fijas", "No puede volarse de noche"], c: 0, e: "Se permite el vuelo nocturno manteniendo VLOS, con la luz verde intermitente activada para identificar el UAS." },
+  { t: "a13", tema: "Procedimientos", q: "¿Cómo debe configurarse la altura de retorno automático (RTH)?", o: ["Lo más baja posible para ahorrar batería", "Por encima del obstáculo más alto de la zona de operación", "A 120 m siempre"], c: 1, e: "Si el RTH está por debajo de un edificio o de un árbol de la ruta de vuelta, el dron regresa directo contra él." },
+  { t: "a13", tema: "Conocimiento del UAS", q: "Una batería LiPo que se ha hinchado:", o: ["Puede usarse si aún carga", "Debe retirarse de servicio y gestionarse como residuo", "Se pincha para sacar el gas"], c: 1, e: "Una LiPo hinchada está dañada químicamente y es un riesgo de incendio. Se retira, nunca se perfora." },
+  { t: "a13", tema: "Conocimiento del UAS", q: "Al calibrar la brújula conviene:", o: ["Hacerlo junto al coche para tener referencia", "Alejarse de estructuras metálicas, armaduras y fuentes magnéticas", "Hacerlo siempre dentro de casa"], c: 1, e: "Las masas metálicas falsean la calibración y provocan errores de rumbo o giros descontrolados en vuelo." },
+  { t: "a13", tema: "Factores humanos", q: "Volar tras haber consumido alcohol:", o: ["Está permitido si ha pasado alguna hora", "Está prohibido: no puede pilotarse bajo los efectos de alcohol, drogas o medicación que afecte a la capacidad", "Depende del peso del dron"], c: 1, e: "Es una prohibición directa, sin umbrales prácticos que valgan como excusa." },
+  { t: "a13", tema: "Factores humanos", q: "El llamado efecto túnel o fijación consiste en:", o: ["Perder la señal de vídeo", "Concentrarse en un único elemento y dejar de percibir el resto del entorno", "Volar dentro de un túnel"], c: 1, e: "Es un fallo de atención muy habitual: se mira la pantalla y se pierde de vista el dron y los obstáculos." },
+  { t: "a13", tema: "Factores humanos", q: "¿Qué factor degrada más la conciencia situacional en una operación larga?", o: ["La fatiga", "El color del dron", "La marca del mando"], c: 0, e: "Fatiga, estrés y prisa reducen la capacidad de anticipación, que es la base de la conciencia situacional." },
+  { t: "a13", tema: "Privacidad", q: "Grabas un paseo marítimo y se reconocen las caras de los bañistas. ¿Qué aplica?", o: ["Nada, es un espacio público", "El RGPD y la LOPDGDD: necesitas base legal, informar y minimizar los datos captados", "Solo aplica si publicas el vídeo"], c: 1, e: "Captar imágenes de personas identificables es tratamiento de datos personales, aunque sea en la vía pública." },
+  { t: "a13", tema: "Privacidad", q: "El derecho al honor, la intimidad personal y la propia imagen está protegido por:", o: ["La Ley Orgánica 1/1982", "El Reglamento 2019/947", "El RD 37/2001"], c: 0, e: "La LO 1/1982 protege estos derechos y es independiente de la normativa de protección de datos." },
+  { t: "a13", tema: "Seguro", q: "Según el RD 517/2024, el seguro de responsabilidad civil:", o: ["Es obligatorio siempre, sea cual sea el dron", "No es obligatorio en A1 ni en A3 con MTOM inferior a 20 kg; sí lo es en A2, en UAS de 20 kg o más y en específica y certificada", "Solo es obligatorio para uso recreativo"], c: 1, e: "Es una de las novedades del RD 517/2024. Que no sea obligatorio no significa que no sea muy recomendable: los daños los pagas igual." },
+  { t: "a13", tema: "Seguro", q: "Un UAS con MTOM de 22 kg debe asegurarse conforme a:", o: ["El Reglamento (CE) 785/2004", "El RD 37/2001 únicamente", "Ninguna norma específica"], c: 0, e: "A partir de 20 kg se aplica el Reglamento (CE) 785/2004, con capitales mínimos superiores." },
+  { t: "a13", tema: "Seguridad", q: "Una buena práctica de seguridad frente a interferencias y accesos no autorizados es:", o: ["Mantener el firmware actualizado y proteger los enlaces y las cuentas", "Volar siempre en modo deportivo", "Desactivar el GPS"], c: 0, e: "Firmware al día, contraseñas robustas, enlaces cifrados y no dejar el equipo desatendido." },
+  { t: "a13", tema: "Procedimientos", q: "Se produce un accidente con lesiones durante tu operación. ¿Qué obligación tienes?", o: ["Ninguna si el dron pesa poco", "Notificar el suceso a AESA conforme al Reglamento (UE) 376/2014", "Notificarlo solo al fabricante"], c: 1, e: "El sistema de notificación de sucesos de la aviación civil también alcanza a los UAS." },
+  { t: "a13", tema: "Marco normativo", q: "La edad mínima general para ser piloto a distancia en categoría abierta en España es:", o: ["18 años", "16 años, con reducciones previstas en el RD 517/2024 para determinados supuestos de la categoría abierta", "No hay edad mínima"], c: 1, e: "La regla general son 16 años. El RD 517/2024 rebaja la edad en ciertos supuestos de categoría abierta, y los menores también pueden volar bajo supervisión directa de un piloto competente de 16 años o más." },
+  { t: "a13", tema: "Marco normativo", q: "¿Quién es una persona participante en la operación?", o: ["Cualquiera que esté mirando el vuelo", "La que está informada, ha dado su consentimiento y se encuentra bajo el control del operador", "Solo el piloto"], c: 1, e: "Informada, consintiente y bajo control del operador. Quien no cumple las tres cosas es persona no participante." },
+  { t: "a13", tema: "Marco normativo", q: "El Reglamento Delegado (UE) 2019/945 regula principalmente:", o: ["Los requisitos de producto y las clases C0 a C6", "Las reglas de circulación aérea", "Los aeropuertos"], c: 0, e: "2019/945 es la norma de producto; 2019/947 es la de operaciones." },
+  { t: "a13", tema: "Conocimiento del UAS", q: "Vuelas entre edificios y el dron pierde precisión de posición y deriva. La causa más probable es:", o: ["Batería baja", "Multitrayecto y bloqueo de la señal GNSS por los edificios", "Exceso de peso"], c: 1, e: "Las señales rebotan en las fachadas y degradan la posición. Conviene pasar a pilotaje manual con referencia visual y salir de la zona." },
+  { t: "a13", tema: "Procedimientos", q: "El failsafe ante pérdida del enlace de mando y control:", o: ["Debe configurarse antes del despegue", "Se configura en vuelo cuando se pierde el enlace", "No existe en drones pequeños"], c: 0, e: "Si se pierde el enlace ya no puedes configurar nada: el comportamiento debe estar decidido y probado antes." },
+  { t: "a13", tema: "Espacio aéreo", q: "Un CTR es:", o: ["Una zona de control en torno a un aeródromo, desde la superficie hacia arriba", "Una zona de aeromodelismo", "Un tipo de NOTAM"], c: 0, e: "La zona de control de aeródromo es espacio aéreo controlado desde la superficie; volar ahí exige coordinación." },
+  { t: "a13", tema: "Subcategorías", q: "Un UAS de clase C4:", o: ["Opera en A1", "Opera en A3 y no dispone de modos automáticos de control", "Opera en A2"], c: 1, e: "El C4 está pensado para aeromodelismo clásico: sin modos automáticos, y vuela en A3." },
+  { t: "a13", tema: "Límites operacionales", q: "Soltar un objeto desde el dron en categoría abierta:", o: ["Está permitido si pesa poco", "Está prohibido", "Solo en A3"], c: 1, e: "El lanzamiento o suelta de materiales está prohibido en categoría abierta." },
+  { t: "a13", tema: "Procedimientos", q: "¿Qué debe poder acreditar el piloto durante la operación?", o: ["Solo el DNI", "Su certificado o prueba de superación de la formación, y el registro de operador de UAS", "Nada, basta con volar bien"], c: 1, e: "La acreditación de competencia y el registro de operador. Y el seguro cuando sea exigible." },
+
+  // ---------------- A2 ----------------
+  { t: "a2", tema: "Operar en A2", q: "En A2, la distancia horizontal mínima a personas no participantes es:", o: ["10 m siempre", "30 m, reducibles a 5 m con el modo de baja velocidad activado", "50 m"], c: 1, e: "30 m de referencia, y 5 m solo si el UAS dispone de modo de baja velocidad y está activo." },
+  { t: "a2", tema: "Operar en A2", q: "El modo de baja velocidad limita la velocidad del UAS a:", o: ["3 m/s", "10 m/s", "1 m/s"], c: 0, e: "3 m/s. Es la condición para acercarse hasta 5 m de personas no participantes en A2." },
+  { t: "a2", tema: "Operar en A2", q: "Un UAS de clase C2 tiene una MTOM inferior a:", o: ["900 g", "4 kg", "25 kg"], c: 1, e: "C2 es la clase propia de la subcategoría A2, por debajo de 4 kg." },
+  { t: "a2", tema: "Formación", q: "Para presentarse al examen A2 es necesario:", o: ["Nada previo", "Tener la prueba de superación A1/A3 y haber realizado la autoformación práctica declarada", "Tener el certificado STS"], c: 1, e: "El A1/A3 es el escalón previo, más la autoformación práctica en condiciones de A3 que el propio piloto declara." },
+  { t: "a2", tema: "Formación", q: "El examen A2 consta de 30 preguntas. ¿Cuántas hay que acertar?", o: ["18", "23", "30"], c: 1, e: "El 75 % de 30 son 23 aciertos." },
+  { t: "a2", tema: "Meteorología", q: "En la atmósfera estándar, la temperatura y la presión al nivel del mar son:", o: ["15 °C y 1013,25 hPa", "0 °C y 1000 hPa", "20 °C y 1020 hPa"], c: 0, e: "Valores de referencia ISA, base de todos los cálculos de altimetría y rendimiento." },
+  { t: "a2", tema: "Meteorología", q: "El gradiente térmico vertical estándar es aproximadamente:", o: ["2 °C por cada 1000 ft", "10 °C por cada 1000 ft", "0,5 °C por cada 1000 ft"], c: 0, e: "Unos 2 °C por cada 1000 ft, equivalentes a unos 6,5 °C por kilómetro." },
+  { t: "a2", tema: "Meteorología", q: "Un día muy caluroso, en altitud y con humedad alta, el rendimiento del dron:", o: ["Mejora, el aire caliente sustenta más", "Empeora: menor densidad del aire significa menos sustentación y más consumo", "No cambia"], c: 1, e: "Calor, altitud y humedad bajan la densidad. Las hélices tienen que trabajar más para lo mismo." },
+  { t: "a2", tema: "Meteorología", q: "Al volar entre dos edificios altos notas un aumento brusco del viento. Se debe a:", o: ["El efecto Venturi", "El efecto suelo", "La cizalladura de temperatura"], c: 0, e: "Al estrecharse el paso, el aire acelera. Es una de las trampas típicas del vuelo urbano." },
+  { t: "a2", tema: "Meteorología", q: "La turbulencia mecánica aparece sobre todo:", o: ["A sotavento de obstáculos como edificios, arboledas o crestas", "A barlovento, en aire limpio", "Solo por encima de 120 m"], c: 0, e: "El aire se desordena tras el obstáculo, con rotores y corrientes descendentes." },
+  { t: "a2", tema: "Meteorología", q: "Que la temperatura y el punto de rocío estén muy próximos indica:", o: ["Riesgo de niebla o nubes bajas", "Viento fuerte seguro", "Cielo despejado"], c: 0, e: "Poca diferencia entre temperatura y rocío significa aire casi saturado: visibilidad comprometida." },
+  { t: "a2", tema: "Meteorología", q: "Ante la presencia de cumulonimbus en la zona:", o: ["Se puede volar si no llueve todavía", "No se vuela: hay rachas violentas, cizalladura y actividad eléctrica", "Se vuela más bajo"], c: 1, e: "El Cb es la nube de tormenta. Su entorno es peligroso incluso antes de que empiece a llover." },
+  { t: "a2", tema: "Meteorología", q: "La diferencia entre METAR y TAF es que:", o: ["El METAR es una observación y el TAF una predicción", "El METAR es una predicción y el TAF una observación", "Son lo mismo"], c: 0, e: "METAR informa de lo que hay; TAF pronostica lo que se espera en un aeródromo." },
+  { t: "a2", tema: "Rendimiento", q: "Vuelas con viento en cola en la ida. Al planificar el regreso debes contar con que:", o: ["Volverás igual de rápido", "Volverás con viento en cara, más despacio y con mucho más consumo", "El viento no afecta a la batería"], c: 1, e: "Es el error clásico de quedarse sin batería. La ida engaña porque el viento empuja." },
+  { t: "a2", tema: "Rendimiento", q: "El frío intenso sobre una batería LiPo:", o: ["Aumenta su capacidad", "Reduce su capacidad disponible y la tensión bajo carga", "No tiene efecto"], c: 1, e: "En frío la química rinde menos: menos autonomía y caídas de tensión bruscas." },
+  { t: "a2", tema: "Rendimiento", q: "Para almacenar baterías LiPo durante semanas conviene dejarlas:", o: ["Al 100 %", "Entre el 40 % y el 60 %", "Totalmente descargadas"], c: 1, e: "La carga de almacenamiento ronda el 40–60 %, unos 3,8 V por celda." },
+  { t: "a2", tema: "Rendimiento", q: "Añadir carga de pago al UAS provoca:", o: ["Menos autonomía y mayor distancia de frenado", "Más autonomía", "Ningún cambio en el vuelo"], c: 0, e: "Más masa significa más potencia necesaria, menos margen ante ráfagas y más inercia." },
+  { t: "a2", tema: "Rendimiento", q: "Al descender en vertical de forma rápida el dron empieza a oscilar y cae sin responder. Se trata de:", o: ["Efecto suelo", "Anillo de vórtices, y se sale desplazándose lateralmente o hacia delante", "Sobrecalentamiento"], c: 1, e: "El dron cae dentro de su propia estela descendente. La salida es horizontal, nunca aumentando potencia en vertical." },
+  { t: "a2", tema: "Rendimiento", q: "El efecto suelo se manifiesta:", o: ["Cerca del suelo, con más sustentación y posible inestabilidad al despegar o aterrizar", "Por encima de 100 m", "Solo con viento fuerte"], c: 0, e: "El colchón de aire bajo las hélices aumenta la sustentación y puede provocar rebotes al tomar tierra." },
+  { t: "a2", tema: "Rendimiento", q: "Una buena planificación de la reserva de batería implica:", o: ["Volar hasta el aviso de batería crítica", "Fijar un margen de retorno y regresar antes de alcanzarlo, contando con viento y temperatura", "Confiar en el porcentaje del mando"], c: 1, e: "El porcentaje que muestra el mando no conoce el viento en cara que te espera de vuelta." },
+  { t: "a2", tema: "Riesgo en tierra", q: "La energía de impacto de un UAS crece:", o: ["Con el cuadrado de la velocidad", "De forma lineal con la velocidad", "Solo con la masa"], c: 0, e: "Por eso el modo de baja velocidad reduce drásticamente el daño potencial, aunque la masa sea la misma." },
+  { t: "a2", tema: "Riesgo en tierra", q: "La regla 1:1 como referencia de zona de seguridad significa:", o: ["Mantener una distancia horizontal al menos igual a la altura de vuelo", "Volar el doble de alto que de lejos", "Un piloto por cada dron"], c: 0, e: "Es una aproximación práctica para estimar dónde podría caer el UAS ante una pérdida de control." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Durante el vuelo entra un curioso en tu zona de operación. ¿Qué haces?", o: ["Sigo volando, ya se apartará", "Aumento la distancia, interrumpo la maniobra o aterrizo", "Le pido que se quede quieto y continúo igual"], c: 1, e: "Esa persona es no participante: o recuperas la distancia reglamentaria o paras la operación." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Antes de empezar, a las personas participantes hay que:", o: ["Darles un briefing con los riesgos y las instrucciones de la operación", "No decirles nada para no preocuparlas", "Pedirles el DNI"], c: 0, e: "Informadas, con consentimiento y bajo control del operador: el briefing es lo que convierte a alguien en participante." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Un paracaídas de emergencia instalado en el UAS es:", o: ["Una mitigación técnica del riesgo en tierra", "Un requisito de la categoría abierta", "Una mitigación del riesgo aéreo"], c: 0, e: "Reduce la energía de impacto sobre el terreno, que es riesgo terrestre." },
+  { t: "a2", tema: "Riesgo en tierra", q: "El punto de despegue ideal es:", o: ["Cerca del público para controlarlo mejor", "Firme, despejado de obstáculos y alejado de personas no participantes", "Sobre el capó del coche"], c: 1, e: "Superficie estable, sin obstáculos que generen turbulencia y con margen respecto a terceros." },
+  { t: "a2", tema: "Rendimiento", q: "Si el dron empieza a girar en círculos amplios sin que se lo ordenes, lo más probable es:", o: ["Un error de brújula o interferencia magnética", "Batería nueva", "Exceso de viento en cola"], c: 0, e: "Es el efecto conocido como toilet bowl. Conviene aterrizar y recalibrar lejos de masas metálicas." },
+  { t: "a2", tema: "Meteorología", q: "El gradiente de viento cerca del suelo implica que:", o: ["El viento es más débil cerca del suelo y aumenta con la altura", "El viento es igual a todas las alturas", "El viento solo existe por encima de 50 m"], c: 0, e: "El rozamiento frena el aire junto al terreno. Al subir puedes encontrarte con bastante más viento del que notas abajo." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Volar a más altura sobre una zona con personas:", o: ["Reduce el riesgo, siempre", "Amplía el área donde podría caer el UAS y la energía del impacto", "No influye en el riesgo terrestre"], c: 1, e: "Más altura significa más recorrido de caída, más dispersión y más energía al llegar al suelo." },
+  { t: "a2", tema: "Operar en A2", q: "Con el certificado A2 y un C2, ¿puedes volar sobre una manifestación?", o: ["Sí, a 30 m de altura", "No, las aglomeraciones están prohibidas en toda la categoría abierta", "Sí, si hay autorización municipal"], c: 1, e: "Ninguna subcategoría de la abierta permite sobrevolar aglomeraciones." },
+
+  // ---------------- STS / específica ----------------
+  { t: "sts", tema: "Categoría específica", q: "Las vías de acceso a la categoría específica son:", o: ["Solo la autorización individual", "Declaración bajo un escenario estándar, autorización operacional tras SORA, o certificado LUC", "Únicamente el LUC"], c: 1, e: "Declaración (STS o PDRA), autorización tras SORA, o LUC para operadores que pueden autoautorizarse." },
+  { t: "sts", tema: "Escenarios estándar", q: "El STS-01 corresponde a:", o: ["Operaciones VLOS sobre una zona terrestre controlada en entorno poblado, con UAS de clase C5", "Operaciones BVLOS en entorno escasamente poblado", "Vuelos de aeromodelismo"], c: 0, e: "STS-01: VLOS, zona terrestre controlada, entorno poblado, clase C5." },
+  { t: "sts", tema: "Escenarios estándar", q: "El STS-02 corresponde a:", o: ["VLOS en entorno urbano con C5", "BVLOS sobre una zona terrestre controlada en entorno escasamente poblado, con UAS de clase C6", "Vuelos por encima de 150 m"], c: 1, e: "STS-02: BVLOS, entorno escasamente poblado, clase C6, con o sin observadores del espacio aéreo." },
+  { t: "sts", tema: "Escenarios estándar", q: "En STS-02, la distancia máxima del UAS respecto al piloto a distancia es:", o: ["1 km sin observadores del espacio aéreo y hasta 2 km con ellos", "Siempre 5 km", "Sin límite, al ser BVLOS"], c: 0, e: "Los observadores del espacio aéreo son precisamente lo que permite ampliar de 1 a 2 km." },
+  { t: "sts", tema: "Escenarios estándar", q: "La altura máxima de vuelo en los escenarios estándar es:", o: ["120 m", "150 m", "200 m"], c: 0, e: "Se mantiene el límite de 120 m, igual que en categoría abierta." },
+  { t: "sts", tema: "Escenarios estándar", q: "Dentro de la zona terrestre controlada:", o: ["Puede haber público si se avisa", "Solo pueden encontrarse personas participantes en la operación", "Puede haber tráfico rodado normal"], c: 1, e: "El operador debe poder garantizar que no entra nadie ajeno durante toda la operación." },
+  { t: "sts", tema: "Escenarios estándar", q: "Desde el 1 de enero de 2026, los escenarios nacionales STS-ES-01 y STS-ES-02:", o: ["Siguen vigentes", "Dejaron de ser válidos el 31 de diciembre de 2025", "Se han ampliado a nuevos usos"], c: 1, e: "Perdieron validez al cierre de 2025. Desde entonces se opera bajo los escenarios europeos STS-01 y STS-02, con clases C5 y C6." },
+  { t: "sts", tema: "Declaración", q: "Cuando presentas una declaración operacional a AESA:", o: ["AESA te concede una autorización", "AESA emite un acuse de recibo e integridad; la responsabilidad de la operación sigue siendo del operador", "No hace falta ningún trámite"], c: 1, e: "La declaración no es una autorización. El operador responde de que la operación cumple el escenario declarado." },
+  { t: "sts", tema: "Declaración", q: "¿Qué documento debe elaborar y mantener el operador en categoría específica?", o: ["El manual de operaciones", "Un parte meteorológico diario", "El plan de vuelo OACI"], c: 0, e: "El manual de operaciones es la referencia de procedimientos, funciones y emergencias de la operación." },
+  { t: "sts", tema: "SORA", q: "El análisis SORA evalúa fundamentalmente:", o: ["Solo el riesgo aéreo", "El riesgo en tierra (GRC) y el riesgo en el aire (ARC), para determinar el nivel SAIL y los objetivos de seguridad operacional", "El coste de la operación"], c: 1, e: "De la combinación de GRC y ARC sale el SAIL, y de él los OSO que hay que demostrar." },
+  { t: "sts", tema: "SORA", q: "El volumen operacional está formado por:", o: ["El volumen de vuelo más el volumen de contingencia", "Solo la ruta prevista", "El área total del municipio"], c: 0, e: "Y alrededor se añade el buffer de riesgo terrestre, que cubre dónde podría caer el UAS." },
+  { t: "sts", tema: "SORA", q: "El buffer de riesgo terrestre sirve para:", o: ["Delimitar la zona donde podría impactar el UAS tras una pérdida de control", "Marcar el aparcamiento del equipo", "Definir la altura máxima"], c: 0, e: "Es una zona de protección exterior al volumen operacional, dimensionada según altura, velocidad y comportamiento en fallo." },
+  { t: "sts", tema: "Clases de UAS", q: "Un UAS de clase C5 debe disponer, entre otras cosas, de:", o: ["Un medio de terminación del vuelo y modo de baja velocidad", "Cámara térmica", "Doble piloto"], c: 0, e: "El C5 puede construirse a partir de un C3 con kit de conversión, e incorpora terminación del vuelo, baja velocidad y luces." },
+  { t: "sts", tema: "Clases de UAS", q: "Los sistemas de terminación del vuelo contribuyen a:", o: ["Reducir la energía del impacto y, con ello, el riesgo en tierra", "Aumentar la autonomía", "Mejorar la señal de vídeo"], c: 0, e: "Es una mitigación técnica reconocida del riesgo terrestre." },
+  { t: "sts", tema: "Formación", q: "Si te presentas al examen STS teniendo solo el A1/A3, el examen consta de:", o: ["40 preguntas en 40 minutos", "30 preguntas en 30 minutos", "20 preguntas sin tiempo"], c: 0, e: "Con el A2 en la mano el examen se reduce a 30 preguntas en 30 minutos, porque ya acreditas parte del temario común." },
+  { t: "sts", tema: "Formación", q: "¿Qué requisito previo es imprescindible para el examen teórico STS?", o: ["Estar en posesión de la prueba de superación de la formación en línea A1/A3", "Tener licencia de piloto tripulado", "Ser mayor de 21 años"], c: 0, e: "El A1/A3 es obligatorio; el A2 es opcional y solo acorta el examen." },
+  { t: "sts", tema: "Formación", q: "Después de aprobar el examen teórico STS, para operar en un escenario hace falta:", o: ["Nada más", "Formación práctica del escenario impartida por entidad reconocida u operador declarado, con acreditación de aptitudes prácticas", "Un certificado médico de clase 1"], c: 1, e: "La acreditación práctica es específica del escenario en el que se ha formado el piloto." },
+  { t: "sts", tema: "Formación", q: "La revalidación del certificado teórico de piloto a distancia se solicita:", o: ["Dentro de los 3 meses previos a su caducidad, y amplía la validez 5 años", "Una vez caducado, en cualquier momento", "Cada 2 años"], c: 0, e: "Debe estar en vigor y dentro de la ventana de 3 meses previos a la fecha de caducidad." },
+  { t: "sts", tema: "Categoría específica", q: "El seguro de responsabilidad civil en categoría específica:", o: ["Es opcional", "Es obligatorio en toda operación", "Solo si el UAS supera los 20 kg"], c: 1, e: "En específica y en certificada el seguro es siempre exigible." },
+  { t: "sts", tema: "Categoría específica", q: "La edad mínima del piloto a distancia en categoría específica es:", o: ["14 años", "16 años", "21 años"], c: 1, e: "16 años con carácter general." },
+  { t: "sts", tema: "Escenarios estándar", q: "Los observadores del espacio aéreo en STS-02:", o: ["Vigilan el espacio circundante y mantienen comunicación efectiva y continua con el piloto", "Sustituyen al piloto a distancia", "Solo controlan a los curiosos en tierra"], c: 0, e: "Su función es detectar tráfico y avisar; no pilotan ni sustituyen al piloto a distancia." },
+  { t: "sts", tema: "Categoría específica", q: "Si tu operación no encaja en ningún escenario estándar ni en un PDRA:", o: ["Se vuela igualmente bajo declaración", "Hay que elaborar un SORA y solicitar autorización operacional a AESA", "Se pasa automáticamente a categoría certificada"], c: 1, e: "SORA y autorización individual es la vía general cuando no hay escenario predefinido aplicable." },
+  { t: "sts", tema: "Categoría específica", q: "El certificado LUC permite a un operador:", o: ["Autorizar sus propias operaciones dentro del alcance aprobado", "Volar sin seguro", "Saltarse el límite de 120 m sin condiciones"], c: 0, e: "El LUC acredita la capacidad de autogestión del operador y le permite autoautorizarse dentro de sus privilegios." },
+  { t: "sts", tema: "Clases de UAS", q: "El UAS de clase C6 se caracteriza, entre otras cosas, por:", o: ["Disponer de limitación de velocidad, conciencia geográfica y medio de terminación del vuelo", "Pesar menos de 900 g", "No llevar sistema de posicionamiento"], c: 0, e: "Es la clase asociada al STS-02, pensada para vuelos BVLOS en entorno escasamente poblado." },
+  { t: "sts", tema: "Categoría específica", q: "En categoría específica, la notificación de sucesos:", o: ["Es voluntaria", "Es obligatoria conforme al Reglamento (UE) 376/2014", "Solo se hace al seguro"], c: 1, e: "Los accidentes e incidentes se notifican a AESA a través del sistema de notificación de sucesos." },
+  { t: "sts", tema: "Escenarios estándar", q: "En STS-01, ¿puede haber personas no participantes dentro de la zona terrestre controlada?", o: ["Sí, si se mantienen 30 m de distancia", "No, la zona debe estar libre de personas ajenas a la operación", "Sí, en entorno urbano se asume"], c: 1, e: "El control de la zona terrestre es justamente lo que hace posible operar en entorno poblado." },
+  { t: "sts", tema: "SORA", q: "El nivel SAIL sirve para:", o: ["Determinar el rigor con el que hay que cumplir los objetivos de seguridad operacional", "Calcular la autonomía del UAS", "Clasificar el espacio aéreo"], c: 0, e: "A mayor SAIL, mayor robustez exigida en las mitigaciones y en los OSO." },
+  { t: "sts", tema: "Categoría específica", q: "La categoría certificada se reserva a operaciones como:", o: ["Fotografía aérea de un chalet", "Transporte de personas o de mercancías peligrosas y operaciones de riesgo equivalente", "Vuelos recreativos con C0"], c: 1, e: "Exige certificación del UAS, del operador y licencia del piloto." },
+  { t: "sts", tema: "Declaración", q: "Antes de operar bajo un escenario estándar es necesario:", o: ["Haber presentado la declaración operacional y contar con el acuse de AESA", "Solicitar un NOTAM", "Obtener un certificado médico"], c: 0, e: "Declaración presentada, acuse recibido, manual de operaciones, seguro y pilotos con teórico y práctico del escenario." },
+  // ---------------- A1/A3 · ampliación ----------------
+  { t: "a13", tema: "Categorías", q: "Quieres volar más allá del alcance visual (BVLOS). ¿En qué categoría entra esa operación?", o: ["Sigue siendo abierta si el dron pesa poco", "Categoría específica", "Categoría certificada"], c: 1, e: "El VLOS es un límite estructural de la abierta. En cuanto lo rompes, la operación pasa a específica." },
+  { t: "a13", tema: "Categorías", q: "El transporte de personas con un UAS corresponde a:", o: ["Categoría certificada", "Categoría específica con SORA", "Categoría abierta A3"], c: 0, e: "La certificada exige certificación de la aeronave, del operador y licencia del piloto, como en aviación tripulada." },
+  { t: "a13", tema: "Límites operacionales", q: "La MTOM de un UAS incluye:", o: ["Solo la aeronave, sin batería", "La aeronave, la batería y todo lo que lleve instalado en el despegue", "El peso indicado en la caja del fabricante"], c: 1, e: "Es la masa máxima de despegue real. Añadir una cámara, un soporte o un paracaídas puede cambiarte de subcategoría." },
+  { t: "a13", tema: "Registro", q: "El registro de operador de UAS:", o: ["Es indefinido una vez obtenido", "Tiene una vigencia limitada y debe renovarse", "Hay que hacerlo uno por cada dron"], c: 1, e: "El registro es del operador y vale para toda su flota, pero caduca. Volar con el registro vencido es una infracción." },
+  { t: "a13", tema: "Registro", q: "La identificación a distancia directa transmite, entre otros datos:", o: ["Solo el número de operador", "Número de operador, número de serie, posición, altura, velocidad, posición del piloto y marca temporal", "El nombre y el DNI del piloto"], c: 1, e: "Es lo que permite identificar en tiempo real quién está volando y dónde está el piloto." },
+  { t: "a13", tema: "Registro", q: "¿Qué clase de UAS no incorpora identificación a distancia directa?", o: ["C0", "C1", "C2"], c: 0, e: "El C0, por su bajo riesgo, queda exento. C1, C2, C3, C5 y C6 sí la llevan." },
+  { t: "a13", tema: "Conocimiento del UAS", q: "La función de geoconciencia consiste en:", o: ["Avisar al piloto cuando el UAS se aproxima al límite de una zona geográfica de UAS", "Calcular la ruta más corta", "Medir la altura sobre el terreno"], c: 0, e: "Avisa, pero no decide por ti: la responsabilidad de no entrar en la zona sigue siendo del piloto." },
+  { t: "a13", tema: "Subcategorías", q: "La velocidad máxima de un UAS de clase C0 es:", o: ["19 m/s", "50 m/s", "3 m/s"], c: 0, e: "El C0 no supera los 19 m/s y no permite alcanzar más de 120 m de altura." },
+  { t: "a13", tema: "Subcategorías", q: "Un UAS de clase C3 tiene como límite dimensional:", o: ["1 m", "3 m", "No hay límite de dimensión"], c: 1, e: "El C3 admite hasta 25 kg de MTOM con una dimensión máxima característica de 3 m." },
+  { t: "a13", tema: "Subcategorías", q: "La particularidad de la clase C4 es que:", o: ["No dispone de modos automáticos de control, salvo la estabilización", "Pesa menos de 250 g", "Solo vuela de noche"], c: 0, e: "Está pensada para aeromodelismo clásico de pilotaje manual. Opera en A3." },
+  { t: "a13", tema: "Espacio aéreo", q: "El FIR es:", o: ["La región de información de vuelo", "Un tipo de NOTAM", "La zona de tránsito de un aeródromo"], c: 0, e: "Es el espacio aéreo de dimensiones definidas donde se prestan los servicios de información de vuelo y alerta." },
+  { t: "a13", tema: "Espacio aéreo", q: "El ATZ corresponde a:", o: ["La zona de tránsito de aeródromo", "El área terminal de maniobra", "Una aerovía"], c: 0, e: "Es el espacio inmediato al aeródromo donde se desarrolla el circuito de tránsito." },
+  { t: "a13", tema: "Espacio aéreo", q: "En la cartografía aeronáutica española, un área identificada como LEP es:", o: ["Una zona prohibida", "Una zona restringida", "Una zona peligrosa"], c: 0, e: "LEP prohibida, LER restringida y LED peligrosa. Las tres se publican en la AIP." },
+  { t: "a13", tema: "Espacio aéreo", q: "Un NOTAM sirve para:", o: ["Informar de situaciones temporales que afectan a la navegación aérea", "Registrar el dron", "Solicitar permiso de vuelo"], c: 0, e: "Puede cerrar temporalmente una zona que ayer estaba disponible: trabajos, actos aéreos, incendios o vuelos de autoridades." },
+  { t: "a13", tema: "Zonas geográficas", q: "Al planificar un vuelo en una ciudad, un helipuerto de hospital:", o: ["Es irrelevante, no es un aeropuerto", "Genera una zona sensible con tráfico a baja altura que hay que respetar", "Solo afecta de noche"], c: 1, e: "Los helicópteros sanitarios operan bajo, sin previo aviso y en cualquier momento. Es uno de los conflictos más peligrosos." },
+  { t: "a13", tema: "Seguridad aérea", q: "Hay medios aéreos trabajando en un incendio forestal cerca de tu zona. ¿Puedes volar?", o: ["Sí, si te mantienes por debajo de 50 m", "No, en ningún caso", "Sí, si grabas desde lejos"], c: 1, e: "Un dron puede obligar a suspender la extinción. Además de las consecuencias operativas, hay responsabilidad penal." },
+  { t: "a13", tema: "Conocimiento del UAS", q: "El enlace C2 de un UAS es:", o: ["El enlace de mando y control entre la estación de pilotaje y la aeronave", "El cable de carga de la batería", "La señal de vídeo de la cámara"], c: 0, e: "Perder el vídeo es incómodo; perder el C2 es una emergencia, porque dejas de poder ordenar nada." },
+  { t: "a13", tema: "Conocimiento del UAS", q: "Los sensores de detección de obstáculos son poco fiables frente a:", o: ["Superficies transparentes, reflectantes o uniformes y con poca luz", "Muros de hormigón", "Árboles frondosos"], c: 0, e: "Cristales, agua, paredes lisas y penumbra son sus puntos ciegos. No se puede delegar la seguridad en ellos." },
+  { t: "a13", tema: "Conocimiento del UAS", q: "Detectas una pequeña muesca en el borde de una hélice. ¿Qué haces?", o: ["Vuelo con cuidado", "Sustituyo las hélices, por parejas y con recambios del fabricante", "La lijo y sigo"], c: 1, e: "Una hélice dañada desequilibra el conjunto, genera vibraciones y degrada estabilidad e imagen." },
+  { t: "a13", tema: "Procedimientos", q: "El momento adecuado para actualizar el firmware es:", o: ["En el sitio del trabajo, justo antes de volar", "En casa y con tiempo, probando el dron después", "Nunca, es mejor no actualizar"], c: 1, e: "Una actualización puede cambiar comportamientos o requerir recalibrar. Nunca con el cliente esperando." },
+  { t: "a13", tema: "Procedimientos", q: "¿Qué debería incluir la fase de postvuelo?", o: ["Inspección del equipo, registro del vuelo y de incidencias y gestión de baterías", "Solo apagar el mando", "Publicar el vídeo"], c: 0, e: "Un registro de vuelos bien llevado es la mejor defensa ante una reclamación." },
+  { t: "a13", tema: "Procedimientos", q: "Durante la planificación conviene identificar:", o: ["Una zona alternativa de aterrizaje", "El restaurante más cercano", "La hora del atardecer únicamente"], c: 0, e: "Si el punto de despegue queda comprometido, necesitas un plan B decidido antes, no improvisado." },
+  { t: "a13", tema: "Factores humanos", q: "La visión central del ojo humano:", o: ["Es la única nítida y abarca un campo muy estrecho", "Detecta bien el movimiento periférico", "Funciona mejor de noche"], c: 0, e: "La periférica detecta movimiento pero no detalle. Por eso hay que barrer activamente con la mirada." },
+  { t: "a13", tema: "Factores humanos", q: "Cuando el dron viene volando de frente hacia ti:", o: ["Los mandos responden igual que de espaldas", "La respuesta a los mandos se percibe invertida y es fácil equivocarse", "El dron cambia de modo automáticamente"], c: 1, e: "Conviene practicarlo en zona despejada para no bloquearse el día que ocurre de verdad." },
+  { t: "a13", tema: "Factores humanos", q: "La complacencia en un piloto con experiencia se manifiesta como:", o: ["Saltarse pasos del checklist porque siempre ha salido bien", "Exceso de nerviosismo", "Volar demasiado despacio"], c: 0, e: "Es un riesgo específico de quien lleva muchos vuelos sin incidentes: se asume que la zona sigue igual que el mes pasado." },
+  { t: "a13", tema: "Factores humanos", q: "Según el modelo de cadena de errores, un accidente:", o: ["Tiene siempre una sola causa", "Resulta de varios fallos pequeños alineados, y basta con romper un eslabón para evitarlo", "Es inevitable"], c: 1, e: "Por eso funcionan los checklists: rompen eslabones antes de que se alineen." },
+  { t: "a13", tema: "Privacidad", q: "Para grabar imágenes en las que aparecen personas identificables necesitas:", o: ["Una base legal, como el consentimiento o un interés legítimo justificado", "Nada, si es un espacio público", "Solo un cartel"], c: 0, e: "El RGPD exige licitud del tratamiento, además de informar y minimizar los datos captados." },
+  { t: "a13", tema: "Privacidad", q: "La autoridad de control en materia de protección de datos en España es:", o: ["La AEPD", "AESA", "ENAIRE"], c: 0, e: "AESA es la autoridad aeronáutica; la Agencia Española de Protección de Datos es quien vela por el RGPD." },
+  { t: "a13", tema: "Privacidad", q: "El principio de minimización de datos implica:", o: ["Captar únicamente los datos necesarios para la finalidad prevista", "Grabar todo y decidir después", "Guardar las grabaciones indefinidamente"], c: 0, e: "Grabar de más y conservarlo sin plazo es una de las infracciones más habituales en trabajos con dron." },
+  { t: "a13", tema: "Privacidad", q: "Grabas accidentalmente el interior del jardín vallado de una vivienda. Esto puede vulnerar:", o: ["El derecho a la intimidad protegido por la Ley Orgánica 1/1982", "Únicamente el Reglamento 2019/947", "Nada, si no lo publicas"], c: 0, e: "La vulneración puede existir por la propia captación, al margen de que después se difunda o no." },
+  { t: "a13", tema: "Seguridad", q: "El spoofing de la señal GNSS consiste en:", o: ["Suplantar la señal de posicionamiento para engañar al receptor", "Bloquear todas las señales de radio", "Robar el dron"], c: 0, e: "El jamming bloquea la señal; el spoofing la falsifica, que es más peligroso porque el dron cree estar donde no está." },
+  { t: "a13", tema: "Seguridad", q: "Dejar el dron desatendido en el lugar de trabajo:", o: ["Es aceptable si está apagado", "Supone un riesgo de manipulación, robo y acceso a los datos grabados", "No tiene ninguna implicación"], c: 1, e: "La custodia del equipo y de las tarjetas de memoria forma parte de la seguridad de la operación." },
+  { t: "a13", tema: "Procedimientos", q: "Pierdes la imagen de vídeo pero conservas el enlace de mando y control. ¿Qué haces?", o: ["Activo la terminación del vuelo", "Sigo controlando el dron con referencia visual directa y lo traigo de vuelta", "Espero a que vuelva el vídeo"], c: 1, e: "El VLOS existe justamente para esto: mientras ves el dron y mandas sobre él, puedes recuperarlo." },
+  { t: "a13", tema: "Límites operacionales", q: "¿Puede un piloto manejar dos UAS simultáneamente?", o: ["Sí, si son pequeños", "No, un piloto a distancia maneja una sola aeronave en cada momento", "Sí, con el certificado A2"], c: 1, e: "La atención no se divide: es una limitación expresa de la normativa." },
+  { t: "a13", tema: "Límites operacionales", q: "Despegas en el fondo de un valle y avanzas ladera arriba. El altímetro del mando:", o: ["Mide respecto al punto de despegue y puede llevarte a superar los 120 m sobre el terreno", "Corrige automáticamente el relieve", "Mide siempre sobre el nivel del mar"], c: 0, e: "La referencia legal es el punto más cercano de la superficie, y el instrumento no lo sabe. Hay que anticiparlo en la planificación." },
+  { t: "a13", tema: "Subcategorías", q: "Tienes un dron con marcado C2 pero no el certificado A2. ¿Dónde puedes volarlo?", o: ["En A2, el marcado basta", "Solo en A3, cumpliendo sus condiciones", "En A1"], c: 1, e: "La clase habilita la subcategoría, pero la competencia del piloto también. Sin el A2, a A3." },
+  { t: "a13", tema: "Registro", q: "Un dron considerado juguete, de 200 g y sin cámara ni sensor de datos personales:", o: ["Obliga igualmente a registrarse", "No obliga a registro de operador", "Obliga a tener seguro"], c: 1, e: "Es la excepción prevista. En cuanto lleve cámara, el registro vuelve a ser obligatorio." },
+  { t: "a13", tema: "Marco normativo", q: "¿Quién debe asegurarse de que los pilotos que vuelan sus aeronaves están cualificados?", o: ["El operador de UAS", "El fabricante", "AESA en cada vuelo"], c: 0, e: "El operador responde de la organización, de la cualificación de su personal y del cumplimiento normativo." },
+
+  // ---------------- A2 · ampliación ----------------
+  { t: "a2", tema: "Meteorología", q: "El concepto de altitud de densidad expresa que:", o: ["Con calor y humedad el dron se comporta como si volara a más altitud de la real", "La altitud se mide en densidad de aire", "El aire frío reduce el rendimiento"], c: 0, e: "Un día caluroso en montaña equivale, en prestaciones, a volar bastante más alto de lo que marca el altímetro." },
+  { t: "a2", tema: "Meteorología", q: "El QNH es el reglaje que hace que el altímetro indique:", o: ["La altitud respecto al nivel del mar", "La altura sobre el punto de despegue", "La distancia al piloto"], c: 0, e: "El QFE, en cambio, indica altura sobre un punto concreto como un aeródromo." },
+  { t: "a2", tema: "Rendimiento", q: "En una sesión larga, un cambio de presión atmosférica puede provocar que:", o: ["La altura barométrica indicada por el dron se desajuste respecto a la real", "El GPS deje de funcionar", "La batería se descargue antes"], c: 0, e: "El barómetro mide presión, y si la presión ambiente cambia, la referencia de altura se desplaza." },
+  { t: "a2", tema: "Meteorología", q: "La turbulencia convectiva o térmica se produce por:", o: ["El calentamiento desigual del terreno en días soleados", "El paso de un frente frío únicamente", "La humedad nocturna"], c: 0, e: "Superficies oscuras y secas generan ascendencias; zonas frescas y arboladas, descendencias." },
+  { t: "a2", tema: "Meteorología", q: "Para decidir si vuelas con viento, la referencia más útil es:", o: ["La velocidad media prevista", "La ráfaga máxima comparada con la velocidad punta del dron", "La dirección del viento"], c: 1, e: "Si la ráfaga se acerca a la velocidad máxima del dron, puede no ser capaz de regresar contra el viento." },
+  { t: "a2", tema: "Meteorología", q: "En un valle de montaña, durante el día es habitual:", o: ["Brisa ascendente de valle", "Brisa descendente de montaña", "Calma absoluta"], c: 0, e: "De día el aire calentado asciende por las laderas; de noche se invierte y desciende, ya frío y denso." },
+  { t: "a2", tema: "Meteorología", q: "La niebla de radiación se forma típicamente:", o: ["En noches despejadas y con poco viento, en valles y zonas húmedas", "Con viento fuerte y cielo cubierto", "Al mediodía en la costa"], c: 0, e: "Justo en las horas y los lugares del vuelo de paisaje al amanecer. Conviene tenerla prevista." },
+  { t: "a2", tema: "Meteorología", q: "La niebla de advección se produce cuando:", o: ["Aire húmedo y templado se desplaza sobre una superficie más fría", "El suelo se enfría por radiación nocturna", "Sube la presión bruscamente"], c: 0, e: "Es típica de zonas costeras y puede aparecer con viento, a diferencia de la de radiación." },
+  { t: "a2", tema: "Meteorología", q: "Volar con temperaturas cercanas a cero y humedad alta puede provocar:", o: ["Engelamiento en las palas, que altera el perfil y degrada la sustentación", "Mayor autonomía", "Mejor respuesta de los motores"], c: 0, e: "El hielo se acumula rápido y el dron pierde capacidad de sustentación de forma acelerada." },
+  { t: "a2", tema: "Rendimiento", q: "Con viento fuerte en cara, la velocidad respecto al suelo:", o: ["Puede aproximarse a cero aunque los motores estén al máximo", "Es siempre igual a la velocidad respecto al aire", "Aumenta"], c: 0, e: "El dron vuela respecto a la masa de aire. Si el aire se mueve en su contra a su misma velocidad, no avanza sobre el terreno." },
+  { t: "a2", tema: "Rendimiento", q: "El margen de potencia disponible se reduce cuando:", o: ["Aumentan la carga, la temperatura y la altitud", "Baja la temperatura", "Se vuela más despacio"], c: 0, e: "Menos margen significa menos capacidad de corregir una racha, y la pérdida de control llega de forma más brusca." },
+  { t: "a2", tema: "Rendimiento", q: "La autonomía que anuncia el fabricante se mide normalmente:", o: ["En vuelo estacionario, sin viento y a temperatura ideal", "Con viento cruzado de 10 m/s", "Con la máxima carga de pago"], c: 0, e: "En condiciones reales, con viento, frío y maniobras, puede quedarse en la mitad." },
+  { t: "a2", tema: "Rendimiento", q: "Si el viento exige casi todo el empuje disponible para mantener la posición:", o: ["El dron parece estable pero no podrá ejecutar órdenes adicionales", "No pasa nada mientras no se mueva", "Aumenta la autonomía"], c: 0, e: "Es la saturación de los mandos: todo va bien hasta que dejas de tener margen y el control se pierde de golpe." },
+  { t: "a2", tema: "Baterías", q: "Descargar habitualmente una LiPo hasta agotarla:", o: ["Acelera su degradación y acorta su vida útil", "La mantiene en forma", "Aumenta su capacidad"], c: 0, e: "Las descargas profundas, el calor y la carga rápida son los tres factores que más la envejecen." },
+  { t: "a2", tema: "Baterías", q: "Para transportar baterías de polímero de litio conviene:", o: ["Usar un contenedor resistente al fuego y evitar cortocircuitos en los contactos", "Llevarlas sueltas en la mochila", "Cargarlas durante el trayecto"], c: 0, e: "Y nunca dejarlas cargando sin vigilancia ni dentro del vehículo al sol." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "La calibración de la IMU debe realizarse:", o: ["Sobre una superficie nivelada y estable", "Con el dron en la mano", "En vuelo"], c: 0, e: "Una IMU calibrada en una superficie inclinada introduce un error permanente de actitud." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Los protectores de hélice son:", o: ["Una mitigación técnica que reduce el daño en caso de contacto", "Un requisito de la clase C2", "Un accesorio decorativo"], c: 0, e: "Reducen las lesiones por corte, aunque añaden peso y resistencia al viento." },
+  { t: "a2", tema: "Riesgo en tierra", q: "El geovallado o geofencing permite:", o: ["Impedir o advertir que el UAS salga de un volumen definido", "Aumentar el alcance del enlace", "Mejorar la señal GNSS"], c: 0, e: "Es una mitigación de contención: limita hasta dónde puede llegar el dron aunque el piloto se equivoque." },
+  { t: "a2", tema: "Riesgo en tierra", q: "En un entorno con paso de peatones, una medida operacional eficaz es:", o: ["Contar con un ayudante que vigile los accesos a la zona", "Volar más rápido para terminar antes", "Subir a 120 m"], c: 0, e: "Un segundo par de ojos dedicado a los accesos libera al piloto para vigilar el dron y el espacio aéreo." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Al planificar la trayectoria conviene mantener siempre:", o: ["Una vía de escape hacia una zona despejada", "El dron sobre el punto de despegue", "La cámara apuntando al suelo"], c: 0, e: "Si algo falla, necesitas saber hacia dónde llevar el dron sin sobrevolar a nadie." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Elegir un horario de poca afluencia para trabajar en una plaza es:", o: ["Una mitigación operacional del riesgo en tierra", "Una mitigación técnica", "Irrelevante"], c: 0, e: "Reduce el número de personas expuestas sin tocar el equipo: es la mitigación más barata y a menudo la más eficaz." },
+  { t: "a2", tema: "Operar en A2", q: "El certificado de competencia A2 tiene una validez de:", o: ["5 años", "2 años", "Indefinida"], c: 0, e: "Cinco años, revalidable dentro de los tres meses previos a la caducidad." },
+
+  // ---------------- STS · ampliación ----------------
+  { t: "sts", tema: "Categoría específica", q: "Un PDRA es:", o: ["Un escenario de riesgo predefinido: un análisis ya resuelto para operaciones frecuentes", "Un tipo de licencia de piloto", "Un documento de la aeronave"], c: 0, e: "Ahorra buena parte del análisis SORA, pero sigue requiriendo autorización operacional." },
+  { t: "sts", tema: "Categoría específica", q: "¿Cuál de estas operaciones NO obliga a pasar a categoría específica?", o: ["Volar a 200 m de altura", "Volar en VLOS a 100 m de altura con un C2 a 40 m de las personas", "Soltar material desde el dron"], c: 1, e: "Esa operación cabe perfectamente en A2 dentro de la categoría abierta." },
+  { t: "sts", tema: "Categoría específica", q: "El certificado LUC acredita que el operador:", o: ["Tiene un sistema de gestión capaz de evaluar sus propios riesgos", "Puede volar sin seguro", "Está exento de la normativa europea"], c: 0, e: "Le permite autoautorizar operaciones, pero solo dentro del alcance que tenga aprobado." },
+  { t: "sts", tema: "Escenarios estándar", q: "Una inspección de fachada en un casco urbano, con la calle acotada y en VLOS, encaja en:", o: ["STS-01", "STS-02", "Categoría abierta A1"], c: 0, e: "VLOS, entorno poblado y zona terrestre controlada: es el caso de uso típico del STS-01." },
+  { t: "sts", tema: "Escenarios estándar", q: "Durante una operación STS-01 entra un peatón en la zona controlada. ¿Qué procede?", o: ["Interrumpir la operación: se ha perdido la condición del escenario", "Continuar manteniendo 30 m", "Avisar al peatón y seguir volando"], c: 0, e: "El control efectivo de la zona es la base del escenario. Sin él, la operación ya no está amparada." },
+  { t: "sts", tema: "Clases de UAS", q: "Un UAS de clase C5 puede obtenerse:", o: ["Únicamente de fábrica", "También instalando en un C3 un kit de conversión que cumpla los requisitos de la clase", "Modificando cualquier dron de menos de 25 kg"], c: 1, e: "El kit de conversión fue clave en la transición, porque permitió reaprovechar flotas ya en servicio." },
+  { t: "sts", tema: "Clases de UAS", q: "El C6 incorpora, frente al C5:", o: ["Limitación seleccionable de la velocidad respecto al suelo y medios para mantenerse dentro del volumen operacional", "Paracaídas, que el C5 no tiene", "Menor masa máxima"], c: 0, e: "La contención es indispensable en BVLOS, cuando no estás viendo la aeronave." },
+  { t: "sts", tema: "Escenarios estándar", q: "Si falla la comunicación por radio con los observadores del espacio aéreo en STS-02:", o: ["Se continúa hasta terminar la pasada", "Se interrumpe la operación: sin comunicación efectiva se pierde la base del escenario", "Se sustituye por señales con los brazos"], c: 1, e: "La normativa exige comunicación efectiva y continua. Sin ella, el escenario deja de ser aplicable." },
+  { t: "sts", tema: "Escenarios estándar", q: "El carácter escasamente poblado del entorno en STS-02:", o: ["Se justifica con datos de densidad de población y reconocimiento previo del terreno", "Lo decide el piloto a ojo el mismo día", "Basta con que no haya edificios altos"], c: 0, e: "Hay que documentarlo, incluyendo carreteras y edificaciones aisladas dentro del área." },
+  { t: "sts", tema: "SORA", q: "El volumen de contingencia sirve para:", o: ["Absorber desviaciones razonables: errores de posición, inercia, reacción del piloto y deriva", "Almacenar el equipo en tierra", "Definir la altura máxima legal"], c: 0, e: "Volumen de vuelo más volumen de contingencia forman el volumen operacional." },
+  { t: "sts", tema: "SORA", q: "La zona terrestre controlada debe cubrir como mínimo:", o: ["La proyección del volumen operacional y su buffer de riesgo terrestre", "Solo el punto de despegue", "Un radio fijo de 50 m"], c: 0, e: "Es precisamente ahí donde no puede haber personas ajenas a la operación." },
+  { t: "sts", tema: "SORA", q: "Volar en horarios de bajo tráfico aéreo es una mitigación del riesgo aéreo de tipo:", o: ["Estratégico", "Táctico", "Técnico"], c: 0, e: "Las estratégicas se aplican antes del vuelo; las tácticas actúan durante, como los observadores del espacio aéreo." },
+  { t: "sts", tema: "SORA", q: "La contención del volumen operacional consiste en demostrar que:", o: ["La aeronave no va a salir del volumen, o que si sale la zona adyacente sigue siendo aceptable", "El piloto no se moverá del sitio", "El dron lleva paracaídas"], c: 0, e: "Es un requisito transversal del SORA, con independencia del nivel SAIL." },
+  { t: "sts", tema: "SORA", q: "Los OSO son:", o: ["Los objetivos de seguridad operacional que hay que cumplir según el nivel SAIL", "Los observadores en tierra", "Las zonas de seguridad terrestre"], c: 0, e: "Cubren competencia del personal, fiabilidad del UAS, procedimientos, mantenimiento y respuesta a emergencias." },
+  { t: "sts", tema: "Declaración", q: "El manual de operaciones debe incluir, entre otros contenidos:", o: ["Procedimientos normales, anormales y de emergencia, responsabilidades y requisitos de competencia", "El presupuesto del cliente", "El manual del fabricante sin más"], c: 0, e: "Es el documento con el que se demuestra el cumplimiento en una inspección." },
+  { t: "sts", tema: "Declaración", q: "¿Qué registros debe mantener un operador de categoría específica?", o: ["Vuelos, mantenimiento, formación del personal y sucesos", "Solo las facturas", "Ninguno, basta la declaración"], c: 0, e: "Los registros son la evidencia de que el sistema descrito en el manual funciona de verdad." },
+  { t: "sts", tema: "Emergencias", q: "La diferencia entre contingencia y emergencia es que:", o: ["En contingencia la situación sigue bajo control; en emergencia ya no se puede continuar", "La contingencia es más grave", "Son sinónimos"], c: 0, e: "Degradación del enlace o batería por debajo de lo previsto son contingencias; fallo de propulsión o pérdida total del C2 son emergencias." },
+  { t: "sts", tema: "Emergencias", q: "En una operación BVLOS hay que definir con antelación:", o: ["Puntos de aterrizaje de contingencia a lo largo de la ruta", "El color de la aeronave", "La hora exacta de regreso"], c: 0, e: "Si no ves el dron, necesitas saber de antemano dónde puede bajar sin causar daño." },
+  { t: "sts", tema: "Emergencias", q: "Respecto a la activación de la terminación del vuelo:", o: ["Debe estar definido de antemano quién tiene autoridad para activarla y con qué criterio", "La decide el cliente", "Se improvisa según el momento"], c: 0, e: "Es el último recurso, y se activa cuando la aeronave amenaza con salir del volumen hacia una zona no protegida." },
+  { t: "sts", tema: "Emergencias", q: "Tras un suceso durante la operación, además de atender a las personas conviene:", o: ["Preservar los datos de vuelo y las grabaciones, y notificar conforme al Reglamento (UE) 376/2014", "Borrar la tarjeta para evitar problemas", "No decir nada si no hubo daños"], c: 0, e: "La telemetría y las grabaciones son la mejor prueba de lo que realmente ocurrió." },
+  { t: "sts", tema: "Formación", q: "Has obtenido la acreditación práctica para STS-01. ¿Puedes operar en STS-02?", o: ["Sí, la acreditación es general", "No, la acreditación práctica es específica de cada escenario", "Sí, si el dron es C6"], c: 1, e: "Cada escenario tiene su formación práctica y su evaluación propias." },
+  { t: "sts", tema: "Formación", q: "Si dejas caducar el certificado teórico sin revalidarlo:", o: ["El proceso para recuperarlo es más largo que la simple revalidación", "Se renueva solo", "Se pierde para siempre"], c: 0, e: "Por eso la revalidación se solicita dentro de los tres meses anteriores a la caducidad, con el certificado aún en vigor." },
+];
+
+/* ------------------------------------------------------------------ */
+/*  ESTILOS                                                            */
+/* ------------------------------------------------------------------ */
+
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap');
+
+.aesa * { box-sizing: border-box; }
+.aesa {
+  --ink: #0A151E;
+  --panel: #12222E;
+  --panel2: #17303F;
+  --line: #23414F;
+  --text: #E4EEF4;
+  --mute: #8AA6B6;
+  --cy: #5CC8E8;
+  --am: #F2B441;
+  --ok: #55D6A0;
+  --no: #F07A6E;
+  font-family: Barlow, ui-sans-serif, system-ui, sans-serif;
+  background: var(--ink);
+  color: var(--text);
+  min-height: 100%;
+  padding-bottom: 74px;
+  -webkit-font-smoothing: antialiased;
+}
+.aesa h1, .aesa h2, .aesa h3, .aesa .cond {
+  font-family: 'Barlow Condensed', Barlow, sans-serif;
+  letter-spacing: .01em;
+  margin: 0;
+}
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+
+/* cabecera */
+.top { position: sticky; top: 0; z-index: 20; background: rgba(10,21,30,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.topin { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; max-width: 720px; margin: 0 auto; }
+.brand { font-size: 20px; font-weight: 700; line-height: 1; }
+.brand span { color: var(--cy); }
+.tag { font-size: 12px; color: var(--mute); margin-top: 2px; }
+.seg { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+.seg button { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; color: var(--mute);
+  background: none; border: 0; padding: 5px 11px; border-radius: 6px; cursor: pointer; }
+.seg button[data-on="1"] { background: var(--cy); color: #062130; }
+
+/* bloques */
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-top: 14px; }
+.card h3 { font-size: 19px; font-weight: 600; }
+.rows { margin-top: 10px; }
+.row { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+.row:first-child { border-top: 0; }
+.row b { flex: 0 0 92px; color: var(--mute); font-weight: 500; }
+
+/* cinta de altitud */
+.tape { margin-top: 18px; }
+.tapehd { display: flex; align-items: baseline; justify-content: space-between; }
+.big { font-family: 'Barlow Condensed', sans-serif; font-size: 54px; font-weight: 700; line-height: .9; }
+.bar { position: relative; height: 30px; margin-top: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #2E7E9B, var(--cy)); }
+.tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.16); }
+.bug { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--am); }
+.buglab { position: absolute; top: -18px; transform: translateX(-50%); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--am); white-space: nowrap; }
+.scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--mute); margin-top: 5px; }
+
+/* botones */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: .02em;
+  padding: 12px 16px; border-radius: 8px; border: 1px solid var(--cy); background: var(--cy); color: #062130;
+  cursor: pointer; margin-top: 10px; }
+.btn.ghost { background: transparent; color: var(--cy); }
+.btn.quiet { background: transparent; color: var(--mute); border-color: var(--line); }
+.btn.am { background: transparent; color: var(--am); border-color: var(--am); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn:focus-visible, .seg button:focus-visible, .opt:focus-visible, .acc:focus-visible { outline: 2px solid var(--am); outline-offset: 2px; }
+
+/* temario */
+.acc { width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; margin-top: 10px; color: var(--text); cursor: pointer; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.acc i { font-style: normal; color: var(--cy); font-size: 20px; }
+.accbody { background: var(--panel2); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px;
+  margin-top: -10px; padding: 4px 16px 14px; }
+.accbody p { font-size: 14.5px; line-height: 1.55; color: #CFE2EC; margin: 12px 0 0; padding-left: 14px; position: relative; }
+.accbody p::before { content: ""; position: absolute; left: 0; top: 9px; width: 5px; height: 5px; background: var(--cy); border-radius: 50%; }
+.clave { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.clavehd { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--am); letter-spacing: .04em; text-transform: uppercase; }
+.claveit { font-size: 14px; color: var(--text); margin-top: 7px; padding-left: 13px; border-left: 2px solid var(--am); line-height: 1.45; }
+
+.cls { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-top: 12px; overflow: hidden; }
+.clshd { display: flex; align-items: baseline; gap: 10px; padding: 12px 14px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.clshd b { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+.clshd em { font-style: normal; font-size: 13px; color: var(--text); }
+.clshd u { text-decoration: none; font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; margin-left: auto;
+  border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.clsrow { display: flex; gap: 10px; padding: 9px 14px; border-top: 1px solid rgba(35,65,79,.5); font-size: 13.5px; line-height: 1.45; }
+.clsrow:first-child { border-top: 0; }
+.urb { display: flex; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--line); font-size: 13.5px; line-height: 1.45; align-items: flex-start; }
+.urb b { flex: 0 0 66px; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; }
+.urb[data-v="si"] { background: rgba(85,214,160,.08); }
+.urb[data-v="si"] b { color: var(--ok); }
+.urb[data-v="cond"] { background: rgba(242,180,65,.08); }
+.urb[data-v="cond"] b { color: var(--am); }
+.urb[data-v="no"] { background: rgba(240,122,110,.08); }
+.urb[data-v="no"] b { color: var(--no); }
+.clsrow b { flex: 0 0 66px; color: var(--mute); font-weight: 500; font-size: 13px; }
+.figpin { font-style: normal; font-family: Barlow, sans-serif; font-size: 11px; color: var(--am);
+  border: 1px solid var(--am); border-radius: 999px; padding: 2px 8px; margin-left: auto; margin-right: 8px; white-space: nowrap; }
+.fig { margin-top: 16px; background: rgba(4,11,16,.45); border: 1px solid var(--line); border-radius: 10px; padding: 12px 10px 10px; }
+.fig svg { width: 100%; height: auto; display: block; }
+.fig span { display: block; font-size: 12px; color: var(--mute); margin-top: 9px; line-height: 1.45; }
+.mapa { margin-top: 12px; }
+.mapait { margin-top: 10px; }
+.mapatop { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; }
+.mapatop span { font-family: 'Barlow Condensed', sans-serif; color: var(--mute); }
+.mapabar { height: 5px; background: var(--line); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.mapabar i { display: block; height: 100%; }
+
+/* test */
+.qmeta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--mute); }
+.clock { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 600; color: var(--text); }
+.clock[data-warn="1"] { color: var(--am); }
+.prog { height: 3px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--cy); }
+.qtxt { font-size: 18px; line-height: 1.4; margin: 16px 0 4px; font-weight: 500; }
+.qtema { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: var(--am); }
+.opt { display: flex; gap: 11px; width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line);
+  color: var(--text); border-radius: 9px; padding: 13px 14px; margin-top: 9px; cursor: pointer; font-size: 15px;
+  font-family: Barlow, sans-serif; line-height: 1.4; }
+.opt k { flex: 0 0 20px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; color: var(--mute); }
+.opt[data-s="sel"] { border-color: var(--cy); }
+.opt[data-s="ok"] { border-color: var(--ok); background: rgba(85,214,160,.1); }
+.opt[data-s="no"] { border-color: var(--no); background: rgba(240,122,110,.1); }
+.exp { border-left: 3px solid var(--am); background: var(--panel2); padding: 12px 14px; border-radius: 0 8px 8px 0;
+  margin-top: 14px; font-size: 14.5px; line-height: 1.55; }
+.exp b { color: var(--am); font-weight: 600; }
+
+/* resultado y diagnóstico */
+.verd { font-family: 'Barlow Condensed', sans-serif; font-size: 34px; font-weight: 700; }
+.verd[data-ok="1"] { color: var(--ok); }
+.verd[data-ok="0"] { color: var(--no); }
+.diag { margin-top: 12px; }
+.diagit { margin-top: 12px; }
+.diagtop { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; }
+.diagtop b { font-weight: 500; }
+.diagtop span { font-family: 'Barlow Condensed', sans-serif; color: var(--mute); font-size: 14px; }
+.diagbar { height: 6px; background: var(--line); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.diagbar i { display: block; height: 100%; }
+.chip { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: var(--cy);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; margin: 8px 8px 0 0; cursor: pointer;
+  background: transparent; }
+
+/* tutor */
+.tutorbtn { width: 100%; background: transparent; border: 1px dashed var(--am); color: var(--am); border-radius: 8px;
+  padding: 10px; margin-top: 10px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15.5px; }
+.ovl { position: fixed; inset: 0; z-index: 50; background: rgba(4,11,16,.7); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 720px; max-height: 86vh; background: var(--ink); border: 1px solid var(--line);
+  border-radius: 14px 14px 0 0; display: flex; flex-direction: column; }
+.sheethd { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sheethd h3 { font-size: 18px; }
+.sheethd button { background: none; border: 0; color: var(--mute); font-size: 22px; cursor: pointer; line-height: 1; padding: 0 4px; }
+.chat { overflow-y: auto; padding: 8px 16px 16px; flex: 1; }
+.msg { margin-top: 12px; font-size: 14.5px; line-height: 1.6; white-space: pre-wrap; }
+.msg.yo { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-left: 32px; }
+.msg.tu { padding-left: 13px; border-left: 2px solid var(--am); }
+.pensando { color: var(--mute); font-size: 14px; margin-top: 12px; }
+.compose { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.compose input { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; color: var(--text);
+  padding: 11px 12px; font-family: Barlow, sans-serif; font-size: 15px; }
+.compose button { background: var(--cy); color: #062130; border: 0; border-radius: 8px; padding: 0 16px; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600; }
+.sug { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 16px 12px; }
+.sug button { background: transparent; border: 1px solid var(--line); color: var(--mute); border-radius: 999px;
+  padding: 6px 11px; font-size: 13px; cursor: pointer; font-family: Barlow, sans-serif; }
+
+/* chuleta */
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
+.tbl td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.45; }
+.tbl td:first-child { color: var(--cy); font-family: 'Barlow Condensed', sans-serif; font-size: 15.5px; white-space: nowrap; }
+
+/* nav inferior */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: rgba(10,21,30,.97);
+  border-top: 1px solid var(--line); display: flex; }
+.nav button { flex: 1; background: none; border: 0; color: var(--mute); padding: 9px 1px 11px; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
+.nav button[data-on="1"] { color: var(--cy); }
+.nav svg { width: 21px; height: 21px; }
+.pip { position: absolute; top: 6px; right: 50%; margin-right: -18px; background: var(--am); color: #21180a;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 6px; }
+.note { font-size: 12.5px; color: var(--mute); line-height: 1.5; margin-top: 16px; }
+.empty { text-align: center; color: var(--mute); padding: 40px 10px; font-size: 15px; line-height: 1.5; }
+`;
+
+/* ------------------------------------------------------------------ */
+/*  UTILIDADES                                                         */
+/* ------------------------------------------------------------------ */
+
+const KEY = "aesa-drones-progreso-v2";
+const DIA = 86400000;
+const INTERVALOS = [1, 3, 7, 16, 35]; // días hasta el siguiente repaso, por nivel
+
+const barajar = (a) => {
+  const x = [...a];
+  for (let i = x.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [x[i], x[j]] = [x[j], x[i]];
+  }
+  return x;
+};
+const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+const idsDe = (track) => Q.map((q, i) => (track === "sts" || q.t === track ? i : -1)).filter((i) => i >= 0);
+
+// prepara una pregunta barajando el orden de sus opciones
+const preparar = (id) => {
+  const q = Q[id];
+  const orden = barajar(q.o.map((_, i) => i));
+  return { id, tema: q.tema, q: q.q, e: q.e, o: orden.map((i) => q.o[i]), c: orden.indexOf(q.c) };
+};
+
+/* ------------------------------------------------------------------ */
+/*  APP                                                                */
+/* ------------------------------------------------------------------ */
+
+export default function App() {
+  const [track, setTrack] = useState("a13");
+  const [tab, setTab] = useState("inicio");
+  const [stats, setStats] = useState({ a13: { n: 0, ok: 0 }, a2: { n: 0, ok: 0 }, sts: { n: 0, ok: 0 } });
+  const [prog, setProg] = useState({}); // id -> { n: nivel, d: fecha del próximo repaso }
+  const [quiz, setQuiz] = useState(null);
+  const [tutor, setTutor] = useState(null);
+  const cargado = useRef(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await window.storage.get(KEY);
+        if (r && r.value) {
+          const d = JSON.parse(r.value);
+          if (d.stats) setStats(d.stats);
+          if (d.prog) setProg(d.prog);
+          if (d.track) setTrack(d.track);
+        }
+      } catch (e) {
+        /* todavía no hay progreso guardado */
+      }
+      cargado.current = true;
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!cargado.current) return;
+    (async () => {
+      try {
+        await window.storage.set(KEY, JSON.stringify({ stats, prog, track }));
+      } catch (e) {
+        /* el progreso se mantiene al menos en esta sesión */
+      }
+    })();
+  }, [stats, prog, track]);
+
+  const T = TRACKS[track];
+  const st = stats[track] || { n: 0, ok: 0 };
+  const pct = st.n ? Math.round((st.ok / st.n) * 100) : 0;
+
+  const ahora = Date.now();
+  const delTrack = useMemo(() => idsDe(track), [track]);
+  const pendientes = delTrack.filter((i) => prog[i] && prog[i].d <= ahora);
+  const dominadas = delTrack.filter((i) => prog[i] && prog[i].n >= 4).length;
+  const vistas = delTrack.filter((i) => prog[i]).length;
+  const mapa = useMemo(() => {
+    const m = {};
+    delTrack.forEach((i) => {
+      const t = Q[i].tema;
+      if (!m[t]) m[t] = { n: 0, d: 0 };
+      m[t].n++;
+      if (prog[i] && prog[i].n >= 3) m[t].d++;
+    });
+    return Object.keys(m)
+      .map((t) => ({ t, n: m[t].n, d: m[t].d, pc: Math.round((m[t].d / m[t].n) * 100) }))
+      .sort((a, b) => a.pc - b.pc);
+  }, [delTrack, prog]);
+
+  // registra la respuesta y reprograma el repaso de esa pregunta
+  const registrar = (id, bien) => {
+    setProg((p) => {
+      const nv = bien ? Math.min((p[id]?.n || 0) + 1, 5) : 0;
+      const d = bien ? Date.now() + INTERVALOS[nv - 1] * DIA : Date.now();
+      return { ...p, [id]: { n: nv, d } };
+    });
+  };
+
+  // construye la tanda: primero lo que toca repasar, luego lo nuevo
+  const seleccionar = (n, filtro) => {
+    let base = delTrack;
+    if (filtro) base = base.filter((i) => Q[i].tema === filtro);
+    const toca = barajar(base.filter((i) => prog[i] && prog[i].d <= ahora));
+    const nuevas = barajar(base.filter((i) => !prog[i]));
+    const resto = barajar(base.filter((i) => prog[i] && prog[i].d > ahora));
+    return [...toca, ...nuevas, ...resto].slice(0, n);
+  };
+
+  const arrancar = (modo, opts = {}) => {
+    const n = modo === "examen" ? T.preguntas : opts.n || 10;
+    const ids = opts.ids ? barajar(opts.ids).slice(0, n) : modo === "examen" ? barajar(delTrack).slice(0, n) : seleccionar(n, opts.tema);
+    if (!ids.length) return;
+    setQuiz({
+      modo,
+      etiqueta: opts.tema || null,
+      preguntas: ids.map(preparar),
+      i: 0,
+      elegido: null,
+      respuestas: [],
+      seg: modo === "examen" ? T.minutos * 60 : null,
+      fin: false,
+    });
+    setTab("test");
+  };
+
+  const responder = (k) => {
+    if (quiz.elegido !== null) return;
+    const p = quiz.preguntas[quiz.i];
+    const bien = k === p.c;
+    setStats((s) => ({ ...s, [track]: { n: s[track].n + 1, ok: s[track].ok + (bien ? 1 : 0) } }));
+    registrar(p.id, bien);
+    const res = [...quiz.respuestas, { id: p.id, tema: p.tema, k, bien, dada: p.o[k], buena: p.o[p.c] }];
+    if (quiz.modo === "examen") {
+      if (quiz.i + 1 >= quiz.preguntas.length) setQuiz({ ...quiz, respuestas: res, fin: true });
+      else setQuiz({ ...quiz, respuestas: res, i: quiz.i + 1, elegido: null });
+    } else {
+      setQuiz({ ...quiz, respuestas: res, elegido: k });
+    }
+  };
+
+  const siguiente = () => {
+    if (quiz.i + 1 >= quiz.preguntas.length) setQuiz({ ...quiz, fin: true });
+    else setQuiz({ ...quiz, i: quiz.i + 1, elegido: null });
+  };
+
+  const abrirTutor = (ctx, titulo) => setTutor({ ctx, titulo });
+
+  return (
+    <div className="aesa">
+      <style>{CSS}</style>
+
+      <header className="top">
+        <div className="topin">
+          <div>
+            <h1 className="brand">
+              Altura <span>120</span>
+            </h1>
+            <div className="tag">Preparación de los exámenes AESA de dron</div>
+          </div>
+          <div className="seg">
+            {Object.values(TRACKS).map((x) => (
+              <button
+                key={x.id}
+                data-on={track === x.id ? "1" : "0"}
+                onClick={() => {
+                  setTrack(x.id);
+                  setQuiz(null);
+                  setTab("inicio");
+                }}
+              >
+                {x.nombre}
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      <main className="wrap">
+        {tab === "inicio" && (
+          <Inicio
+            T={T}
+            st={st}
+            pct={pct}
+            arrancar={arrancar}
+            pendientes={pendientes.length}
+            dominadas={dominadas}
+            vistas={vistas}
+            total={delTrack.length}
+            mapa={mapa}
+            arrancarTema={(t) => arrancar("practica", { tema: t, n: 10 })}
+            setTab={setTab}
+          />
+        )}
+        {tab === "temario" && <Temario track={track} abrirTutor={abrirTutor} />}
+        {tab === "test" && (
+          <Test
+            T={T}
+            quiz={quiz}
+            setQuiz={setQuiz}
+            arrancar={arrancar}
+            responder={responder}
+            siguiente={siguiente}
+            abrirTutor={abrirTutor}
+          />
+        )}
+        {tab === "repaso" && (
+          <Repaso
+            pendientes={pendientes}
+            prog={prog}
+            dominadas={dominadas}
+            vistas={vistas}
+            total={delTrack.length}
+            arrancar={arrancar}
+            abrirTutor={abrirTutor}
+          />
+        )}
+        {tab === "clases" && <Clases />}
+        {tab === "chuleta" && <Chuleta />}
+      </main>
+
+      <nav className="nav">
+        {[
+          ["inicio", "Inicio", "M3 11 12 4l9 7v9H3z", 0],
+          ["temario", "Temario", "M4 4h11l5 5v11H4z", 0],
+          ["test", "Test", "M5 12l4 4 10-10", 0],
+          ["repaso", "Repaso", "M20 12a8 8 0 1 1-2.3-5.6 M20 4v4h-4", pendientes.length],
+          ["clases", "Clases", "M4 6h16 M4 12h16 M4 18h10", 0],
+          ["chuleta", "Chuleta", "M4 5h16v14H4z M8 9h8 M8 13h5", 0],
+        ].map(([id, txt, d, pip]) => (
+          <button key={id} data-on={tab === id ? "1" : "0"} onClick={() => setTab(id)}>
+            {pip > 0 && <span className="pip">{pip}</span>}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d={d} />
+            </svg>
+            {txt}
+          </button>
+        ))}
+      </nav>
+
+      {tutor && <Tutor ctx={tutor.ctx} titulo={tutor.titulo} cerrar={() => setTutor(null)} />}
+    </div>
+  );
+}
+
+/* --------------------------- TUTOR --------------------------------- */
+
+const INSTRUCCIONES = `Eres un tutor de preparación para los exámenes teóricos de AESA de pilotaje de drones en España (A1/A3, A2 y escenarios estándar de categoría específica). Hablas con un alumno que está estudiando.
+
+Cómo respondes:
+- En español, tono cercano y directo, sin florituras ni listas innecesarias.
+- Máximo 130 palabras por respuesta. Vas al grano.
+- Explicas el porqué, no solo el dato: si el alumno solo memoriza la cifra, fallará en cuanto varíen el enunciado.
+- Si el alumno ha fallado, le dices con claridad dónde está el error de razonamiento, sin adornarlo.
+- Terminas con una pregunta breve de comprobación para que él responda.
+- Si te preguntan algo que no forma parte del temario de estos exámenes, lo dices y reconduces.
+- Basas todo en el Reglamento (UE) 2019/947, el Reglamento Delegado (UE) 2019/945 y el Real Decreto 517/2024. Si no estás seguro de un dato concreto, lo dices en lugar de inventarlo, y recomiendas contrastarlo con el material oficial de AESA.`;
+
+function Tutor({ ctx, titulo, cerrar }) {
+  const [msgs, setMsgs] = useState([]);
+  const [txt, setTxt] = useState("");
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+  const fin = useRef(null);
+  const iniciado = useRef(false);
+
+  const pedir = async (historial) => {
+    setCargando(true);
+    setError(null);
+    try {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          messages: historial.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+      const data = await r.json();
+      const texto = (data.content || [])
+        .map((b) => (b.type === "text" ? b.text : ""))
+        .filter(Boolean)
+        .join("\n")
+        .trim();
+      if (!texto) throw new Error("respuesta vacía");
+      setMsgs([...historial, { role: "assistant", content: texto }]);
+    } catch (e) {
+      setError("No he podido conectar con el tutor. Prueba otra vez en un momento.");
+    }
+    setCargando(false);
+  };
+
+  useEffect(() => {
+    if (iniciado.current) return;
+    iniciado.current = true;
+    const primera = [{ role: "user", content: `${INSTRUCCIONES}\n\n--- SITUACIÓN DEL ALUMNO ---\n${ctx}\n\nExplícaselo ahora.` }];
+    setMsgs(primera);
+    pedir(primera);
+  }, []);
+
+  useEffect(() => {
+    if (fin.current) fin.current.scrollIntoView({ behavior: "smooth" });
+  }, [msgs, cargando]);
+
+  const enviar = (t) => {
+    const limpio = (t || txt).trim();
+    if (!limpio || cargando) return;
+    const h = [...msgs, { role: "user", content: limpio }];
+    setMsgs(h);
+    setTxt("");
+    pedir(h);
+  };
+
+  const visibles = msgs.filter((m, i) => !(i === 0 && m.role === "user"));
+
+  return (
+    <div className="ovl" onClick={cerrar}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheethd">
+          <h3>{titulo || "Tutor"}</h3>
+          <button onClick={cerrar} aria-label="Cerrar">
+            ×
+          </button>
+        </div>
+        <div className="chat">
+          {visibles.map((m, i) => (
+            <div key={i} className={`msg ${m.role === "user" ? "yo" : "tu"}`}>
+              {m.content}
+            </div>
+          ))}
+          {cargando && <div className="pensando">Pensando…</div>}
+          {error && <div className="pensando">{error}</div>}
+          <div ref={fin} />
+        </div>
+        {!cargando && msgs.length <= 2 && (
+          <div className="sug">
+            {["Ponme un ejemplo real", "¿Cómo lo recuerdo?", "¿Qué me pueden preguntar de esto?"].map((s) => (
+              <button key={s} onClick={() => enviar(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="compose">
+          <input
+            value={txt}
+            onChange={(e) => setTxt(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && enviar()}
+            placeholder="Pregunta lo que no veas claro"
+          />
+          <button onClick={() => enviar()} disabled={cargando}>
+            Enviar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------- INICIO -------------------------------- */
+
+function Inicio({ T, st, pct, arrancar, pendientes, dominadas, vistas, total, mapa, arrancarTema, setTab }) {
+  return (
+    <>
+      <section className="tape">
+        <div className="tapehd">
+          <div>
+            <div className="big">{pct}%</div>
+            <div className="tag" style={{ marginTop: 6 }}>
+              {st.n ? `${st.ok} aciertos de ${st.n} respuestas` : "Todavía sin responder ninguna pregunta"}
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div className="cond" style={{ fontSize: 17, color: "var(--cy)" }}>
+              {T.nombre}
+            </div>
+            <div className="tag">{T.sub}</div>
+          </div>
+        </div>
+        <div className="bar">
+          <div className="fill" style={{ width: `${pct}%` }} />
+          {[25, 50].map((x) => (
+            <span key={x} className="tick" style={{ left: `${x}%` }} />
+          ))}
+          <span className="bug" style={{ left: "75%" }} />
+        </div>
+        <div style={{ position: "relative", height: 0 }}>
+          <span className="buglab" style={{ left: "75%", top: -34 }}>
+            aprobado 75
+          </span>
+        </div>
+        <div className="scale">
+          <span>0</span>
+          <span>50</span>
+          <span>100</span>
+        </div>
+      </section>
+
+      <div className="fig">
+        <div dangerouslySetInnerHTML={{ __html: DIAGRAMAS[HERO[T.id]].s }} />
+        <span>{DIAGRAMAS[HERO[T.id]].p}</span>
+      </div>
+
+      {pendientes > 0 && (
+        <button className="btn am" onClick={() => setTab("repaso")}>
+          Te tocan {pendientes} {pendientes === 1 ? "pregunta" : "preguntas"} de repaso
+        </button>
+      )}
+      <button className="btn" onClick={() => arrancar("practica")}>
+        Practicar 10 preguntas
+      </button>
+      <button className="btn ghost" onClick={() => arrancar("examen")}>
+        Simulacro · {T.preguntas} preguntas en {T.minutos} min
+      </button>
+      <button className="btn quiet" onClick={() => setTab("clases")}>
+        Qué puedo volar y dónde · tabla de clases
+      </button>
+
+      <div className="card">
+        <h3>Tu avance</h3>
+        <div className="rows">
+          <div className="row">
+            <b>Vistas</b>
+            <span>
+              {vistas} de {total} preguntas del banco
+            </span>
+          </div>
+          <div className="row">
+            <b>Dominadas</b>
+            <span>{dominadas} acertadas de forma sostenida</span>
+          </div>
+          <div className="row">
+            <b>Pendientes</b>
+            <span>{pendientes} esperando repaso</span>
+          </div>
+        </div>
+      </div>
+
+      {vistas > 0 && (
+        <div className="card">
+          <h3>Dominio por materia</h3>
+          <p className="note" style={{ marginTop: 4 }}>Toca una materia para practicarla.</p>
+          <div className="mapa">
+            {mapa.map((x) => (
+              <div className="mapait" key={x.t} onClick={() => arrancarTema(x.t)} style={{ cursor: "pointer" }}>
+                <div className="mapatop">
+                  <b style={{ fontWeight: 500 }}>{x.t}</b>
+                  <span>{x.pc}%</span>
+                </div>
+                <div className="mapabar">
+                  <i style={{ width: `${x.pc}%`, background: x.pc >= 70 ? "var(--ok)" : x.pc >= 35 ? "var(--am)" : "var(--no)" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="card">
+        <h3>Cómo es este examen</h3>
+        <div className="rows">
+          {T.resumen.map(([k, v]) => (
+            <div className="row" key={k}>
+              <b>{k}</b>
+              <span>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="note">
+        El orden de las opciones cambia en cada intento, así que no vale memorizar posiciones. En el simulacro no hay
+        corrección hasta el final, con temporizador, como en el examen real.
+      </p>
+      <p className="note">
+        Contenido preparado a partir de los Reglamentos (UE) 2019/947 y 2019/945 y del Real Decreto 517/2024. La
+        normativa cambia: contrasta siempre con el material oficial de AESA antes de examinarte.
+      </p>
+    </>
+  );
+}
+
+/* --------------------------- TEMARIO ------------------------------- */
+
+function Temario({ track, abrirTutor }) {
+  const [abierto, setAbierto] = useState(0);
+  const bloques = TEMARIO[track];
+  return (
+    <>
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3>{track === "sts" ? "Materias propias de la categoría específica" : "Materias del examen"}</h3>
+        <p className="note" style={{ marginTop: 8 }}>
+          {track === "sts"
+            ? "El examen STS suma estas materias a las de A1/A3 y, si no tienes el A2, también a las suyas. Repasa esos bloques cambiando de itinerario arriba."
+            : "Toca cada bloque para desplegarlo. Al final de cada uno tienes las claves que más caen, y un botón para preguntarle al tutor lo que no veas claro."}
+        </p>
+      </div>
+      {bloques.map((b, i) => (
+        <div key={b.t}>
+          <button className="acc" onClick={() => setAbierto(abierto === i ? -1 : i)} aria-expanded={abierto === i}>
+            {b.t}
+            {b.d && <em className="figpin">esquema</em>}
+            <i>{abierto === i ? "−" : "+"}</i>
+          </button>
+          {abierto === i && (
+            <div className="accbody">
+              {b.p.map((p, k) => (
+                <p key={k}>{p}</p>
+              ))}
+              {b.d &&
+                b.d.map((k) => (
+                  <div className="fig" key={k}>
+                    <div dangerouslySetInnerHTML={{ __html: DIAGRAMAS[k].s }} />
+                    <span>{DIAGRAMAS[k].p}</span>
+                  </div>
+                ))}
+              {b.k && (
+                <div className="clave">
+                  <span className="clavehd">Lo que cae en el examen</span>
+                  {b.k.map((c, j) => (
+                    <div className="claveit" key={j}>
+                      {c}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                className="tutorbtn"
+                onClick={() =>
+                  abrirTutor(
+                    `El alumno está estudiando el bloque "${b.t}" del temario de ${TRACKS[track].nombre}. Contenido del bloque:\n${b.p.join("\n")}\n\nNo ha preguntado nada concreto todavía: haz un resumen de lo verdaderamente importante de este bloque para el examen y pregúntale qué parte le cuesta más.`,
+                    b.t
+                  )
+                }
+              >
+                Preguntar al tutor sobre este bloque
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/* ---------------------------- TEST --------------------------------- */
+
+function Test({ T, quiz, setQuiz, arrancar, responder, siguiente, abrirTutor }) {
+  useEffect(() => {
+    if (!quiz || quiz.fin || quiz.seg === null) return;
+    const t = setInterval(() => {
+      setQuiz((q) => {
+        if (!q || q.fin || q.seg === null) return q;
+        if (q.seg <= 1) return { ...q, seg: 0, fin: true };
+        return { ...q, seg: q.seg - 1 };
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [quiz, setQuiz]);
+
+  if (!quiz)
+    return (
+      <>
+        <div className="empty">Elige cómo quieres practicar.</div>
+        <button className="btn" onClick={() => arrancar("practica")}>
+          Practicar 10 preguntas
+        </button>
+        <button className="btn ghost" onClick={() => arrancar("examen")}>
+          Simulacro de {T.preguntas} preguntas
+        </button>
+      </>
+    );
+
+  if (quiz.fin) return <Resultado quiz={quiz} setQuiz={setQuiz} arrancar={arrancar} abrirTutor={abrirTutor} />;
+
+  const p = quiz.preguntas[quiz.i];
+  const corregido = quiz.elegido !== null;
+  return (
+    <>
+      <div style={{ marginTop: 18 }}>
+        <div className="qmeta">
+          <span>
+            Pregunta {quiz.i + 1} de {quiz.preguntas.length} ·{" "}
+            {quiz.etiqueta ? quiz.etiqueta : quiz.modo === "examen" ? "simulacro" : "práctica"}
+          </span>
+          {quiz.seg !== null && (
+            <span className="clock" data-warn={quiz.seg < 120 ? "1" : "0"}>
+              {mmss(quiz.seg)}
+            </span>
+          )}
+        </div>
+        <div className="prog">
+          <i style={{ width: `${(quiz.i / quiz.preguntas.length) * 100}%` }} />
+        </div>
+      </div>
+
+      <div className="qtema" style={{ marginTop: 18 }}>
+        {p.tema}
+      </div>
+      <div className="qtxt">{p.q}</div>
+
+      {p.o.map((o, k) => {
+        let s = "";
+        if (corregido) s = k === p.c ? "ok" : k === quiz.elegido ? "no" : "";
+        return (
+          <button key={k} className="opt" data-s={s} onClick={() => responder(k)} disabled={corregido}>
+            <k>{"ABCD"[k]}</k>
+            <span>{o}</span>
+          </button>
+        );
+      })}
+
+      {corregido && (
+        <>
+          <div className="exp">
+            <b>{quiz.elegido === p.c ? "Correcto. " : "Respuesta correcta: " + "ABCD"[p.c] + ". "}</b>
+            {p.e}
+          </div>
+          <button
+            className="tutorbtn"
+            onClick={() =>
+              abrirTutor(
+                `Pregunta de examen (materia: ${p.tema}):\n"${p.q}"\nOpciones:\n${p.o
+                  .map((x, j) => `${"ABCD"[j]}) ${x}`)
+                  .join("\n")}\nCorrecta: ${"ABCD"[p.c]}. Explicación breve disponible: ${p.e}\nEl alumno respondió ${
+                  "ABCD"[quiz.elegido]
+                }, que es ${quiz.elegido === p.c ? "correcta" : "incorrecta"}.\n\n${
+                  quiz.elegido === p.c
+                    ? "Ha acertado, pero quiere entenderlo mejor: profundiza en el porqué."
+                    : "Explícale dónde falla su razonamiento y cómo distinguir esta opción de la que eligió."
+                }`,
+                p.tema
+              )
+            }
+          >
+            {quiz.elegido === p.c ? "Profundizar con el tutor" : "No lo entiendo, explícamelo"}
+          </button>
+          <button className="btn" onClick={siguiente}>
+            {quiz.i + 1 >= quiz.preguntas.length ? "Ver resultado" : "Siguiente"}
+          </button>
+        </>
+      )}
+
+      <button className="btn quiet" onClick={() => setQuiz(null)}>
+        Dejarlo aquí
+      </button>
+    </>
+  );
+}
+
+/* -------------------------- RESULTADO ------------------------------ */
+
+function Resultado({ quiz, setQuiz, arrancar, abrirTutor }) {
+  const ok = quiz.respuestas.filter((r) => r.bien).length;
+  const total = quiz.preguntas.length;
+  const p = Math.round((ok / total) * 100);
+  const aprobado = p >= 75;
+
+  const porTema = {};
+  quiz.respuestas.forEach((r) => {
+    if (!porTema[r.tema]) porTema[r.tema] = { n: 0, ok: 0 };
+    porTema[r.tema].n++;
+    if (r.bien) porTema[r.tema].ok++;
+  });
+  const temas = Object.entries(porTema)
+    .map(([t, v]) => ({ t, ...v, pc: Math.round((v.ok / v.n) * 100) }))
+    .sort((a, b) => a.pc - b.pc);
+  const flojos = temas.filter((x) => x.pc < 75);
+  const fallos = quiz.respuestas.filter((r) => !r.bien);
+
+  return (
+    <>
+      <div className="card" style={{ marginTop: 18 }}>
+        <div className="verd" data-ok={aprobado ? "1" : "0"}>
+          {aprobado ? "Aprobado" : "No superado"}
+        </div>
+        <div className="big" style={{ marginTop: 6 }}>
+          {ok}/{total}
+        </div>
+        <div className="tag" style={{ marginTop: 6 }}>
+          {p}% · el mínimo son 75 puntos porcentuales
+          {quiz.seg === 0 ? " · se agotó el tiempo" : ""}
+        </div>
+        <div className="bar" style={{ marginTop: 14 }}>
+          <div className="fill" style={{ width: `${p}%` }} />
+          <span className="bug" style={{ left: "75%" }} />
+        </div>
+      </div>
+
+      <div className="card">
+        <h3>Diagnóstico por materia</h3>
+        <div className="diag">
+          {temas.map((x) => (
+            <div className="diagit" key={x.t}>
+              <div className="diagtop">
+                <b>{x.t}</b>
+                <span>
+                  {x.ok}/{x.n}
+                </span>
+              </div>
+              <div className="diagbar">
+                <i
+                  style={{
+                    width: `${x.pc}%`,
+                    background: x.pc >= 75 ? "var(--ok)" : x.pc >= 50 ? "var(--am)" : "var(--no)",
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        {flojos.length > 0 && (
+          <>
+            <p className="note">Practica solo la materia que falla:</p>
+            <div>
+              {flojos.map((x) => (
+                <button key={x.t} className="chip" onClick={() => arrancar("practica", { tema: x.t, n: 10 })}>
+                  {x.t}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {fallos.length > 0 && (
+        <div className="card">
+          <h3>Lo que has fallado</h3>
+          {fallos.map((r, i) => {
+            const q = Q[r.id];
+            return (
+              <div key={i} style={{ marginTop: 16 }}>
+                <div className="qtema">{r.tema}</div>
+                <div style={{ fontSize: 15, margin: "4px 0 6px", lineHeight: 1.4 }}>{q.q}</div>
+                <div style={{ fontSize: 14.5, color: "var(--ok)" }}>{r.buena}</div>
+                <div className="exp" style={{ marginTop: 8 }}>
+                  {q.e}
+                </div>
+                <button
+                  className="tutorbtn"
+                  onClick={() =>
+                    abrirTutor(
+                      `Pregunta de examen (materia: ${r.tema}):\n"${q.q}"\nRespuesta correcta: ${r.buena}\nEl alumno eligió: ${r.dada}\nExplicación breve disponible: ${q.e}\n\nExplícale por qué su opción no vale y cómo no volver a caer.`,
+                      r.tema
+                    )
+                  }
+                >
+                  Que me lo explique el tutor
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <button className="btn" onClick={() => arrancar(quiz.modo)}>
+        Repetir con preguntas nuevas
+      </button>
+      <button className="btn quiet" onClick={() => setQuiz(null)}>
+        Salir del test
+      </button>
+    </>
+  );
+}
+
+/* --------------------------- REPASO -------------------------------- */
+
+function Repaso({ pendientes, prog, dominadas, vistas, total, arrancar, abrirTutor }) {
+  if (!vistas)
+    return (
+      <div className="empty">
+        Aquí aparecerán las preguntas que te toca repasar.
+        <br />
+        Cada vez que aciertas una, tarda más en volver: al día siguiente, a los tres días, a la semana, a las dos
+        semanas y al mes.
+        <br />
+        Empieza con un test y esto se irá llenando solo.
+      </div>
+    );
+
+  return (
+    <>
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3>{pendientes.length ? `${pendientes.length} preguntas te tocan hoy` : "Nada pendiente por hoy"}</h3>
+        <p className="note" style={{ marginTop: 6 }}>
+          {pendientes.length
+            ? "Son preguntas que fallaste o que ya toca reforzar. Cada acierto las aleja más en el tiempo; cada fallo las devuelve al principio."
+            : "Has repasado todo lo que tocaba. Vuelve mañana o sigue avanzando con preguntas nuevas."}
+        </p>
+        <div className="rows" style={{ marginTop: 12 }}>
+          <div className="row">
+            <b>Dominadas</b>
+            <span>
+              {dominadas} de {vistas} vistas
+            </span>
+          </div>
+          <div className="row">
+            <b>Sin ver</b>
+            <span>{total - vistas} preguntas del banco</span>
+          </div>
+        </div>
+      </div>
+
+      {pendientes.length > 0 && (
+        <button className="btn" onClick={() => arrancar("practica", { ids: pendientes, n: Math.min(20, pendientes.length) })}>
+          Repasar ahora
+        </button>
+      )}
+      <button className="btn ghost" onClick={() => arrancar("practica")}>
+        Seguir con preguntas nuevas
+      </button>
+
+      {pendientes.slice(0, 12).map((id) => {
+        const q = Q[id];
+        return (
+          <div className="card" key={id}>
+            <div className="qtema">
+              {q.tema} · nivel {prog[id]?.n || 0}
+            </div>
+            <div style={{ fontSize: 15.5, margin: "5px 0 8px", lineHeight: 1.4 }}>{q.q}</div>
+            <div style={{ fontSize: 14.5, color: "var(--ok)" }}>{q.o[q.c]}</div>
+            <div className="exp" style={{ marginTop: 10 }}>
+              {q.e}
+            </div>
+            <button
+              className="tutorbtn"
+              onClick={() =>
+                abrirTutor(
+                  `Pregunta de examen (materia: ${q.tema}):\n"${q.q}"\nRespuesta correcta: ${q.o[q.c]}\nExplicación breve: ${q.e}\n\nEl alumno la tiene pendiente de repaso porque le cuesta. Explícasela de otra forma, con algún ejemplo o regla mnemotécnica.`,
+                  q.tema
+                )
+              }
+            >
+              Que me lo explique el tutor
+            </button>
+          </div>
+        );
+      })}
+      {pendientes.length > 12 && <p className="note">Y {pendientes.length - 12} más. Haz el repaso para verlas todas.</p>}
+    </>
+  );
+}
+
+/* -------------------------- CHULETA -------------------------------- */
+
+const CHULETA = [
+  {
+    t: "Distancias y alturas",
+    f: [
+      ["120 m", "Altura máxima sobre el punto más cercano de la superficie, en abierta y en los STS"],
+      ["+15 m", "Por encima de un obstáculo de más de 105 m, a petición de su responsable"],
+      ["30 m / 5 m", "Distancia a personas no participantes en A2, con y sin modo de baja velocidad"],
+      ["150 m", "Distancia en A3 a zonas residenciales, comerciales, industriales o recreativas"],
+      ["50 m", "Distancia máxima al piloto en modo de seguimiento automático"],
+      ["1 km / 2 km", "Alcance máximo en STS-02 sin y con observadores del espacio aéreo"],
+    ],
+  },
+  {
+    t: "Masas y clases",
+    f: [
+      ["< 250 g", "Clase C0, vuela en A1 y puede sobrevolar personas no participantes · máx. 19 m/s"],
+      ["< 900 g", "Clase C1, A1, sin sobrevuelo intencionado de personas · o menos de 80 J"],
+      ["< 4 kg", "Clase C2, subcategoría A2 · modo de baja velocidad a 3 m/s"],
+      ["< 25 kg", "Clase C3, hasta 3 m de dimensión · C4 sin modos automáticos · límite de la abierta"],
+      ["C5 / C6", "Escenarios STS-01 y STS-02 · ambas con medio de terminación del vuelo"],
+      ["Sin clase", "Menos de 250 g van a A1; hasta 25 kg, a A3"],
+    ],
+  },
+  {
+    t: "Exámenes",
+    f: [
+      ["A1/A3", "40 preguntas, 30 aciertos, en línea, validez 5 años"],
+      ["A2", "30 preguntas, 23 aciertos, televigilado, exige A1/A3 previo"],
+      ["STS", "40 preguntas en 40 min desde A1/A3 · 30 en 30 min si ya tienes A2"],
+      ["Revalidar", "Dentro de los 3 meses previos a la caducidad, amplía 5 años"],
+      ["Práctico STS", "Entidad reconocida u operador declarado, específico de cada escenario"],
+    ],
+  },
+  {
+    t: "Seguro y registro",
+    f: [
+      ["Sin seguro", "A1, y A3 con MTOM inferior a 20 kg (RD 517/2024)"],
+      ["Con seguro", "A2 y resto de abierta bajo 20 kg (RD 37/2001) · siempre en específica y certificada"],
+      ["785/2004", "Régimen de seguro para UAS de 20 kg o más"],
+      ["Registro", "Operador: MTOM ≥ 250 g o sensor de datos personales. Número visible en el dron"],
+      ["Edad", "16 años con carácter general, con reducciones en abierta según el RD 517/2024"],
+    ],
+  },
+  {
+    t: "Prohibiciones firmes",
+    f: [
+      ["Aglomeraciones", "Nunca, en ninguna subcategoría de la abierta"],
+      ["Mercancías peligrosas", "Prohibidas en categoría abierta"],
+      ["Soltar objetos", "Prohibido en categoría abierta"],
+      ["Alcohol y drogas", "Prohibido pilotar bajo sus efectos o con medicación que afecte"],
+      ["Prioridad", "El UAS cede siempre el paso a la aeronave tripulada"],
+    ],
+  },
+  {
+    t: "Normas de referencia",
+    f: [
+      ["2019/947", "Reglamento de Ejecución: operaciones, categorías y competencia del piloto"],
+      ["2019/945", "Reglamento Delegado: producto y clases C0 a C6"],
+      ["RD 517/2024", "Marco español en vigor desde el 25 de junio de 2024"],
+      ["376/2014", "Notificación de sucesos de aviación civil"],
+      ["RGPD y LO 1/1982", "Protección de datos y derecho al honor, intimidad e imagen"],
+    ],
+  },
+];
+
+function Clases() {
+  return (
+    <>
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3>Qué puedes volar y dónde</h3>
+        <p className="note" style={{ marginTop: 6 }}>
+          Clasificación por masa y marcado de clase. Es la tabla que más se pregunta, porque cruza tres cosas a la
+          vez: lo que pesa el dron, lo que lleva marcado y lo que acredita el piloto.
+        </p>
+        <div className="fig">
+          <div dangerouslySetInnerHTML={{ __html: DIAGRAMAS.clases.s }} />
+          <span>{DIAGRAMAS.clases.p}</span>
+        </div>
+      </div>
+
+      <div className="card">
+        <h3>¿Se puede volar en zona urbana?</h3>
+        <p className="note" style={{ marginTop: 6 }}>
+          No existe un permiso de vuelo urbano como tal. Lo que decide es la combinación de tres cosas: la clase del
+          dron y su subcategoría, la distancia a las personas no participantes, y que la zona geográfica lo permita.
+          Muchos cascos urbanos están además bajo espacio aéreo controlado o tienen restricciones publicadas.
+        </p>
+        <div className="fig">
+          <div dangerouslySetInnerHTML={{ __html: DIAGRAMAS.urbano.s }} />
+          <span>{DIAGRAMAS.urbano.p}</span>
+        </div>
+        <p className="note">
+          Aglomeración es una concentración de personas que no pueden apartarse: una terraza llena, una manifestación,
+          un mercadillo. El sobrevuelo está prohibido en toda la categoría abierta, con cualquier clase de dron.
+        </p>
+      </div>
+      {CLASIFICACION.map((c, i) => (
+        <div className="cls" key={i}>
+          <div className="clshd">
+            <b style={{ color: `var(--${c.col})` }}>{c.k}</b>
+            <em>{c.m}</em>
+            <u style={{ color: `var(--${c.col})` }}>{c.cat}</u>
+          </div>
+          {c.f.map((r) => (
+            <div className="clsrow" key={r[0]}>
+              <b>{r[0]}</b>
+              <span>{r[1]}</span>
+            </div>
+          ))}
+          {c.u && (
+            <div className="urb" data-v={c.u[0]}>
+              <b>{c.u[0] === "si" ? "En ciudad" : c.u[0] === "cond" ? "En ciudad" : "En ciudad"}</b>
+              <span>{c.u[1]}</span>
+            </div>
+          )}
+        </div>
+      ))}
+      <p className="note">
+        Común a toda la categoría abierta: menos de 25 kg, vuelo en VLOS, 120 m de altura sobre el punto más cercano
+        de la superficie, prohibido sobrevolar aglomeraciones, transportar mercancías peligrosas y soltar objetos.
+      </p>
+    </>
+  );
+}
+
+function Chuleta() {
+  return (
+    <>
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3>Las cifras que más caen</h3>
+        <p className="note" style={{ marginTop: 6 }}>
+          Repasa esta pantalla justo antes del examen. Casi todas las preguntas difíciles juegan con estos números.
+        </p>
+      </div>
+      {CHULETA.map((b) => (
+        <div className="card" key={b.t}>
+          <h3>{b.t}</h3>
+          <table className="tbl">
+            <tbody>
+              {b.f.map(([k, v]) => (
+                <tr key={k}>
+                  <td>{k}</td>
+                  <td>{v}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+      <p className="note">
+        Última comprobación normativa: septiembre de 2026. Los escenarios nacionales STS-ES-01 y STS-ES-02 dejaron de
+        ser válidos el 31 de diciembre de 2025.
+      </p>
+    </>
+  );
+}
