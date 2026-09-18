@@ -108,6 +108,9 @@ body h1, body h2, body h3, body .cond {
   border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
 .clsrow { display: flex; gap: 10px; padding: 9px 14px; border-top: 1px solid rgba(35,65,79,.5); font-size: 13.5px; line-height: 1.45; }
 .clsrow:first-child { border-top: 0; }
+.dist { border-top: 1px solid rgba(35,65,79,.6); padding: 11px 0; font-size: 13.5px; line-height: 1.45; }
+.dist:first-of-type { border-top: 0; }
+.dist b { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 3px; }
 .urb { display: flex; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--line); font-size: 13.5px; line-height: 1.45; align-items: flex-start; }
 .urb b { flex: 0 0 66px; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; }
 .urb[data-v="si"] { background: rgba(85,214,160,.08); }
@@ -390,9 +393,111 @@ const CLASIFICACION = [
   },
 ];
 
+const DISTANCIAS = [
+  ["Altura máxima", "120 m sobre el punto más cercano de la superficie terrestre. No sobre el punto de despegue.", "cy"],
+  ["Obstáculo alto", "Si supera los 105 m, puedes llegar a 15 m por encima de su altura, a petición del responsable del obstáculo.", "cy"],
+  ["Personas · A1 con C0", "Sin distancia mínima: se permite el sobrevuelo de personas no participantes. Nunca sobre aglomeraciones.", "ok"],
+  ["Personas · A1 con C1", "Sin distancia numérica, pero no se sobrevuela de forma intencionada. Si ocurre, se minimiza el tiempo.", "am"],
+  ["Personas · A2", "30 m horizontales, o 5 m con el modo de baja velocidad activado.", "am"],
+  ["Personas · A3", "Ninguna persona no participante dentro del radio de la operación.", "no"],
+  ["Edificios · A1 y A2", "La normativa NO fija distancia mínima a edificios ni a carreteras. Lo que se mide es la distancia a las personas.", "ok"],
+  ["Edificios · A3", "150 m horizontales a zonas residenciales, comerciales, industriales o recreativas. Es la única regla de distancia a zona poblada.", "no"],
+  ["Carreteras", "Sin distancia fija en la norma. Los ocupantes de los vehículos son personas no participantes, y una caída sobre la calzada es un riesgo grave.", "am"],
+  ["Aeródromos y helipuertos", "Lo marca la zona geográfica publicada. Para operar en su zona de seguridad hay que coordinarse con la entidad responsable de la instalación.", "no"],
+  ["Dron anclado", "El cable de tracción no puede superar los 50 m de longitud.", "cy"],
+  ["Modo sígueme", "El UAS se mantiene como máximo a 50 m del piloto a distancia.", "cy"],
+  ["STS-02", "1 km del piloto sin observadores del espacio aéreo, 2 km con ellos. El observador se sitúa a 1 km.", "am"],
+  ["Visibilidad en STS", "Más de 5 km de visibilidad para operar en escenario estándar.", "cy"],
+];
+
+const SOBREVUELO = [
+  ["Sobrevolar un edificio ajeno", "No necesitas permiso del propietario: el espacio aéreo no le pertenece. Sí necesitas que la zona geográfica lo permita y respetar la intimidad de quienes viven allí.", "ok"],
+  ["Despegar o aterrizar en propiedad ajena", "Aquí sí: pisar una finca, un tejado o un aparcamiento privado requiere permiso del titular.", "no"],
+  ["Grabar hacia ventanas, patios o piscinas", "Aunque el vuelo sea legal, la captación puede vulnerar la intimidad y la protección de datos. Encuadra hacia donde no haya personas.", "no"],
+  ["Instalaciones sensibles", "Defensa, centrales nucleares, prisiones e infraestructuras críticas tienen prohibición o restricción publicada. No basta con pedir permiso al titular.", "no"],
+  ["Subir por encima de 120 m sobre un obstáculo", "Solo hasta 15 m por encima de su altura y a petición de la persona responsable del obstáculo, que es quien encarga la inspección.", "am"],
+  ["Operaciones de emergencia en curso", "Solo se puede volar si los servicios de emergencia responsables lo autorizan expresamente.", "no"],
+];
+
 const HERO = { a13: "subcategorias", a2: "viento", sts: "volumen" };
 
 const DIAGRAMAS = {
+
+  tramites: {
+    p: "Volar en entorno urbano o sobre concentraciones de personas obliga a comunicarlo antes. En el País Vasco la comunicación va a la Ertzaintza, no al Ministerio del Interior.",
+    s: `<svg viewBox="0 0 340 208" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="70" y="6" width="200" height="30" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="25" fill="var(--text)" font-size="11.5" text-anchor="middle">¿Entorno urbano o concentración?</text>
+<path d="M170 36v12M60 48h220M60 48v14M280 48v14" stroke="var(--line)" stroke-width="1.3"/>
+<text x="76" y="46" fill="var(--mute)" font-size="10">sí</text>
+<text x="256" y="46" fill="var(--mute)" font-size="10">no</text>
+<rect x="228" y="62" width="106" height="36" rx="6" fill="rgba(85,214,160,.1)" stroke="var(--ok)"/>
+<text x="281" y="78" fill="var(--ok)" font-size="11" text-anchor="middle">Sin comunicación</text>
+<text x="281" y="91" fill="var(--mute)" font-size="9.5" text-anchor="middle">a seguridad ciudadana</text>
+<rect x="6" y="62" width="112" height="36" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="62" y="85" fill="var(--text)" font-size="11" text-anchor="middle">¿Dónde vuelas?</text>
+<path d="M62 98v10M20 108h84M20 108v12M104 108v12" stroke="var(--line)" stroke-width="1.3"/>
+<rect x="6" y="120" width="104" height="52" rx="6" fill="rgba(92,200,232,.12)" stroke="var(--cy)"/>
+<text x="58" y="138" fill="var(--cy)" font-size="11.5" text-anchor="middle" font-weight="600">País Vasco</text>
+<text x="58" y="152" fill="var(--mute)" font-size="9.5" text-anchor="middle">Ertzaintza</text>
+<text x="58" y="165" fill="var(--am)" font-size="10.5" text-anchor="middle" font-weight="600">10 días antes</text>
+<rect x="120" y="120" width="104" height="52" rx="6" fill="rgba(242,180,65,.12)" stroke="var(--am)"/>
+<text x="172" y="138" fill="var(--am)" font-size="11.5" text-anchor="middle" font-weight="600">Resto de España</text>
+<text x="172" y="152" fill="var(--mute)" font-size="9.5" text-anchor="middle">Ministerio del Interior</text>
+<text x="172" y="165" fill="var(--mute)" font-size="9.5" text-anchor="middle">sede electrónica</text>
+<rect x="6" y="182" width="328" height="22" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="170" y="197" fill="var(--text)" font-size="10" text-anchor="middle">Es independiente del registro en AESA y de las zonas geográficas de UAS</text>
+</svg>`,
+  },
+  distancias: {
+    p: "Todas las distancias que fija la normativa. Ojo: solo A3 tiene distancia a zonas pobladas. En A1 y A2 lo que manda es la distancia a las personas, no a los edificios.",
+    s: `<svg viewBox="0 0 340 214" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="176" x2="332" y2="176" stroke="var(--line)" stroke-width="2"/>
+<g fill="var(--line)" opacity=".7"><rect x="276" y="118" width="26" height="58" rx="2"/><rect x="306" y="134" width="22" height="42" rx="2"/></g>
+<g transform="translate(40,60)"><line x1="-13" y1="0" x2="13" y2="0" stroke="var(--cy)" stroke-width="1.8"/><ellipse cx="-13" cy="-3" rx="7.5" ry="2.1" fill="var(--cy)" opacity=".5"/><ellipse cx="13" cy="-3" rx="7.5" ry="2.1" fill="var(--cy)" opacity=".5"/><rect x="-5" y="-3.5" width="10" height="7" rx="2" fill="var(--cy)"/></g>
+<line x1="20" y1="70" x2="20" y2="176" stroke="var(--cy)" stroke-width="1.3"/>
+<path d="M20 70l-3.5 7h7zM20 176l-3.5-7h7z" fill="var(--cy)"/>
+<text x="28" y="124" fill="var(--cy)" font-size="11" font-weight="600">120 m</text>
+<text x="28" y="137" fill="var(--mute)" font-size="9.5">sobre el punto</text>
+<text x="28" y="148" fill="var(--mute)" font-size="9.5">más cercano</text>
+<g transform="translate(150,176)"><circle cx="0" cy="-18" r="3.2" fill="var(--mute)"/><path d="M0 -15v8M-4.5 0l4.5-8 4.5 8M-4.5 -11h9" stroke="var(--mute)" stroke-width="1.5" fill="none"/></g>
+<line x1="52" y1="96" x2="142" y2="96" stroke="var(--am)" stroke-width="1.4"/>
+<path d="M52 96l7-3.5v7zM142 96l-7-3.5v7z" fill="var(--am)"/>
+<text x="97" y="90" fill="var(--am)" font-size="11" text-anchor="middle" font-weight="600">30 m / 5 m</text>
+<text x="97" y="110" fill="var(--mute)" font-size="9.5" text-anchor="middle">A2 · a personas</text>
+<line x1="52" y1="146" x2="270" y2="146" stroke="var(--ok)" stroke-width="1.4"/>
+<path d="M52 146l7-3.5v7zM270 146l-7-3.5v7z" fill="var(--ok)"/>
+<text x="161" y="140" fill="var(--ok)" font-size="11" text-anchor="middle" font-weight="600">150 m</text>
+<text x="161" y="160" fill="var(--mute)" font-size="9.5" text-anchor="middle">A3 · a zonas residenciales, comerciales,</text>
+<text x="161" y="171" fill="var(--mute)" font-size="9.5" text-anchor="middle">industriales o recreativas</text>
+<rect x="6" y="6" width="328" height="34" rx="6" fill="rgba(240,122,110,.08)" stroke="var(--no)"/>
+<text x="170" y="22" fill="var(--no)" font-size="10.5" text-anchor="middle">No existe distancia mínima a edificios ni a carreteras en A1 y A2:</text>
+<text x="170" y="34" fill="var(--mute)" font-size="10" text-anchor="middle">lo que se mide es la distancia a las personas no participantes</text>
+</svg>`,
+  },
+  sobrevuelo: {
+    p: "Sobrevolar un edificio no exige permiso del propietario: el espacio aéreo no es suyo. Lo que sí exige permiso es pisar su propiedad para despegar o aterrizar.",
+    s: `<svg viewBox="0 0 340 192" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<line x1="8" y1="160" x2="332" y2="160" stroke="var(--line)" stroke-width="2"/>
+<path d="M96 160v-52l40-26 40 26v52z" fill="var(--line)" opacity=".7"/>
+<rect x="126" y="130" width="20" height="30" fill="var(--ink)" opacity=".8"/>
+<g transform="translate(136,42)"><line x1="-14" y1="0" x2="14" y2="0" stroke="var(--ok)" stroke-width="1.8"/><ellipse cx="-14" cy="-3" rx="8" ry="2.2" fill="var(--ok)" opacity=".5"/><ellipse cx="14" cy="-3" rx="8" ry="2.2" fill="var(--ok)" opacity=".5"/><rect x="-5" y="-3.5" width="10" height="7" rx="2" fill="var(--ok)"/></g>
+<text x="162" y="34" fill="var(--ok)" font-size="11" font-weight="600">Sobrevuelo: sin permiso</text>
+<text x="162" y="48" fill="var(--mute)" font-size="10">del propietario del edificio</text>
+<g transform="translate(250,152)"><line x1="-12" y1="0" x2="12" y2="0" stroke="var(--no)" stroke-width="1.8"/><ellipse cx="-12" cy="-3" rx="7" ry="2" fill="var(--no)" opacity=".5"/><ellipse cx="12" cy="-3" rx="7" ry="2" fill="var(--no)" opacity=".5"/><rect x="-4" y="-3" width="8" height="6" rx="2" fill="var(--no)"/></g>
+<text x="250" y="178" fill="var(--no)" font-size="10.5" text-anchor="middle" font-weight="600">Despegar o aterrizar:</text>
+<text x="250" y="190" fill="var(--no)" font-size="10.5" text-anchor="middle">permiso del titular</text>
+<rect x="6" y="66" width="130" height="78" rx="7" fill="var(--panel2)" stroke="var(--line)"/>
+<text x="16" y="84" fill="var(--am)" font-size="10.5" font-weight="600">Sí necesitas:</text>
+<g fill="var(--mute)" font-size="9.5">
+<text x="16" y="100">· zona geográfica que lo permita</text>
+<text x="16" y="114">· distancia a las personas</text>
+<text x="16" y="128">· respetar la intimidad</text>
+<text x="16" y="140">· ordenanza municipal</text>
+</g>
+</svg>`,
+  },
+
   urbano: {
     p: "En la normativa no existe el permiso para volar en ciudad: lo que hay son límites de personas, de zona geográfica y de clase. Estas son las tres vías que sí lo permiten.",
     s: `<svg viewBox="0 0 340 226" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
@@ -2019,6 +2124,26 @@ const TEMARIO = {
       ],
       k: ["Jamming y spoofing de GNSS", "Firmware al día, accesos protegidos, equipo nunca desatendido"],
     },
+    {
+
+  t: "14 · Trámites antes de volar en entorno urbano",
+  d: ["tramites"],
+  p: [
+    "Además del registro como operador en AESA, el Real Decreto 517/2024 introdujo en su artículo 40 una obligación de comunicación por razones de seguridad ciudadana, independiente de todo lo anterior.",
+    "Deben comunicarlo los operadores obligados a registrarse que vayan a realizar operaciones en entornos urbanos o sobre concentraciones de personas. No es una autorización aeronáutica: es un aviso a las autoridades de seguridad para que puedan valorar si procede limitar o prohibir el vuelo.",
+    "En el conjunto de España la comunicación se presenta ante el Ministerio del Interior, a través de su sede electrónica. Una misma comunicación puede agrupar varias operaciones, siempre que entre el inicio de la primera y el final de la última no pasen más de 5 días naturales.",
+    "En el País Vasco la competencia en seguridad ciudadana es de la Ertzaintza, así que la comunicación se dirige al Departamento de Seguridad del Gobierno Vasco, por la sede electrónica de Euskadi o presencialmente en comisaría, con un mínimo de 10 días de antelación respecto a la operación.",
+    "Conviene no confundir las tres cosas: el registro de operador se hace una vez y vale para toda la flota; la consulta de zonas geográficas se hace en cada vuelo; y esta comunicación solo aparece cuando vuelas en ciudad o sobre concentraciones de personas.",
+    "Aparte de esto, operar en la zona de seguridad de un aeródromo o un helipuerto exige coordinarse con la entidad responsable de esa instalación, no con AESA ni con el ayuntamiento.",
+    "Los plazos y los formularios cambian con cierta frecuencia: antes de un trabajo, comprueba el trámite vigente en la sede electrónica que corresponda.",
+  ],
+  k: [
+    "RD 517/2024 art. 40: comunicación por seguridad ciudadana",
+    "País Vasco: Ertzaintza, mínimo 10 días antes",
+    "Resto de España: Ministerio del Interior, sede electrónica",
+    "Aeródromo o helipuerto: coordinación con la entidad responsable",
+  ],
+    },
   ],
   a2: [
     {
@@ -2450,6 +2575,78 @@ const Q = [
   { t: "sts", tema: "Emergencias", q: "Tras un suceso durante la operación, además de atender a las personas conviene:", o: ["Preservar los datos de vuelo y las grabaciones, y notificar conforme al Reglamento (UE) 376/2014", "Borrar la tarjeta para evitar problemas", "No decir nada si no hubo daños"], c: 0, e: "La telemetría y las grabaciones son la mejor prueba de lo que realmente ocurrió." },
   { t: "sts", tema: "Formación", q: "Has obtenido la acreditación práctica para STS-01. ¿Puedes operar en STS-02?", o: ["Sí, la acreditación es general", "No, la acreditación práctica es específica de cada escenario", "Sí, si el dron es C6"], c: 1, e: "Cada escenario tiene su formación práctica y su evaluación propias." },
   { t: "sts", tema: "Formación", q: "Si dejas caducar el certificado teórico sin revalidarlo:", o: ["El proceso para recuperarlo es más largo que la simple revalidación", "Se renueva solo", "Se pierde para siempre"], c: 0, e: "Por eso la revalidación se solicita dentro de los tres meses anteriores a la caducidad, con el certificado aún en vigor." },
+  // ---------- trámites y distancias (A1/A3) ----------
+  { t: "a13", tema: "Trámites", q: "Vas a grabar en el centro de una ciudad. Además del registro de operador, ¿qué trámite introduce el RD 517/2024?", o: ["Ninguno más", "Una comunicación previa por razones de seguridad ciudadana", "Una autorización operacional de AESA"], c: 1, e: "El artículo 40 obliga a comunicar las operaciones en entornos urbanos o sobre concentraciones de personas. No es una autorización aeronáutica, es un aviso a seguridad." },
+  { t: "a13", tema: "Trámites", q: "Vas a volar en entorno urbano en Donostia. ¿A quién diriges la comunicación previa?", o: ["Al Ministerio del Interior", "Al Departamento de Seguridad del Gobierno Vasco, para la Ertzaintza", "A AESA"], c: 1, e: "En el País Vasco la competencia de seguridad ciudadana es de la Ertzaintza. En el resto de España la comunicación va al Ministerio del Interior." },
+  { t: "a13", tema: "Trámites", q: "¿Con cuánta antelación debe presentarse la comunicación a la Ertzaintza?", o: ["Un mínimo de 10 días antes de la operación", "El mismo día", "48 horas antes"], c: 0, e: "Diez días, para que las autoridades de seguridad puedan valorar si procede limitar o prohibir el vuelo." },
+  { t: "a13", tema: "Trámites", q: "Una sola comunicación al Ministerio del Interior puede agrupar varias operaciones siempre que:", o: ["Sean del mismo piloto", "Entre el inicio de la primera y el final de la última no pasen más de 5 días naturales", "Se hagan en la misma provincia"], c: 1, e: "Ese es el límite temporal de la plataforma. También permite reutilizar datos de pilotos y aeronaves de comunicaciones anteriores." },
+  { t: "a13", tema: "Trámites", q: "La comunicación por seguridad ciudadana y el registro de operador en AESA son:", o: ["El mismo trámite", "Trámites distintos e independientes", "Alternativos: basta con uno"], c: 1, e: "El registro se hace una vez y vale para toda la flota; la comunicación aparece solo cuando vuelas en ciudad o sobre concentraciones." },
+  { t: "a13", tema: "Espacio aéreo", q: "Para operar en la zona de seguridad de un aeródromo o helipuerto, ¿con quién hay que coordinarse?", o: ["Con EASA", "Con el ayuntamiento", "Con la entidad responsable de esa instalación"], c: 2, e: "Es el gestor de la instalación quien conoce el tráfico real y puede coordinar la operación." },
+  { t: "a13", tema: "Límites operacionales", q: "¿Qué distancia mínima a los edificios fija la normativa para volar en A1 o A2?", o: ["50 m", "Ninguna: lo que se mide es la distancia a las personas no participantes", "150 m"], c: 1, e: "La regla de 150 m a zonas residenciales, comerciales, industriales o recreativas es exclusiva de A3." },
+  { t: "a13", tema: "Límites operacionales", q: "¿Necesitas permiso del propietario para sobrevolar su edificio a 60 m de altura?", o: ["Sí, siempre", "No: el espacio aéreo no le pertenece, aunque debes respetar zona geográfica, personas e intimidad", "Solo si tiene cámara"], c: 1, e: "Distinto es despegar o aterrizar en su propiedad, que sí requiere su permiso." },
+  { t: "a13", tema: "Límites operacionales", q: "Quieres despegar desde la azotea de un edificio privado. ¿Qué necesitas?", o: ["Nada especial", "Permiso del titular del inmueble", "Una autorización de AESA"], c: 1, e: "Pisar propiedad ajena para despegar o aterrizar exige el permiso de quien la controla, al margen de la normativa aeronáutica." },
+  { t: "a13", tema: "Límites operacionales", q: "La longitud máxima del cable de tracción de un dron anclado es:", o: ["50 m", "20 m", "120 m"], c: 0, e: "Es el límite que fija la normativa para las aeronaves ancladas." },
+  { t: "a13", tema: "Procedimientos", q: "Hay una operación de emergencia en curso en la zona. ¿Puedes volar?", o: ["Nunca, bajo ninguna circunstancia", "Solo si los servicios de emergencia responsables lo autorizan", "Sí, si te mantienes bajo"], c: 1, e: "La autorización debe venir de los servicios de emergencia que están interviniendo." },
+
+  // ---------- factores humanos (del banco oficial) ----------
+  { t: "a13", tema: "Factores humanos", q: "El punto ciego del ojo se corresponde con:", o: ["La fóvea", "La inserción del nervio óptico", "La córnea"], c: 1, e: "En ese punto de la retina no hay fotorreceptores, así que no se forma imagen." },
+  { t: "a13", tema: "Factores humanos", q: "El campo de visión de cada ojo es de aproximadamente:", o: ["60°", "120°", "160°"], c: 2, e: "Pero solo una parte muy pequeña, la central, ofrece visión nítida." },
+  { t: "a13", tema: "Factores humanos", q: "Con muy poca iluminación, en visión escotópica:", o: ["La visión es monocromática", "Se aprecian mejor los colores", "Se aprecia el ultravioleta"], c: 0, e: "Entran en juego los bastones, responsables de la visión nocturna, que no distinguen color." },
+  { t: "a13", tema: "Factores humanos", q: "Los responsables de la visión nocturna son:", o: ["Los conos", "Los bastones", "La córnea"], c: 1, e: "Los conos trabajan con buena luz y aportan el color; los bastones, con poca luz." },
+  { t: "a13", tema: "Factores humanos", q: "Un nivel alto de estrés puede provocar:", o: ["Palpitaciones y pérdida de memoria", "Menor tasa de error", "Mejor ejecución de los procedimientos"], c: 0, e: "También conducta compulsiva y errores en la toma de decisiones." },
+  { t: "a13", tema: "Factores humanos", q: "¿Cuál de estas situaciones NO genera estrés durante una operación?", o: ["La acumulación de tareas por hacer", "La experiencia previa en operaciones similares", "El esfuerzo por recuperar una situación anormal"], c: 1, e: "La experiencia reduce la carga cognitiva. Lo demás la aumenta." },
+  { t: "a13", tema: "Factores humanos", q: "El consumo de alcohol en pequeñas cantidades:", o: ["Actúa como estimulante cerebral", "No es recomendable antes de volar un UAS", "Mejora ligeramente las funciones mentales"], c: 1, e: "El alcohol es un depresor del sistema nervioso; incluso en dosis bajas degrada la coordinación y el juicio." },
+  { t: "a13", tema: "Procedimientos", q: "Las listas de comprobación deben ejecutarse de forma que:", o: ["Coincidan con otras tareas, para aprovechar el tiempo", "Su ejecución no coincida con otras tareas importantes", "Puedan omitirse si la siguiente lista las repite"], c: 1, e: "Compartir la atención con otra tarea es justo lo que hace que se salten puntos sin darse cuenta." },
+  { t: "a13", tema: "Procedimientos", q: "El acrónimo MEUH recuerda comprobar antes del vuelo:", o: ["Meteorología, UAS, entorno y limitaciones humanas", "Meteorología, UAS y error humano", "Manual, UAS, error humano y limitaciones"], c: 0, e: "Los cuatro frentes de la preparación: el tiempo, la máquina, el sitio y uno mismo." },
+  { t: "a13", tema: "Procedimientos", q: "El piloto evalúa que las condiciones ambientales superan la capacidad del UAS. Debe:", o: ["Abortar el vuelo", "Volar por debajo de 80 m extremando precauciones", "Continuar acortando la operación"], c: 0, e: "Si el entorno excede lo que la aeronave puede manejar, no hay técnica que lo compense." },
+  { t: "a13", tema: "Procedimientos", q: "Amenaza de tormenta eléctrica con el UAS en el aire. ¿Qué haces?", o: ["Aterrizar inmediatamente", "Seguir hasta terminar la pasada", "Aterrizar solo si empieza a llover"], c: 0, e: "No se espera a la lluvia ni al primer rayo: para entonces ya estás dentro del riesgo." },
+  { t: "a13", tema: "Procedimientos", q: "Detectas personas no participantes en la zona durante la exploración previa. ¿Qué procede?", o: ["Darles el contacto del operador", "Darles instrucciones para que se alejen de la zona de operación", "Indicarles que se sitúen dentro de la zona"], c: 1, e: "O se alejan, o se convierten en participantes tras ser informadas y dar su consentimiento." },
+  { t: "a13", tema: "Procedimientos", q: "Durante el vuelo, ¿qué NO tiene que hacer el piloto a distancia?", o: ["Vigilar la telemetría y las alertas", "Publicar un NOTAM si prevé salirse del área prevista", "Controlar la batería consumida y la restante"], c: 1, e: "Los NOTAM los publican los servicios de información aeronáutica, no el piloto de UAS. Si te sales del área prevista, lo que procede es no hacerlo." },
+  { t: "a13", tema: "Procedimientos", q: "¿Cuál de estas comprobaciones previas NO es válida?", o: ["Consultar ENAIRE Drones", "Fiarse de la web del fabricante del dron para saber si la zona tiene restricciones", "Evaluar el entorno antes de iniciar la operación"], c: 1, e: "Los mapas del fabricante no son la fuente oficial. La referencia es la información publicada por las autoridades." },
+  { t: "a13", tema: "Procedimientos", q: "Los procedimientos posteriores al vuelo incluyen:", o: ["Los registros de la operación y del mantenimiento del UAS", "Enviar un mensaje de fin de operación a AESA", "Detectar interferencias electromagnéticas"], c: 0, e: "El registro es lo que permite demostrar después qué se hizo y en qué estado estaba el equipo." },
+  { t: "a13", tema: "Procedimientos", q: "Los procedimientos operacionales previos al vuelo son responsabilidad de:", o: ["El operador de UAS", "El gestor del aeropuerto más cercano", "La autoridad competente"], c: 0, e: "El operador los establece; el piloto los aplica." },
+
+  // ---------- conocimiento técnico del UAS ----------
+  { t: "a2", tema: "Conocimiento del UAS", q: "La IMU de una aeronave no tripulada aporta datos sobre:", o: ["La altura sobre el suelo", "El equilibrio en los tres ejes y las aceleraciones", "La posición geográfica"], c: 1, e: "Es la unidad de medición inercial: acelerómetros y giróscopos. La posición la da el GNSS y la altura, el barómetro." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "Para efectuar una guiñada, un multirrotor de cuatro rotores:", o: ["Sube las rpm de dos rotores opuestos y baja las de los otros dos", "Invierte el sentido de giro de dos rotores", "Mantiene todas las rpm iguales"], c: 0, e: "Se desequilibra el par entre los dos sentidos de giro, y el conjunto gira sobre su eje vertical." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "En un multirrotor de cuatro rotores:", o: ["Todos giran siempre a las mismas rpm", "Giran en sentidos inversos dos a dos y pueden hacerlo a distintas rpm", "Son más estables que los de seis rotores"], c: 1, e: "Ese equilibrio de pares cruzados es lo que mantiene el rumbo sin que la aeronave gire sobre sí misma." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "Si en un multirrotor falla una hélice:", o: ["No afecta al vuelo", "No puede seguir volando con normalidad", "Puede volar cinco minutos más"], c: 1, e: "Se pierde el equilibrio de empujes y de pares. Por eso las mitigaciones pasan por el paracaídas y por elegir bien dónde vuelas." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "Las distancias que da un sensor de presión estática son:", o: ["Distancias barométricas", "Distancias reales sin error", "Medidas por GNSS"], c: 0, e: "Miden la presión y la traducen a altura, así que dependen de la presión ambiente y se desajustan si cambia." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "El control electrónico de velocidad (ESC) regula cada rotor:", o: ["Variando la frecuencia de alimentación", "Variando la carga de la batería", "Variando la corriente"], c: 0, e: "Son motores sin escobillas trifásicos: la velocidad depende de la frecuencia con la que se conmutan las fases." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "Los motores habituales en multirrotores son:", o: ["Brushless, sin escobillas", "De corriente continua con escobillas", "De combustión"], c: 0, e: "Los outrunner dan más par por el mayor diámetro del rotor exterior, que es lo que interesa para mover hélices grandes." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "El piloto automático de un UAS se compone, entre otros, de:", o: ["Solo el GNSS", "Acelerómetros, IMU, GNSS y sensores", "Únicamente la IMU"], c: 1, e: "La función de vuelta a casa, el RTH, es el sistema indispensable que se apoya en todo ese conjunto." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "Si las hélices están más separadas entre sí, el conjunto gana:", o: ["Velocidad", "Estabilidad", "Autonomía"], c: 1, e: "Un brazo más largo da más momento de control y suaviza la respuesta, a costa de agilidad." },
+  { t: "a2", tema: "Baterías", q: "Se usan baterías LiPo en drones principalmente porque:", o: ["Su energía por kilogramo es mayor", "No necesitan control de descarga", "Su voltaje por celda es menor"], c: 0, e: "La densidad energética es lo que permite volar con un peso razonable, a cambio de un manejo delicado." },
+  { t: "a2", tema: "Baterías", q: "Sobre las baterías LiPo, es correcto que:", o: ["No admiten una descarga completa", "Hay que descargarlas del todo para evitar el efecto memoria", "Su tensión nominal por celda es de 2 V"], c: 0, e: "Descargarlas a fondo las daña de forma irreversible. El efecto memoria es de otras químicas." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "Las cargas que soporta la célula de la aeronave producen fatiga:", o: ["Mecánica", "Solo térmica", "No producen fatiga"], c: 0, e: "Por eso se inspeccionan brazos, anclajes y tren de aterrizaje: el daño se acumula vuelo a vuelo." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "La emisora de mando de un UAS suele trabajar en la banda de:", o: ["2,4 GHz", "5,8 MHz", "2,4 MHz"], c: 0, e: "El vídeo suele ir por 5,8 GHz. Son bandas compartidas, de ahí la sensibilidad a interferencias." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "¿Cuál de estas NO es una causa posible de fallo en la recepción GNSS?", o: ["Estar en un espacio cerrado", "La presencia de nubes", "Un aumento del nivel de alerta del proveedor del servicio"], c: 1, e: "Las nubes no bloquean la señal. Sí lo hacen los edificios, los interiores y las interferencias." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "Ante un fallo de la emisora, ¿cuál NO es un comportamiento de failsafe?", o: ["Volver al punto de origen", "Mantener la posición y esperar", "Activar automáticamente el modo sígueme"], c: 2, e: "El modo de seguimiento requiere justamente el enlace que se acaba de perder." },
+  { t: "a2", tema: "Conocimiento del UAS", q: "La función de geoconciencia debe proporcionar al piloto:", o: ["Una alerta cuando se detecte una posible violación de los límites del espacio aéreo asignado", "El estado de la batería", "Información meteorológica del punto de vuelo"], c: 0, e: "Avisa de que te aproximas al límite; la decisión de no cruzarlo sigue siendo del piloto." },
+
+  // ---------- escenarios estándar ----------
+  { t: "sts", tema: "Escenarios estándar", q: "Una aeronave con marcado C5 puede utilizarse:", o: ["En STS-01 y STS-02 indistintamente", "Solo en el escenario estándar STS-01", "Solo en el STS-02"], c: 1, e: "Cada clase está diseñada para su escenario: C5 para VLOS en entorno poblado, C6 para BVLOS en entorno escasamente poblado." },
+  { t: "sts", tema: "Escenarios estándar", q: "Una aeronave con marcado C6 puede utilizarse:", o: ["Solo en el escenario estándar STS-02", "Solo en el STS-01", "En ambos"], c: 0, e: "Es la clase pensada para el vuelo más allá del alcance visual con observadores." },
+  { t: "sts", tema: "Escenarios estándar", q: "Las operaciones en STS-01 deben realizarse:", o: ["En VLOS en todo momento", "En BVLOS", "En VLOS salvo estudio adicional de seguridad"], c: 0, e: "El contacto visual permanente es la característica definitoria del escenario." },
+  { t: "sts", tema: "Escenarios estándar", q: "Las operaciones en STS-02 pueden realizarse en BVLOS:", o: ["En todo momento, es su característica específica", "Solo si los dos primeros minutos son en VLOS", "No, el STS-02 es VLOS"], c: 0, e: "Aunque durante el despegue y la recuperación la aeronave debe estar a la vista." },
+  { t: "sts", tema: "Escenarios estándar", q: "Durante el despegue y la recuperación del UAS en escenario estándar:", o: ["La aeronave debe estar a la vista", "No es necesario verla si la operación es BVLOS", "Solo debe verse si es VLOS"], c: 0, e: "Son las dos fases más críticas, y se hacen con contacto visual aunque el resto del vuelo sea BVLOS." },
+  { t: "sts", tema: "Escenarios estándar", q: "En un vuelo BVLOS, ¿dónde se sitúa el observador del espacio aéreo?", o: ["Al lado del piloto", "A 1 km", "No hace falta observador"], c: 1, e: "Su posición adelantada es lo que amplía la cobertura del espacio aéreo por delante de la aeronave." },
+  { t: "sts", tema: "Escenarios estándar", q: "El observador del espacio aéreo en STS-02 conoce la posición de la aeronave:", o: ["Solo cuando el piloto se lo pide", "En todo momento, por observación directa o con ayuda de medios electrónicos", "Únicamente por medios electrónicos"], c: 1, e: "Necesita saber dónde está para vigilar el espacio que le corresponde." },
+  { t: "sts", tema: "Escenarios estándar", q: "Un observador detecta una aeronave tripulada entrando en la zona. ¿Qué hace?", o: ["Alerta al piloto del UAS para que actúe, incluida la terminación del vuelo", "Hace señales a la aeronave tripulada", "Comunica con AESA"], c: 0, e: "Su función es avisar a tiempo; quien decide y actúa es el piloto a distancia." },
+  { t: "sts", tema: "Escenarios estándar", q: "La visibilidad mínima para volar en escenario estándar es:", o: ["Más de 5 km", "2 km", "No hay límite fijado"], c: 0, e: "Es un requisito explícito del escenario, al margen de que veas o no la aeronave." },
+  { t: "sts", tema: "Escenarios estándar", q: "Durante una operación en escenario estándar, el piloto al mando:", o: ["Solo puede pilotar una aeronave a la vez", "Puede pilotar dos si una está en modo sígueme", "No tiene límite si las aeronaves están ancladas"], c: 0, e: "Una aeronave, un piloto, en todo momento." },
+  { t: "sts", tema: "Escenarios estándar", q: "Sobre la transferencia del control a otra unidad de mando en escenario estándar:", o: ["Está permitida si se devuelve en 5 minutos", "No: debe mantenerse el control con la misma unidad de mando durante toda la operación", "Está permitida si comparten identificador"], c: 1, e: "Cambiar de estación a mitad de operación introduce un riesgo que el escenario no contempla." },
+  { t: "sts", tema: "Escenarios estándar", q: "Durante la operación, el piloto al mando debe:", o: ["Respetar en todo momento las limitaciones y condiciones declaradas", "Exceder las limitaciones si la operación lo requiere", "Respetar las limitaciones pero adaptar las condiciones"], c: 0, e: "Lo declarado es el marco que hace legal la operación. Salirse de él la deja sin cobertura." },
+  { t: "sts", tema: "Declaración", q: "¿Cuál de estas NO es responsabilidad del operador en STS-01?", o: ["Elaborar el manual de operaciones", "Informar a las personas presentes en la zona controlada de los riesgos", "Redactar las condiciones operacionales que aplican a su zona de operación"], c: 2, e: "Las condiciones del escenario vienen dadas por la normativa: el operador las cumple, no las redacta." },
+  { t: "sts", tema: "Declaración", q: "Entre las responsabilidades del piloto a distancia en STS-02 está:", o: ["No utilizar la aeronave desde un vehículo en movimiento", "Elaborar el manual de operaciones", "Garantizar que la etiqueta de clase C6 está colocada"], c: 0, e: "El manual y las garantías sobre el marcado de clase corresponden al operador; lo del vehículo en movimiento es del piloto." },
+  { t: "sts", tema: "Declaración", q: "La etiqueta de identificación de marcado de clase C5:", o: ["Va pegada en la aeronave, aunque también puede ir en el kit de accesorios", "No es obligatoria", "Debe ir siempre en el kit de accesorios"], c: 0, e: "El C5 puede montarse con kit de conversión, y por eso se admite que la etiqueta acompañe al kit." },
+  { t: "sts", tema: "Declaración", q: "En categoría específica, ¿deben incluirse los procedimientos operacionales en el manual de operaciones?", o: ["Sí, siempre", "Solo si no hay manual de usuario", "No es necesario tener manual de operaciones"], c: 0, e: "El manual de operaciones es obligatorio y los procedimientos son su contenido principal." },
+  { t: "sts", tema: "Emergencias", q: "Para operar en escenario estándar hay que tener definido:", o: ["Un plan de respuesta a emergencias", "Un plan de operación en enjambre", "Un plan de contingencias para vuelos por encima de 500 ft AGL"], c: 0, e: "Qué se hace cuando algo falla tiene que estar escrito antes, no improvisado en el momento." },
+  { t: "sts", tema: "Emergencias", q: "Los medios de terminación del vuelo deben ser:", o: ["Fiables, predecibles e independientes del sistema automático de control de vuelo", "De efecto inmediato parando los motores siempre", "Controlables manualmente para esquivar obstáculos"], c: 0, e: "La independencia es la clave: si dependieran del sistema que ha fallado, no servirían de nada." },
+  { t: "sts", tema: "Emergencias", q: "Acceden personas no participantes a la zona controlada durante el vuelo. ¿Qué haces?", o: ["Aterrizar evitando sobrevolarlas", "Dejar el dron en estacionario e ir a hablar con ellas", "Continuar la operación"], c: 0, e: "Aterrizas, pero sin pasar por encima de ellas al hacerlo." },
+  { t: "sts", tema: "Escenarios estándar", q: "¿Se puede transportar mercancías peligrosas en los escenarios estándar?", o: ["No, los escenarios estándar no lo permiten", "Sí, en STS-01 con C5", "Sí, en STS-02 con C6"], c: 0, e: "Para eso hay que ir a una autorización operacional específica o a la categoría certificada." },
+  { t: "sts", tema: "Declaración", q: "Los medios de comunicación durante la operación deben ser:", o: ["Sólidos y eficaces", "Transmitir en FM", "Plurales"], c: 0, e: "Si la comunicación con los observadores falla, la operación se interrumpe." },
+  { t: "sts", tema: "Procedimientos", q: "En las inmediaciones de un aeródromo, la atención a la radio debe mantenerse:", o: ["En todo momento", "Solo para comunicar despegue y aterrizaje", "No es necesaria"], c: 0, e: "Es lo que te permite anticipar el tráfico en lugar de reaccionar cuando ya lo tienes encima." },
 ];
 
 const CHULETA = [
@@ -2928,6 +3125,18 @@ function vClases() {
     <p class="note" style="margin-top:6px">No existe un permiso de vuelo urbano como tal. Lo que decide es la combinación de tres cosas: la clase del dron y su subcategoría, la distancia a las personas no participantes, y que la zona geográfica lo permita. Muchos cascos urbanos están además bajo espacio aéreo controlado o tienen restricciones publicadas.</p>
     <div class="fig">${DIAGRAMAS.urbano.s}<span>${esc(DIAGRAMAS.urbano.p)}</span></div>
     <p class="note">Aglomeración es una concentración de personas que no pueden apartarse: una terraza llena, una manifestación, un mercadillo. El sobrevuelo está prohibido en toda la categoría abierta, con cualquier clase de dron.</p>
+  </div>
+
+  <div class="card">
+    <h3>Distancias: a qué puedo acercarme</h3>
+    <div class="fig">${DIAGRAMAS.distancias.s}<span>${esc(DIAGRAMAS.distancias.p)}</span></div>
+    ${DISTANCIAS.map((d) => `<div class="dist"><b style="color:var(--${d[2]})">${esc(d[0])}</b><span>${esc(d[1])}</span></div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h3>¿Puedo volar sobre ese edificio?</h3>
+    <div class="fig">${DIAGRAMAS.sobrevuelo.s}<span>${esc(DIAGRAMAS.sobrevuelo.p)}</span></div>
+    ${SOBREVUELO.map((d) => `<div class="dist"><b style="color:var(--${d[2]})">${esc(d[0])}</b><span>${esc(d[1])}</span></div>`).join("")}
   </div>
   ${CLASIFICACION.map((c) => `<div class="cls">
       <div class="clshd">
