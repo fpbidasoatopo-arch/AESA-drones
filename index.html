@@ -4,7 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Altura 120 · Exámenes AESA de dron</title>
-<meta name="description" content="Guía de estudio y tests para los exámenes teóricos de AESA: A1/A3, A2 y escenarios estándar.">
+<meta name="description" content="Guía de estudio y tests gratuitos para los exámenes teóricos de AESA: A1/A3, A2 y escenarios estándar STS.">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Dani Tena">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Altura 120 · Exámenes AESA de dron">
+<meta property="og:description" content="Temario, esquemas y 331 preguntas con explicación para preparar los exámenes teóricos de AESA: A1/A3, A2 y escenarios estándar STS. Gratis y sin registro.">
+<meta property="og:image" content="icon-512.png">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0A151E">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -108,6 +116,21 @@ body h1, body h2, body h3, body .cond {
   border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
 .clsrow { display: flex; gap: 10px; padding: 9px 14px; border-top: 1px solid rgba(35,65,79,.5); font-size: 13.5px; line-height: 1.45; }
 .clsrow:first-child { border-top: 0; }
+.tram { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-top: 12px; overflow: hidden; }
+.tramhd { width: 100%; text-align: left; background: none; border: 0; color: var(--text); padding: 13px 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 11px; }
+.tramhd i { font-style: normal; flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--panel2); border: 1px solid var(--line);
+  color: var(--cy); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.tramhd b { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 600; display: block; line-height: 1.15; }
+.tramhd s { text-decoration: none; display: block; font-size: 11.5px; color: var(--mute); margin-top: 2px; }
+.tramhd u { text-decoration: none; margin-left: auto; color: var(--cy); font-size: 19px; }
+.trambody { padding: 0 14px 14px; }
+.trambody p { font-size: 14px; line-height: 1.55; color: #CFE2EC; margin: 10px 0 0; padding-left: 13px; position: relative; }
+.trambody p::before { content: ""; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; background: var(--cy); border-radius: 50%; }
+.tramav { margin-top: 13px; background: rgba(242,180,65,.1); border-left: 3px solid var(--am); border-radius: 0 7px 7px 0;
+  padding: 10px 12px; font-size: 13.5px; line-height: 1.45; color: var(--text); }
+.tramlink { display: inline-block; margin-top: 12px; color: var(--cy); font-size: 13.5px; border: 1px solid var(--line);
+  border-radius: 8px; padding: 9px 12px; text-decoration: none; word-break: break-word; }
 .dist { border-top: 1px solid rgba(35,65,79,.6); padding: 11px 0; font-size: 13.5px; line-height: 1.45; }
 .dist:first-of-type { border-top: 0; }
 .dist b { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 3px; }
@@ -198,9 +221,9 @@ body h1, body h2, body h3, body .cond {
 .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: rgba(10,21,30,.97);
   border-top: 1px solid var(--line); display: flex; }
 .nav button { flex: 1; background: none; border: 0; color: var(--mute); padding: 9px 1px 11px; cursor: pointer;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
 .nav button[data-on="1"] { color: var(--cy); }
-.nav svg { width: 21px; height: 21px; }
+.nav svg { width: 19px; height: 19px; }
 .pip { position: absolute; top: 6px; right: 50%; margin-right: -18px; background: var(--am); color: #21180a;
   font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 6px; }
 .note { font-size: 12.5px; color: var(--mute); line-height: 1.5; margin-top: 16px; }
@@ -217,7 +240,14 @@ body h1, body h2, body h3, body .cond {
     <div class="seg" id="seg"></div>
   </div>
 </header>
-<main class="wrap" id="app"></main>
+<main class="wrap" id="app">
+<h2>Preparación de los exámenes teóricos de AESA de pilotaje de drones</h2>
+<p>Altura 120 es una aplicación gratuita para preparar los exámenes teóricos de la Agencia Estatal de Seguridad Aérea: la subcategoría A1/A3 de categoría abierta, la subcategoría A2 y los escenarios estándar STS-01 y STS-02 de categoría específica.</p>
+<p>Incluye temario en 37 bloques organizados por las materias oficiales, 42 esquemas propios, 331 preguntas tipo test con explicación, simulacros cronometrados con el corte en el 75 %, diagnóstico por materia, repaso espaciado, tabla de clases C0 a C6 y los trámites con AESA explicados en orden.</p>
+<p>Contenido basado en el Reglamento de Ejecución (UE) 2019/947, el Reglamento Delegado (UE) 2019/945 y el Real Decreto 517/2024. Material de estudio no oficial.</p>
+<p>Altura 120 · Hecho por Dani Tena</p>
+<noscript><p>Esta aplicación necesita JavaScript activado para funcionar.</p></noscript>
+</main>
 <nav class="nav" id="nav"></nav>
 <script>const TRACKS = {
   a13: {
@@ -301,7 +331,7 @@ const CLASIFICACION = [
     col: "am",
     f: [
       ["Dónde", "Hasta 120 m, en VLOS"],
-      ["Personas", "30 m horizontales de personas no participantes · 5 m con el modo de baja velocidad activado"],
+      ["Personas", "30 m horizontales. Con modo de baja velocidad, regla 1:1 con un mínimo de 5 m"],
       ["Piloto", "Certificado de competencia A2, que exige tener antes el A1/A3"],
       ["Equipo", "Modo de baja velocidad limitado a 3 m/s · identificación a distancia · geoconciencia"],
       ["Registro", "Obligatorio · seguro obligatorio en A2"],
@@ -395,10 +425,10 @@ const CLASIFICACION = [
 
 const DISTANCIAS = [
   ["Altura máxima", "120 m sobre el punto más cercano de la superficie terrestre. No sobre el punto de despegue.", "cy"],
-  ["Obstáculo alto", "Si supera los 105 m, puedes llegar a 15 m por encima de su altura, a petición del responsable del obstáculo.", "cy"],
+  ["Obstáculo alto", "Si supera los 105 m y vuelas a menos de 50 m en horizontal de él, puedes llegar a 15 m por encima de su altura, a petición del responsable.", "cy"],
   ["Personas · A1 con C0", "Sin distancia mínima: se permite el sobrevuelo de personas no participantes. Nunca sobre aglomeraciones.", "ok"],
   ["Personas · A1 con C1", "Sin distancia numérica, pero no se sobrevuela de forma intencionada. Si ocurre, se minimiza el tiempo.", "am"],
-  ["Personas · A2", "30 m horizontales, o 5 m con el modo de baja velocidad activado.", "am"],
+  ["Personas · A2", "30 m horizontales. Con el modo de baja velocidad activado se aplica la regla 1:1 (distancia igual a la altura), nunca menos de 5 m.", "am"],
   ["Personas · A3", "Ninguna persona no participante dentro del radio de la operación.", "no"],
   ["Edificios · A1 y A2", "La normativa NO fija distancia mínima a edificios ni a carreteras. Lo que se mide es la distancia a las personas.", "ok"],
   ["Edificios · A3", "150 m horizontales a zonas residenciales, comerciales, industriales o recreativas. Es la única regla de distancia a zona poblada.", "no"],
@@ -419,9 +449,355 @@ const SOBREVUELO = [
   ["Operaciones de emergencia en curso", "Solo se puede volar si los servicios de emergencia responsables lo autorizan expresamente.", "no"],
 ];
 
+const AVISOS = [
+  ["Certificado digital", "Casi todo se firma electrónicamente. Lo habitual es el certificado de la FNMT instalado en el navegador, o Cl@ve Móvil desde el teléfono. Sin uno de los dos no se puede completar la mayoría de los trámites."],
+  ["AutoFirma", "Es la aplicación del Gobierno que firma los formularios. Hay que instalarla antes de empezar, y conviene probarla con tiempo: es la que más problemas da el día que tienes prisa."],
+  ["Paciencia con las notificaciones", "Las respuestas de la sede no son inmediatas. Pueden tardar 48 horas o más en llegar. No presentes nada el día antes de necesitarlo."],
+  ["Dos convocatorias", "Cada examen da derecho a dos convocatorias. Conviene llegar preparado a la primera y no quemarla como ensayo."],
+];
+
+const TRAMITES = [
+  {
+    n: "0",
+    t: "Alta de usuario en la sede",
+    d: "Sede electrónica de AESA",
+    p: [
+      "Antes de cualquier otra cosa hay que crear una cuenta de usuario en la sede electrónica de UAS.",
+      "Aquí está el error más repetido: que el alta de usuario aparezca como aprobada NO significa estar registrado como operador. Son dos pasos distintos.",
+      "Tienes 90 días desde el alta para completar el registro de operador. Si no lo haces, el sistema elimina el usuario y hay que empezar otra vez desde cero.",
+    ],
+    a: "Alta de usuario aprobada no es registro de operador. Tienes 90 días.",
+    u: ["Catálogo de drones en la sede de AESA", "https://sede.seguridadaerea.gob.es/sede-aesa/areas-tematicas/drones"],
+  },
+  {
+    n: "1",
+    t: "Registro de operador de UAS",
+    d: "Sede electrónica · Catálogo de drones",
+    p: [
+      "Es gratuito y telemático. Con certificado digital el trámite es automático e inmediato.",
+      "Te registras en el Estado donde resides, o donde esté tu centro de actividad si eres persona jurídica. No se puede estar registrado en dos Estados a la vez.",
+      "Obligatorio si el dron tiene MTOM de 250 g o más, o lleva cámara o sensor capaz de captar datos personales.",
+      "Al completarlo se genera tu número de operador y un código de verificación. El número va marcado de forma visible en todos tus drones y cargado en el sistema de identificación a distancia; el código de verificación no se marca en el dron, se usa para la identificación a distancia.",
+      "Descárgate el justificante de registro y el certificado de operador: es lo que puedes tener que enseñar en una inspección.",
+      "El registro caduca y hay que renovarlo. Volar con el registro vencido es una infracción.",
+    ],
+    a: "El número de operador es del operador, no de cada dron: vale para toda tu flota.",
+    u: ["Registro de operadores de UAS", "https://sede.seguridadaerea.gob.es/sede-aesa/catalogo-de-procedimientos/registro-de-operadores-de-uas"],
+  },
+  {
+    n: "2",
+    t: "Dar de alta tus drones en el perfil",
+    d: "Aplicación de UAS · perfil del operador",
+    p: [
+      "Segunda confusión habitual, y de las grandes: para volar en categoría abierta NO hay que dar de alta ningún dron. Basta con el registro de operador.",
+      "Solo es necesario introducir los UAS en el perfil si vas a operar en categoría específica, es decir, bajo declaración operacional, autorización operacional o LUC.",
+      "Y hay que hacerlo antes de presentar la declaración o la solicitud, porque el trámite te pedirá seleccionar la aeronave.",
+    ],
+    a: "En categoría abierta no se registra ningún dron. Solo el operador.",
+    u: ["Operaciones en categoría abierta", "https://www.seguridadaerea.gob.es/es/ambitos/drones/operaciones-uas-drones/operaciones-con-uas-drones---categoria-abierta-subcategorias-a1-a2-y-a3"],
+  },
+  {
+    n: "3",
+    t: "Curso y examen A1/A3",
+    d: "Sede electrónica · Formación y exámenes",
+    p: [
+      "Ojo, está en otra área de la sede: no en el catálogo de drones, sino en el de formación y exámenes. Es la razón por la que mucha gente no lo encuentra.",
+      "El curso es en línea y el examen se hace en la plataforma de AESA. La inscripción es gratuita.",
+      "40 preguntas tipo test, se aprueba con el 75 %, es decir 30 aciertos. Los fallos no restan.",
+      "Al superarlo obtienes la prueba de superación de la formación en línea, con validez de 5 años.",
+      "Dos convocatorias por inscripción.",
+    ],
+    a: "Está en Formación y exámenes, no en el catálogo de drones.",
+    u: ["Catálogo de formación y exámenes", "https://sede.seguridadaerea.gob.es/sede-aesa/areas-tematicas/formacion-y-examenes"],
+  },
+  {
+    n: "4",
+    t: "Examen A2",
+    d: "Sede electrónica · Formación y exámenes",
+    p: [
+      "Requisitos previos, en este orden: tener la prueba de superación A1/A3 y haber completado una autoformación práctica en condiciones de A3, que declaras tú mismo.",
+      "El examen es televigilado: te pedirá acceso a cámara, micrófono y pantalla. Conviene probar el equipo antes del día señalado.",
+      "30 preguntas, 23 aciertos para aprobar. Da el certificado de competencia de piloto a distancia, válido 5 años.",
+      "Dos convocatorias.",
+    ],
+    a: "Es televigilado: prueba la cámara y el micro con antelación.",
+    u: ["Catálogo de formación y exámenes", "https://sede.seguridadaerea.gob.es/sede-aesa/areas-tematicas/formacion-y-examenes"],
+  },
+  {
+    n: "5",
+    t: "Examen teórico STS",
+    d: "Oficina Virtual de la sede",
+    p: [
+      "La inscripción se hace por la Oficina Virtual de la sede electrónica. También es televigilado.",
+      "Si vienes solo con el A1/A3: 40 preguntas en 40 minutos, repartidas en ocho materias. Si ya tienes el certificado A2: 30 preguntas en 30 minutos, sobre cinco materias.",
+      "En ambos casos se aprueba con el 75 %. Dos convocatorias.",
+      "La formación teórica previa puedes hacerla por tu cuenta, con una entidad reconocida o con un operador de UAS. No es un trámite.",
+    ],
+    a: "El A2 no es obligatorio para el STS, pero te acorta el examen.",
+    u: ["Examen de pilotos en categoría específica (STS)", "https://sede.seguridadaerea.gob.es/sede-aesa/catalogo-de-procedimientos/examen-de-pilotos-distancia-en-categoria-especifica-bajo-escenarios"],
+  },
+  {
+    n: "6",
+    t: "Formación práctica STS",
+    d: "Entidad reconocida u operador declarado",
+    p: [
+      "Este no es un trámite tuyo con AESA, y conviene saberlo para no buscarlo en la sede.",
+      "La imparte una entidad de formación reconocida o un operador de UAS que haya declarado cumplir los requisitos. Ellos evalúan y emiten la acreditación de aptitudes prácticas.",
+      "Es la propia entidad quien lo comunica a AESA. El alumno no tiene que hacer ningún procedimiento adicional.",
+      "La acreditación es específica de cada escenario: valer para STS-01 no habilita para STS-02.",
+    ],
+    a: "No lo busques en la sede: lo gestiona íntegramente la entidad formadora.",
+    u: ["Formación de pilotos en escenarios estándar", "https://www.seguridadaerea.gob.es/es/ambitos/drones/formacion-de-pilotos-a-distancia-de-uas-drones/formacion-de-pilotos-uas-drones-en-escenarios-estandar-europeos-sts"],
+  },
+  {
+    n: "7",
+    t: "Radiofonista UAS",
+    d: "Sede electrónica · Formación y exámenes",
+    p: [
+      "Curso de formación y examen teórico propios, gratuitos, en la sede de AESA.",
+      "Acredita la fraseología y los procedimientos de comunicación aeronáutica. Es lo que necesitas cuando la operación exige comunicarte por radio, típicamente en entorno de aeródromo o espacio aéreo controlado.",
+      "Es independiente de los certificados A1/A3, A2 y STS: no sustituye a ninguno ni lo exige ninguno.",
+    ],
+    a: "Independiente del resto de certificados. Dos convocatorias.",
+    u: ["Catálogo de formación y exámenes", "https://sede.seguridadaerea.gob.es/sede-aesa/areas-tematicas/formacion-y-examenes"],
+  },
+  {
+    n: "8",
+    t: "Revalidación de certificados",
+    d: "Sede electrónica · Formación y exámenes",
+    p: [
+      "Se solicita dentro de los tres meses anteriores a la fecha de caducidad, con el certificado todavía en vigor. Amplía la validez cinco años.",
+      "En el catálogo hay varios trámites de revalidación distintos según qué certificados tengas: solo A1/A3, A2 junto con A1/A3, o STS junto con A2 y A1/A3. Elige el que corresponda a tu situación.",
+      "Si dejas caducar el certificado, el camino para recuperarlo es más largo que la simple revalidación.",
+    ],
+    a: "Tres meses antes y con el certificado en vigor. Pon un recordatorio.",
+    u: ["Revalidación de certificados teóricos", "https://sede.seguridadaerea.gob.es/sede-aesa/catalogo-de-procedimientos/revalidacion-de-los-certificados-teoricos-de-piloto-distancia-en-los-sts"],
+  },
+  {
+    n: "9",
+    t: "Declaración operacional STS",
+    d: "Sede electrónica · Catálogo de drones",
+    p: [
+      "Es la vía de entrada a la categoría específica cuando tu operación encaja en el escenario estándar europeo STS-01 o STS-02.",
+      "No tiene tasa. Requiere estar registrado como operador y haber introducido los UAS en tu perfil.",
+      "Puedes empezar a operar cuando AESA te envía la confirmación de que la declaración se ha recibido y está completa. Esa confirmación no es una autorización: la responsabilidad de cumplir lo declarado sigue siendo tuya.",
+      "La declaración tiene una duración limitada de dos años, y cualquier cambio en los datos declarados hay que notificarlo sin demora.",
+      "Las declaraciones bajo escenario estándar nacional, los antiguos STS-ES, ya no son una opción: esos escenarios dejaron de ser válidos el 31 de diciembre de 2025.",
+    ],
+    a: "Necesitas los drones ya dados de alta en el perfil antes de empezar.",
+    u: ["Operaciones en categoría específica", "https://www.seguridadaerea.gob.es/es/ambitos/drones/operaciones-uas-drones/operaciones-con-uas-drones---categoria-especifica"],
+  },
+  {
+    n: "10",
+    t: "Autorización operacional y LUC",
+    d: "Sede electrónica · Catálogo de drones",
+    p: [
+      "Si la operación no encaja en un escenario estándar, hay que elaborar un análisis de riesgos SORA, o acogerse a un PDRA, y solicitar una autorización operacional. Tampoco tiene tasa, pero el plazo depende de la carga de trabajo de AESA.",
+      "El LUC es una certificación voluntaria. Acredita que tu organización tiene un sistema de gestión de la seguridad, y AESA puede reconocerte el privilegio de autorizar tus propias operaciones sin declararlas ni solicitarlas una a una.",
+      "Ni la autorización operacional ni el LUC son transferibles a otro operador.",
+      "Si vas a operar en otro Estado miembro, existen trámites específicos de operaciones transfronterizas: confirmación de la declaración, confirmación de la autorización y comunicación del LUC.",
+    ],
+    a: "El LUC es voluntario y se expide sin plazo, mientras sigas cumpliendo.",
+    u: ["Catálogo de drones en la sede de AESA", "https://sede.seguridadaerea.gob.es/sede-aesa/areas-tematicas/drones"],
+  },
+  {
+    n: "11",
+    t: "Comunicación por seguridad ciudadana",
+    d: "Interior, o Ertzaintza en Euskadi",
+    p: [
+      "Este trámite no es de AESA y se olvida con frecuencia. Lo exige el artículo 40 del RD 517/2024 para operar en entornos urbanos o sobre concentraciones de personas.",
+      "En el País Vasco la competencia es de la Ertzaintza: la comunicación se dirige al Departamento de Seguridad del Gobierno Vasco, con un mínimo de diez días de antelación.",
+      "En el resto de España se presenta ante el Ministerio del Interior por su sede electrónica. Una misma comunicación puede agrupar varias operaciones si entre el inicio de la primera y el final de la última no pasan más de cinco días naturales.",
+      "No sustituye a nada: es adicional al registro, a las zonas geográficas y a la coordinación con el gestor del aeródromo si procede.",
+    ],
+    a: "En Euskadi, diez días de antelación. No lo dejes para el final.",
+    u: ["Comunicación a la Ertzaintza (Euskadi)", "https://www.euskadi.eus/comunicacion/comunicacion-operaciones-de-aeronaves-por-control-remoto/web01-tramite/es/"],
+  },
+  {
+    n: "12",
+    t: "Antes de cada vuelo",
+    d: "No son trámites, son comprobaciones",
+    p: [
+      "Zonas geográficas de UAS y NOTAM, que se consultan en ENAIRE Drones. Si la zona lo exige, autorización o coordinación con quien corresponda.",
+      "Coordinación con la entidad responsable del aeródromo o helipuerto si vas a operar en su zona de seguridad.",
+      "Seguro de responsabilidad civil en vigor, cuando sea exigible.",
+      "Y si ocurre un accidente o un incidente grave, notificación de sucesos a AESA conforme al Reglamento (UE) 376/2014.",
+    ],
+    a: "Las zonas geográficas se consultan en cada vuelo, no una vez al año.",
+    u: ["ENAIRE Drones", "https://drones.enaire.es/"],
+  },
+];
+
 const HERO = { a13: "subcategorias", a2: "viento", sts: "volumen" };
 
 const DIAGRAMAS = {
+  itinerariotramites: {
+    p: "El orden importa: cada paso desbloquea el siguiente. Los exámenes están en un área de la sede distinta de la de los trámites de operador, que es donde más gente se pierde.",
+    s: `<svg viewBox="0 0 340 236" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="6" width="328" height="58" rx="8" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="18" y="24" fill="var(--cy)" font-size="11.5" font-weight="600">Sede · catálogo de DRONES</text>
+<g font-size="10" fill="var(--text)">
+<text x="18" y="42">0 Alta de usuario → 1 Registro de operador</text>
+<text x="18" y="56">2 Drones en el perfil (solo categoría específica)</text>
+</g>
+<path d="M170 64v12" stroke="var(--line)" stroke-width="1.4"/><path d="M170 76l-4-8h8z" fill="var(--line)"/>
+<rect x="6" y="80" width="328" height="68" rx="8" fill="rgba(242,180,65,.1)" stroke="var(--am)"/>
+<text x="18" y="98" fill="var(--am)" font-size="11.5" font-weight="600">Sede · catálogo de FORMACIÓN Y EXÁMENES</text>
+<g font-size="10" fill="var(--text)">
+<text x="18" y="116">3 A1/A3  →  4 A2  →  5 STS teórico</text>
+<text x="18" y="130">7 Radiofonista · 8 Revalidaciones</text>
+<text x="18" y="144">6 Práctico STS: lo gestiona la entidad formadora</text>
+</g>
+<path d="M170 148v12" stroke="var(--line)" stroke-width="1.4"/><path d="M170 160l-4-8h8z" fill="var(--line)"/>
+<rect x="6" y="164" width="328" height="40" rx="8" fill="rgba(85,214,160,.1)" stroke="var(--ok)"/>
+<text x="18" y="182" fill="var(--ok)" font-size="11.5" font-weight="600">Categoría específica</text>
+<text x="18" y="196" fill="var(--text)" font-size="10">9 Declaración STS  ·  10 Autorización operacional o LUC</text>
+<rect x="6" y="210" width="328" height="24" rx="7" fill="rgba(240,122,110,.09)" stroke="var(--no)" stroke-dasharray="5 4"/>
+<text x="170" y="226" fill="var(--no)" font-size="10" text-anchor="middle">Fuera de AESA: 11 seguridad ciudadana · 12 zonas, seguro y sucesos</text>
+</svg>`,
+  },
+  zonacontrolada: {
+    p: "Composición de la zona terrestre controlada en el STS-01. La zona de contingencia va al menos 10 m más allá de la geografía de vuelo, y el buffer de riesgo en tierra crece con la altura y con la masa.",
+    s: `<svg viewBox="0 0 340 228" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="8" width="328" height="122" rx="8" fill="rgba(240,122,110,.07)" stroke="var(--no)" stroke-dasharray="6 4"/>
+<text x="14" y="24" fill="var(--no)" font-size="10.5">Zona de prevención de riesgos en tierra</text>
+<rect x="40" y="34" width="260" height="86" rx="7" fill="rgba(138,166,182,.08)" stroke="var(--mute)" stroke-dasharray="5 4"/>
+<text x="48" y="50" fill="var(--mute)" font-size="10.5">Zona de contingencia · ≥ 10 m más allá</text>
+<rect x="76" y="60" width="188" height="50" rx="6" fill="rgba(92,200,232,.14)" stroke="var(--cy)"/>
+<text x="84" y="76" fill="var(--cy)" font-size="10.5">Zona de la geografía de vuelo</text>
+<g transform="translate(170,96)"><line x1="-11" y1="0" x2="11" y2="0" stroke="var(--cy)" stroke-width="1.6"/><ellipse cx="-11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><ellipse cx="11" cy="-2" rx="6" ry="1.7" fill="var(--cy)" opacity=".55"/><rect x="-4" y="-2.5" width="8" height="5" rx="1.5" fill="var(--cy)"/></g>
+<text x="170" y="146" fill="var(--am)" font-size="11" text-anchor="middle" font-weight="600">Buffer mínimo de riesgo en tierra</text>
+<g font-size="10.5">
+<text x="60" y="164" fill="var(--mute)">Altura</text>
+<text x="190" y="164" fill="var(--mute)" text-anchor="middle">hasta 10 kg</text>
+<text x="292" y="164" fill="var(--mute)" text-anchor="middle">más de 10 kg</text>
+<line x1="14" y1="170" x2="326" y2="170" stroke="var(--line)"/>
+<text x="60" y="186" fill="var(--text)">30 m</text><text x="190" y="186" fill="var(--cy)" text-anchor="middle">10 m</text><text x="292" y="186" fill="var(--cy)" text-anchor="middle">20 m</text>
+<text x="60" y="200" fill="var(--text)">60 m</text><text x="190" y="200" fill="var(--cy)" text-anchor="middle">15 m</text><text x="292" y="200" fill="var(--cy)" text-anchor="middle">30 m</text>
+<text x="60" y="214" fill="var(--text)">90 m</text><text x="190" y="214" fill="var(--cy)" text-anchor="middle">20 m</text><text x="292" y="214" fill="var(--cy)" text-anchor="middle">45 m</text>
+<text x="60" y="228" fill="var(--text)">120 m</text><text x="190" y="228" fill="var(--cy)" text-anchor="middle">25 m</text><text x="292" y="228" fill="var(--cy)" text-anchor="middle">60 m</text>
+</g>
+</svg>`,
+  },
+  frontera: {
+    p: "La frontera que más se pregunta: salirse de la geografía de vuelo activa los procedimientos de contingencia; amenazar con salirse del volumen operacional activa los de emergencia y la terminación del vuelo.",
+    s: `<svg viewBox="0 0 340 186" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="10" width="328" height="110" rx="8" fill="rgba(240,122,110,.06)" stroke="var(--no)" stroke-dasharray="6 4"/>
+<rect x="34" y="26" width="272" height="78" rx="7" fill="rgba(138,166,182,.07)" stroke="var(--mute)" stroke-dasharray="5 4"/>
+<rect x="74" y="42" width="192" height="46" rx="6" fill="rgba(92,200,232,.14)" stroke="var(--cy)"/>
+<text x="170" y="70" fill="var(--cy)" font-size="11" text-anchor="middle">Geografía de vuelo</text>
+<text x="170" y="100" fill="var(--mute)" font-size="10.5" text-anchor="middle">Volumen de contingencia</text>
+<text x="170" y="22" fill="var(--no)" font-size="10.5" text-anchor="middle">Fuera del volumen operacional</text>
+<path d="M266 65h34" stroke="var(--am)" stroke-width="1.6"/><path d="M300 65l-9-4v8z" fill="var(--am)"/>
+<rect x="6" y="130" width="160" height="48" rx="7" fill="rgba(242,180,65,.1)" stroke="var(--am)"/>
+<text x="86" y="148" fill="var(--am)" font-size="11.5" text-anchor="middle" font-weight="600">Contingencia</text>
+<text x="86" y="164" fill="var(--mute)" font-size="9.5" text-anchor="middle">puede salirse de la</text>
+<text x="86" y="174" fill="var(--mute)" font-size="9.5" text-anchor="middle">geografía de vuelo</text>
+<rect x="174" y="130" width="160" height="48" rx="7" fill="rgba(240,122,110,.1)" stroke="var(--no)"/>
+<text x="254" y="148" fill="var(--no)" font-size="11.5" text-anchor="middle" font-weight="600">Emergencia</text>
+<text x="254" y="164" fill="var(--mute)" font-size="9.5" text-anchor="middle">puede salirse del volumen</text>
+<text x="254" y="174" fill="var(--mute)" font-size="9.5" text-anchor="middle">operacional: terminación</text>
+</svg>`,
+  },
+  ejes: {
+    p: "Los tres ejes se cortan en el centro de gravedad. En un multirrotor no hay superficies de control: cada movimiento se consigue variando las revoluciones de unos motores respecto a otros.",
+    s: `<svg viewBox="0 0 340 206" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(96,96)">
+<line x1="-62" y1="0" x2="62" y2="0" stroke="var(--cy)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<line x1="0" y1="-62" x2="0" y2="62" stroke="var(--ok)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<line x1="-44" y1="34" x2="44" y2="-34" stroke="var(--am)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<g stroke="var(--text)" stroke-width="2"><line x1="-30" y1="-30" x2="30" y2="30"/><line x1="30" y1="-30" x2="-30" y2="30"/></g>
+<g fill="none" stroke="var(--text)" stroke-width="1.8">
+<circle cx="-30" cy="-30" r="12"/><circle cx="30" cy="-30" r="12"/><circle cx="-30" cy="30" r="12"/><circle cx="30" cy="30" r="12"/></g>
+<circle cx="0" cy="0" r="7" fill="var(--text)"/>
+</g>
+<text x="96" y="20" fill="var(--ok)" font-size="10.5" text-anchor="middle">eje vertical (Z)</text>
+<text x="166" y="100" fill="var(--cy)" font-size="10.5">eje lateral (Y)</text>
+<text x="96" y="186" fill="var(--am)" font-size="10.5" text-anchor="middle">eje longitudinal (X)</text>
+<g font-size="11">
+<rect x="188" y="24" width="146" height="42" rx="6" fill="rgba(242,180,65,.1)" stroke="var(--am)"/>
+<text x="198" y="42" fill="var(--am)" font-weight="600">Alabeo</text>
+<text x="198" y="58" fill="var(--mute)" font-size="10">gira sobre el longitudinal</text>
+<rect x="188" y="74" width="146" height="42" rx="6" fill="rgba(92,200,232,.1)" stroke="var(--cy)"/>
+<text x="198" y="92" fill="var(--cy)" font-weight="600">Cabeceo</text>
+<text x="198" y="108" fill="var(--mute)" font-size="10">gira sobre el lateral</text>
+<rect x="188" y="124" width="146" height="42" rx="6" fill="rgba(85,214,160,.1)" stroke="var(--ok)"/>
+<text x="198" y="142" fill="var(--ok)" font-weight="600">Guiñada</text>
+<text x="198" y="158" fill="var(--mute)" font-size="10">gira sobre el vertical</text>
+</g>
+<text x="170" y="198" fill="var(--mute)" font-size="10" text-anchor="middle">En ala fija: alerones, timón de profundidad y timón de dirección</text>
+</svg>`,
+  },
+  cg: {
+    p: "La carga útil desplaza el centro de gravedad. Cuanto más descentrada, más inestable; cuanto más baja, más suave responde la aeronave.",
+    s: `<svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<g transform="translate(58,54)">
+<line x1="-30" y1="0" x2="30" y2="0" stroke="var(--text)" stroke-width="2"/>
+<g fill="none" stroke="var(--text)" stroke-width="1.6"><circle cx="-30" cy="0" r="9"/><circle cx="30" cy="0" r="9"/></g>
+<rect x="-7" y="-5" width="14" height="10" rx="2" fill="var(--text)"/>
+<circle cx="0" cy="14" r="5" fill="var(--ok)"/>
+<line x1="0" y1="0" x2="0" y2="14" stroke="var(--ok)" stroke-width="1.3" stroke-dasharray="3 2"/>
+</g>
+<text x="58" y="98" fill="var(--ok)" font-size="11.5" text-anchor="middle" font-weight="600">Estable</text>
+<text x="58" y="113" fill="var(--mute)" font-size="9.5" text-anchor="middle">centrada y algo</text>
+<text x="58" y="124" fill="var(--mute)" font-size="9.5" text-anchor="middle">por debajo del CG</text>
+<g transform="translate(170,54)">
+<line x1="-30" y1="0" x2="30" y2="0" stroke="var(--text)" stroke-width="2"/>
+<g fill="none" stroke="var(--text)" stroke-width="1.6"><circle cx="-30" cy="0" r="9"/><circle cx="30" cy="0" r="9"/></g>
+<rect x="-7" y="-5" width="14" height="10" rx="2" fill="var(--text)"/>
+<circle cx="0" cy="-16" r="5" fill="var(--am)"/>
+<line x1="0" y1="0" x2="0" y2="-16" stroke="var(--am)" stroke-width="1.3" stroke-dasharray="3 2"/>
+</g>
+<text x="170" y="98" fill="var(--am)" font-size="11.5" text-anchor="middle" font-weight="600">CG alto</text>
+<text x="170" y="113" fill="var(--mute)" font-size="9.5" text-anchor="middle">movimientos más</text>
+<text x="170" y="124" fill="var(--mute)" font-size="9.5" text-anchor="middle">rápidos y bruscos</text>
+<g transform="translate(282,54)">
+<line x1="-30" y1="0" x2="30" y2="0" stroke="var(--text)" stroke-width="2"/>
+<g fill="none" stroke="var(--text)" stroke-width="1.6"><circle cx="-30" cy="0" r="9"/><circle cx="30" cy="0" r="9"/></g>
+<rect x="-7" y="-5" width="14" height="10" rx="2" fill="var(--text)"/>
+<circle cx="24" cy="14" r="5" fill="var(--no)"/>
+<line x1="0" y1="0" x2="24" y2="14" stroke="var(--no)" stroke-width="1.3" stroke-dasharray="3 2"/>
+</g>
+<text x="282" y="98" fill="var(--no)" font-size="11.5" text-anchor="middle" font-weight="600">Descentrada</text>
+<text x="282" y="113" fill="var(--mute)" font-size="9.5" text-anchor="middle">inestable: el CG sale</text>
+<text x="282" y="124" fill="var(--mute)" font-size="9.5" text-anchor="middle">del centro geométrico</text>
+<text x="170" y="150" fill="var(--text)" font-size="10.5" text-anchor="middle">En ala fija lo estable es el CG ligeramente por delante del centro aerodinámico;</text>
+<text x="170" y="163" fill="var(--mute)" font-size="10.5" text-anchor="middle">si queda por detrás, el morro sube hasta la entrada en pérdida</text>
+</svg>`,
+  },
+  responsabilidades: {
+    p: "El reparto que más se pregunta. El control del vuelo es intransferible: el operador designa a un piloto para cada operación y no se cede a mitad.",
+    s: `<svg viewBox="0 0 340 196" xmlns="http://www.w3.org/2000/svg" font-family="Barlow, sans-serif">
+<rect x="6" y="8" width="160" height="178" rx="8" fill="rgba(92,200,232,.07)" stroke="var(--cy)"/>
+<text x="86" y="28" fill="var(--cy)" font-size="13" font-weight="600" text-anchor="middle">Operador</text>
+<g fill="var(--text)" font-size="9.5">
+<text x="16" y="50">· procedimientos y medidas</text>
+<text x="16" y="62">  de atenuación</text>
+<text x="16" y="78">· designa piloto para cada</text>
+<text x="16" y="90">  operación y garantiza</text>
+<text x="16" y="102">  su formación</text>
+<text x="16" y="118">· actualiza la geoconsciencia</text>
+<text x="16" y="134">· declaración de conformidad</text>
+<text x="16" y="146">  y etiqueta de clase</text>
+<text x="16" y="162">· informa a las personas</text>
+<text x="16" y="174">  participantes</text>
+</g>
+<rect x="174" y="8" width="160" height="178" rx="8" fill="rgba(85,214,160,.07)" stroke="var(--ok)"/>
+<text x="254" y="28" fill="var(--ok)" font-size="13" font-weight="600" text-anchor="middle">Piloto a distancia</text>
+<g fill="var(--text)" font-size="9.5">
+<text x="184" y="50">· porta su acreditación</text>
+<text x="184" y="62">  durante el vuelo</text>
+<text x="184" y="78">· responsable de la</text>
+<text x="184" y="90">  seguridad aérea del vuelo</text>
+<text x="184" y="106">· no vuela en zonas de</text>
+<text x="184" y="118">  emergencia sin permiso</text>
+<text x="184" y="134">· no supera la MTOM ni</text>
+<text x="184" y="146">  modifica el UAS</text>
+<text x="184" y="162">· respeta los límites de la</text>
+<text x="184" y="174">  zona geográfica</text>
+</g>
+</svg>`,
+  },
 
   tramites: {
     p: "Volar en entorno urbano o sobre concentraciones de personas obliga a comunicarlo antes. En el País Vasco la comunicación va a la Ertzaintza, no al Ministerio del Interior.",
@@ -2144,118 +2520,202 @@ const TEMARIO = {
     "Aeródromo o helipuerto: coordinación con la entidad responsable",
   ],
     },
+    {
+      t: "15 · Definiciones que caen literales",
+      d: ["sistema"],
+      p: [
+        "El examen pregunta definiciones casi con las palabras del curso, así que conviene tenerlas afinadas.",
+        "Concentración de personas: reunión en la que las personas no pueden evitar el impacto de un UAS en caída libre, por la densidad de gente y el espacio en el que están reunidas. No es cuestión de número, sino de poder apartarse o no.",
+        "Consciencia situacional: la percepción de uno mismo y de la aeronave en relación con el ambiente dinámico del vuelo, con capacidad de pronosticar lo que va a ocurrir a partir de lo que se percibe del entorno.",
+        "Infraestructura crítica: las infraestructuras estratégicas que prestan servicios esenciales y cuyo funcionamiento es indispensable, de modo que su perturbación o destrucción tendría un impacto grave. Salud, electricidad, agua, transporte.",
+        "Mercancía peligrosa: cualquier artículo o sustancia transportada por la aeronave que pueda suponer un peligro para la salud, la seguridad, los bienes o el medio ambiente en caso de incidente o accidente.",
+        "VLOS: operación en la que el piloto mantiene contacto visual continuo con la aeronave sin ayuda de instrumentos, y puede controlar su trayectoria para evitar colisiones con otras aeronaves, personas y obstáculos. BVLOS es, simplemente, lo que no cumple eso.",
+        "Observador de la aeronave no tripulada: persona situada al lado del piloto que, observando la aeronave sin instrumentos, le ayuda a mantenerla en VLOS y a efectuar el vuelo con seguridad. Es la figura que permite volar con gafas FPV.",
+        "Observador del espacio aéreo: persona que asiste al piloto observando el espacio aéreo, sin instrumentos, para detectar posibles peligros en el aire. No mira al dron, mira al cielo. Es figura propia del STS-02.",
+        "Persona no participante: la que no participa en la operación o no está al corriente de las instrucciones y precauciones de seguridad dadas por el operador.",
+        "Lista de control: documento con el conjunto de tareas preparatorias que se realizan normalmente antes de iniciar una operación. Su ejecución no debe solaparse con otras tareas importantes, porque es así como se saltan puntos.",
+      ],
+      k: [
+        "Concentración: no poder apartarse, no el número de personas",
+        "Observador de la aeronave mira al dron · del espacio aéreo mira al cielo",
+      ],
+    },
+    {
+      t: "16 · Quién responde de qué",
+      d: ["responsabilidades"],
+      p: [
+        "El reparto de responsabilidades entre operador y piloto es materia de examen y se pregunta en los dos sentidos: qué le toca a cada uno y qué NO le toca.",
+        "El operador elabora las medidas de atenuación y los procedimientos operacionales según el riesgo y el tipo de operación.",
+        "El operador designa un piloto para cada operación y garantiza que tiene la formación adecuada. El control del vuelo es intransferible: no se cede a mitad de operación.",
+        "El operador mantiene actualizado el sistema de geoconsciencia del UAS cuando la aeronave lo incorpora, en función del lugar donde se vaya a operar.",
+        "Si el UAS lleva etiqueta de identificación de clase, el operador debe disponer de la declaración de conformidad y asegurarse de que el fabricante marcó la aeronave con esa etiqueta.",
+        "En operaciones de A2 y A3 donde haya personas participantes, el operador se asegura de que han sido informadas de los riesgos y han aceptado participar de forma explícita.",
+        "El piloto a distancia debe disponer de la formación necesaria y portar la acreditación durante el vuelo.",
+        "El piloto es el responsable de la seguridad aérea del vuelo. No es una fórmula: en la práctica significa que puede y debe negarse a volar.",
+        "El piloto no volará cerca ni dentro de zonas donde se desarrollen operaciones de emergencia, salvo permiso expreso del servicio de emergencia responsable.",
+        "El piloto no volará bajo los efectos de sustancias psicoactivas o alcohol, ni si no se encuentra en condiciones adecuadas para volar.",
+        "El piloto no superará la MTOM del UAS ni el límite de masa de su clase, ni modificará la aeronave en contra de lo establecido por el fabricante.",
+        "Y respetará en todo momento los límites operacionales definidos por la zona geográfica de UAS del lugar donde opere.",
+      ],
+      k: [
+        "El control del vuelo es intransferible",
+        "La formación la garantiza el operador; la acreditación la porta el piloto",
+        "Zona de emergencia: solo con permiso expreso del servicio responsable",
+      ],
+    },
   ],
   a2: [
     {
       t: "1 · Qué añade el certificado A2",
       d: ["bajavelocidad"],
-      d: ["bajavelocidad"],
       p: [
         "El A2 permite operar UAS de clase C2, de menos de 4 kg, acercándose a personas no participantes más de lo que permite A3. Todo lo demás de la categoría abierta sigue vigente: 120 m, VLOS y prohibición de sobrevolar aglomeraciones.",
-        "La distancia mínima general es de 30 m horizontales respecto a personas no participantes. Se puede reducir a 5 m si el UAS dispone de modo de baja velocidad y está activado, lo que limita la velocidad a 3 m/s.",
+        "La distancia mínima general es de 30 m horizontales respecto a personas no participantes. Se reduce si el UAS dispone de modo de baja velocidad y está activado, que limita la velocidad a 3 m/s.",
+        "Ojo al matiz, porque es donde se cae mucha gente: con el modo de baja velocidad activado la distancia no es automáticamente 5 m, sino la que resulte de la regla 1:1, con un suelo de 5 m. Es decir, a 20 m de altura hay que mantener 20 m horizontales aunque el modo esté activado.",
+        "La clase C2 debe reunir, entre otros requisitos: menos de 4 kg, propulsión eléctrica, altura de vuelo limitada a 120 m, modo de baja velocidad seleccionable, enlace de datos protegido frente a interferencias, método para finalizar el vuelo de forma segura o recuperar el enlace si se pierde, identificación a distancia, geoconsciencia, número de serie físico y único, luces de controlabilidad visibles de noche, diseño orientado a no dañar a las personas, y venderse con las instrucciones del fabricante.",
         "Para presentarse hay que tener la prueba de superación de la formación en línea A1/A3 y haber completado una autoformación práctica en condiciones equivalentes a A3, que el propio piloto declara.",
         "El examen consta de 30 preguntas y exige 23 aciertos. Es televigilado, con cámara, micrófono y pantalla compartida. El certificado tiene una validez de 5 años.",
         "El temario añadido sobre el de A1/A3 es de tres materias: meteorología, rendimiento de vuelo del UAS y medidas técnicas y operacionales de mitigación del riesgo en tierra.",
       ],
-      k: ["30 m, o 5 m con modo de baja velocidad a 3 m/s", "30 preguntas, 23 aciertos, validez 5 años"],
+      k: ["30 m, o regla 1:1 con mínimo de 5 m usando baja velocidad", "Modo de baja velocidad: 3 m/s", "30 preguntas, 23 aciertos, validez 5 años"],
     },
     {
-      t: "2 · Meteorología I: atmósfera, presión y densidad",
-      d: ["densidad"],
+      t: "2 · Meteorología I: presión, temperatura y densidad",
       d: ["densidad"],
       p: [
-        "La atmósfera estándar internacional toma como referencia 15 °C y 1013,25 hPa al nivel del mar, con una disminución de la temperatura de aproximadamente 2 °C por cada 1000 ft de ascenso, unos 6,5 °C por kilómetro.",
-        "La densidad del aire es lo que determina el rendimiento. Cuanta menos densidad, menos masa de aire mueven las hélices y menos empuje generan para el mismo régimen de motor.",
-        "Tres factores reducen la densidad: la temperatura alta, la altitud elevada y la humedad alta. Los tres juntos, un día de verano en montaña, producen una pérdida de rendimiento muy notable: el dron sube peor, responde con pereza y consume más.",
-        "El concepto de altitud de densidad resume esa idea: un dron volando a 1500 m en un día muy caluroso se comporta como si estuviera bastante más alto.",
-        "Presión y altimetría: el QNH es el reglaje que hace que el altímetro marque la altitud sobre el nivel del mar; el QFE marca altura sobre un punto concreto. Los drones habituales miden altura relativa al punto de despegue mediante barómetro, y ese dato se desajusta si la presión cambia durante una sesión larga.",
+        "La presión atmosférica es la fuerza que ejerce el peso del aire sobre la superficie. La referencia a nivel del mar son 1013 mb, o 1013,25 hPa en la atmósfera estándar, con 15 °C.",
+        "Las isobaras son líneas que unen puntos de igual presión al nivel del mar, dibujadas en los mapas a intervalos de 2 o 4 mb. Cuanto más juntas están, mayor es la diferencia de presión y más fuerte sopla el viento; cuanto más separadas, más flojo.",
+        "Un anticiclón es una zona de presión más alta que su entorno, de 1016 mb o más, con isobaras muy separadas y vientos suaves que casi desaparecen en el centro. Trae tiempo estable: en verano soleado y seco, en invierno despejado y frío. En el hemisferio norte el aire gira en el sentido de las agujas del reloj.",
+        "Una borrasca o ciclón es una zona de baja presión, de 1012 mb o menos, con el aire girando en sentido contrario a las agujas del reloj en el hemisferio norte. El aire húmedo y cálido asciende, se enfría y se condensa: nubes y probabilidad de precipitación.",
+        "En invierno, bajo un anticiclón, el aire que desciende puede atrapar nieblas y contaminantes bajo una inversión térmica y formar el conocido smog de las grandes ciudades.",
+        "El gradiente térmico vertical estándar es de 2 °C por cada 1000 pies, equivalentes a 6,5 °C por cada 1000 metros. La temperatura desciende hasta unos 36.000 pies y a partir de ahí se mantiene constante en torno a 56,5 °C bajo cero.",
+        "Hay inversión térmica cuando la temperatura aumenta con la altura en lugar de disminuir. Puede darse justo sobre el suelo, lo que se llama inversión a nivel del suelo, o a una altura determinada, inversión en altura.",
+        "La densidad es la masa por unidad de volumen. Es inversamente proporcional a la altura y también a la temperatura: cuanto más alto y más caliente, menos densidad. Eso reduce la sustentación y el rendimiento, aunque tiene una contrapartida menor: también baja la resistencia al avance.",
+        "Efectos prácticos de la temperatura sobre la operación: con frío la autonomía cae y en casos extremos hay que precalentar las baterías; con mucho calor las baterías pueden sobrecalentarse e incendiarse, y el rendimiento de la aeronave se reduce por la menor densidad del aire.",
       ],
-      k: ["ISA: 15 °C y 1013,25 hPa · –2 °C por cada 1000 ft", "Calor, altitud y humedad bajan la densidad y el rendimiento"],
+      k: ["1013 mb de referencia · anticiclón ≥1016 · borrasca ≤1012", "Isobaras juntas = viento fuerte", "2 °C por cada 1000 ft = 6,5 °C por cada 1000 m"],
     },
     {
       t: "3 · Meteorología II: viento y turbulencia",
       d: ["viento", "venturi"],
       p: [
-        "El viento aumenta con la altura porque el rozamiento con el terreno frena las capas bajas. Es el gradiente de viento: lo que notas en la mano al despegar no es lo que va a encontrar el dron a 100 m.",
-        "La turbulencia mecánica se genera a sotavento de obstáculos: edificios, arboledas, crestas y muros. Aparecen rotores y corrientes descendentes que pueden hacer perder altura de golpe.",
-        "El efecto Venturi acelera el viento al estrecharse el paso: entre dos edificios, en un desfiladero o en un collado. Es una de las trampas clásicas del vuelo urbano y del vuelo en montaña.",
-        "La turbulencia térmica o convectiva aparece en días soleados por el calentamiento desigual del terreno, con ascendencias sobre superficies oscuras y secas y descendencias sobre zonas frescas o arboladas.",
-        "La cizalladura es un cambio brusco de dirección o intensidad del viento en poco espacio. Para un dron pequeño supone una pérdida repentina de control de la actitud.",
-        "Las ráfagas son picos instantáneos por encima del viento medio. La referencia útil no es la media prevista, sino la ráfaga máxima comparada con la velocidad máxima del dron: si la ráfaga se acerca a su velocidad punta, el dron puede no ser capaz de regresar contra el viento.",
-        "Brisas locales: de valle ascendente durante el día y de montaña descendente por la noche, y brisas de mar y tierra en la costa, que cambian de sentido a lo largo de la jornada.",
+        "El viento se origina por las diferencias de presión, que tienden a equilibrarse moviendo el aire desde las altas hacia las bajas. Esas diferencias nacen del calentamiento desigual de la superficie. Cuando sopla con intensidades distintas en periodos cortos se llama viento racheado.",
+        "La capa límite es la parte más baja de la atmósfera, hasta unos 200 a 500 m, donde la orografía y la rugosidad del terreno perturban el movimiento del aire. La consecuencia práctica es que la intensidad del viento aumenta con la altura de vuelo.",
+        "Si la velocidad del viento se acerca a la máxima que indica el manual del fabricante, se complica la maniobrabilidad, se penaliza la autonomía de las baterías y se reduce el rango operativo real del UAS.",
+        "La dirección del viento se define por el punto del horizonte desde el que sopla, es decir, de dónde viene. Se usa la rosa de los vientos dividida en 360 grados, contando desde el norte en el sentido de las agujas del reloj: un viento del sureste son 135 grados, del sur 180 y del noroeste 315.",
+        "La velocidad se mide en nudos, y un nudo equivale a 0,514 m/s. Es la unidad en la que los fabricantes indican la velocidad máxima de viento que soporta la aeronave.",
+        "En los mapas, el viento se representa con una flecha cuya punta indica de dónde viene. Las barbas dan la intensidad: la barba corta equivale a 5 nudos, la larga a 10 y el triángulo a 50. Por debajo de 5 nudos se dibuja la flecha sin barbas.",
+        "La turbulencia se clasifica por su origen en tres tipos. La mecánica se produce por obstáculos como edificios, montañas, árboles o hangares. La convectiva o térmica, por el ascenso de corrientes de aire calentado por la radiación solar. Y la de estela la genera el propio vuelo de la aeronave, que deja vórtices turbulentos tras de sí.",
+        "Por su efecto sobre la aeronave se clasifica en ligera, cuando no hay cambios relevantes de altitud ni actitud; moderada, con cambios pero sin perder el control; y fuerte, con cambios bruscos que pueden dejar la aeronave fuera de control y provocar daños estructurales.",
+        "La turbulencia pesa especialmente en las fases críticas, el despegue y el aterrizaje. Cuando se vuela en aire turbulento, los fabricantes suelen recomendar velocidades más bajas y desconectar el modo automático para evitar cargas estructurales.",
       ],
-      k: ["Gradiente de viento: más viento arriba que abajo", "Turbulencia mecánica a sotavento · Venturi entre edificios", "Compara la ráfaga máxima con la velocidad punta del dron"],
+      k: ["1 nudo = 0,514 m/s · barba corta 5 kt, larga 10 kt, triángulo 50 kt", "Capa límite: 200–500 m · el viento crece con la altura", "Turbulencia mecánica, convectiva y de estela"],
     },
     {
-      t: "4 · Meteorología III: nubes, visibilidad e información",
-      d: ["nubes"],
+      t: "4 · Meteorología III: visibilidad, nubes e información",
       d: ["nubes"],
       p: [
-        "Nubes de desarrollo vertical: el cumulonimbus es la nube de tormenta. Su entorno reúne rachas violentas, cizalladura, corrientes descendentes, granizo y actividad eléctrica, y todo eso puede aparecer antes de que caiga la primera gota. No se vuela.",
-        "Cuando la temperatura y el punto de rocío se aproximan, el aire está cerca de la saturación y aumenta la probabilidad de niebla o de nubes bajas. Una diferencia pequeña es una señal de alerta de visibilidad.",
-        "La niebla de radiación se forma en noches despejadas y sin viento, típicamente al amanecer en valles y zonas húmedas: precisamente las horas y los sitios del vuelo de paisaje. La niebla de advección se produce cuando aire húmedo y templado se desplaza sobre una superficie más fría.",
-        "La humedad y la lluvia son un riesgo eléctrico directo para la mayoría de los drones civiles, que no están protegidos. Con temperaturas cercanas a cero puede haber engelamiento en las palas, que altera el perfil y hace perder sustentación de forma acelerada.",
-        "El METAR es un informe de observación real de un aeródromo; el TAF es una predicción para un periodo. En ambos se leen dirección e intensidad del viento con sus ráfagas, visibilidad, fenómenos significativos, nubosidad con su altura, temperatura, punto de rocío y presión.",
-        "Fuentes prácticas: AEMET, la información aeronáutica de ENAIRE y los modelos de viento en altura. Conviene contrastar al menos dos y valorar la tendencia, no solo la foto del momento.",
+        "La visibilidad es la distancia horizontal máxima a la que se puede ver e identificar un objeto sobre el horizonte. De noche, aquella a la que podría verse si la iluminación se aumentara hasta la intensidad normal de la luz del día.",
+        "La reducen los meteoros: niebla, bruma, calima, precipitación. La visibilidad meteorológica es la mayor distancia horizontal a la que se identifican objetos previamente seleccionados.",
+        "El RVR, alcance visual de pista, es la distancia a la que se ve la pista desde la altura de los ojos del piloto en la toma de tierra, que se toma convencionalmente como 5 metros, unos 16 pies. No se incluye en los partes cuando la visibilidad es alta: se proporciona por debajo de 2000 m.",
+        "Las temperaturas que se miden habitualmente son cuatro: la del aire o ambiente, la del instante de la lectura; el punto de rocío, aquella a la que el aire se satura y condensa, medida con el psicrómetro; la máxima del día, que suele darse entre las 14:00 y las 16:00; y la mínima, entre las 06:00 y las 08:00.",
+        "Cuando la temperatura del aire y el punto de rocío se aproximan, el aire está cerca de la saturación y crece la probabilidad de niebla o nubes bajas.",
+        "El cumulonimbus es la nube de tormenta: rachas violentas, cizalladura, corrientes descendentes, granizo y actividad eléctrica. Puede haber todo eso antes de que caiga la primera gota. Si amenaza tormenta eléctrica con el UAS en el aire, se aterriza de inmediato.",
+        "La niebla de radiación se forma en noches despejadas y con poco viento, típicamente al amanecer en valles y zonas húmedas. La de advección aparece cuando aire húmedo y templado se desplaza sobre una superficie más fría.",
+        "La obtención de las predicciones meteorológicas es responsabilidad únicamente del piloto a distancia, que debe consultar fuentes oficiales como AEMET. El METAR es una observación real de un aeródromo y el TAF una predicción para un periodo.",
       ],
-      k: ["Cumulonimbus = tormenta = no se vuela", "Temperatura y rocío próximos = riesgo de niebla", "METAR observa · TAF predice"],
+      k: ["RVR por debajo de 2000 m · altura de referencia 5 m", "Máxima entre 14 y 16 h, mínima entre 6 y 8 h", "La meteorología es responsabilidad solo del piloto a distancia"],
     },
     {
-      t: "5 · Rendimiento de vuelo del UAS",
-      d: ["autonomia"],
+      t: "5 · Ejes de vuelo y cómo se mueve el UAS",
+      d: ["ejes"],
+      p: [
+        "Los ejes de vuelo son tres líneas imaginarias perpendiculares entre sí que se cortan en el centro de gravedad de la aeronave.",
+        "El eje longitudinal va de delante hacia atrás por el cuerpo central. El eje lateral o transversal va de izquierda a derecha. El eje vertical atraviesa la aeronave de arriba abajo pasando por el centro de gravedad.",
+        "Los movimientos alrededor de esos ejes son el alabeo sobre el longitudinal, el cabeceo sobre el lateral y la guiñada sobre el vertical.",
+        "En un multirrotor no hay superficies de control: la controladora de vuelo varía las revoluciones de unos motores respecto a otros, a través de los controladores electrónicos de velocidad, los ESC. En un ala fija el movimiento de los mandos llega a servos que mueven superficies.",
+        "Alabeo en un multirrotor: si se aumenta la velocidad de los motores de un plano, la aeronave bascula hacia el lado contrario y aparece una componente horizontal de la sustentación que la desplaza.",
+        "Cabeceo: al aumentar la velocidad de los motores traseros, la aeronave bascula hacia delante y aparece la fuerza de avance.",
+        "Guiñada: al aumentar la velocidad de dos motores diagonalmente opuestos, el par deja de estar compensado con el de la otra diagonal y la aeronave gira sobre su eje vertical, hacia un lado u otro según qué diagonal se acelere.",
+        "En ala fija el reparto es distinto: los alerones producen el alabeo, el timón de profundidad el cabeceo y el timón de dirección la guiñada.",
+        "Una hélice girando genera sustentación y, además, un momento en el sentido de rotación del motor. Ese par es el que hay que equilibrar entre rotores para que la aeronave no gire sola sobre sí misma.",
+      ],
+      k: ["Longitudinal → alabeo · lateral → cabeceo · vertical → guiñada", "Multirrotor: ESC y revoluciones · ala fija: alerones, profundidad y dirección"],
+    },
+    {
+      t: "6 · Centro de gravedad y carga útil",
+      d: ["cg"],
+      p: [
+        "Sobre el UAS actúan fuerzas aerodinámicas (sustentación y resistencia), propulsivas (empuje) y gravitatorias (peso). El punto en el que se consideran aplicadas para simplificar los cálculos es el centro de gravedad.",
+        "La carga útil o carga de pago es todo lo que se incorpora a la aeronave sin ser imprescindible para volar: cámaras, sensores, mercancía, altavoces. Puede ser fija o intercambiable, y siempre desplaza el centro de gravedad.",
+        "El objetivo es mantener el centro de gravedad centrado. Si queda bajo, la aeronave hace movimientos más lentos y suaves; si queda alto, más rápidos y bruscos; si no coincide con el centro geométrico, la aeronave es inestable.",
+        "La posición más estable y suave para una cámara con peso apreciable es centrada en los ejes longitudinal y lateral, y situada algo por debajo del centro de gravedad original.",
+        "En ala fija la estabilidad longitudinal depende de la posición relativa entre el centro de gravedad y el centro aerodinámico. Si el centro de gravedad va ligeramente por delante, ante una ráfaga el morro sube y el propio peso lo devuelve a su sitio: es estable. Si va por detrás, el morro sigue subiendo hasta la entrada en pérdida: es inestable. Si coinciden, la estabilidad es neutra.",
+        "Demasiado adelantado tampoco conviene en un ala fija, porque le costará despegar. La referencia práctica es situar el centro de gravedad aproximadamente en el borde de ataque del ala.",
+        "El aseguramiento de la carga útil se comprueba antes de cada vuelo. Una carga mal sujeta no solo puede desprenderse: desplaza el centro de gravedad y desestabiliza el vuelo. Se usan uniones atornilladas, sistemas de apertura y cierre o silentblocks para reducir vibraciones.",
+        "Si la carga es variable, como un depósito, hay que asegurarla de forma que su efecto sobre el centro de gravedad sea el mínimo posible a lo largo del vuelo.",
+      ],
+      k: ["CG bajo: suave · CG alto: brusco · CG descentrado: inestable", "Ala fija estable: CG ligeramente por delante del centro aerodinámico"],
+    },
+    {
+      t: "7 · Rendimiento y autonomía real",
       d: ["autonomia"],
       p: [
         "La masa condiciona todo. Cada gramo añadido exige más empuje, reduce la autonomía, alarga la distancia de frenado, empeora la capacidad de ascenso y deja menos margen de potencia para responder a una ráfaga.",
         "La autonomía real no es la del catálogo. Esa cifra se mide en vuelo estacionario, sin viento y a temperatura ideal. Con viento, frío, maniobras y carga de pago puede caer a la mitad.",
         "El viento afecta de forma asimétrica. La ida con viento en cola es rápida y engañosamente barata; el regreso con viento en cara consume mucho más y es donde se producen la mayoría de los aterrizajes forzosos por batería.",
-        "Velocidad respecto al aire y respecto al suelo: el dron vuela respecto a la masa de aire, pero avanza sobre el terreno. Con viento fuerte en cara la velocidad respecto al suelo puede acercarse a cero aunque los motores estén a tope.",
-        "El margen de potencia es lo que te queda disponible para corregir. Cuanto más cargado, más caliente el aire y más alto vueles, menos margen tienes y más brusca es la pérdida de control ante una racha.",
-        "Reserva de batería: fija un porcentaje de retorno antes de despegar, calculado con el viento del regreso, y respétalo. El aviso de batería crítica no es una planificación, es una alarma.",
+        "Velocidad respecto al aire y respecto al suelo: la aeronave vuela respecto a la masa de aire, pero avanza sobre el terreno. Con viento fuerte en cara, la velocidad respecto al suelo puede acercarse a cero aunque los motores estén al máximo.",
+        "El margen de potencia es lo que queda disponible para corregir. Cuanto más cargado, más caliente el aire y más alto se vuele, menos margen hay y más brusca resulta la pérdida de control ante una racha.",
+        "Reserva de batería: se fija un porcentaje de retorno antes de despegar, calculado con el viento del regreso, y se respeta. El aviso de batería crítica no es una planificación, es una alarma.",
       ],
-      k: ["Más peso: menos autonomía y más distancia de frenado", "La autonomía de catálogo no es la real", "Fija tu margen de retorno antes de despegar"],
+      k: ["Más peso: menos autonomía y más distancia de frenado", "Fija tu margen de retorno antes de despegar"],
     },
     {
-      t: "6 · Baterías y sistemas",
-      d: ["lipo"],
+      t: "8 · Baterías: la parte que más se pregunta",
       d: ["lipo"],
       p: [
-        "Las baterías de polímero de litio ofrecen mucha energía por unidad de masa a cambio de ser exigentes. Su tensión cae bajo carga y se degradan con los ciclos, el calor y las descargas profundas.",
-        "El frío reduce la capacidad disponible y provoca caídas bruscas de tensión: el porcentaje se desploma sin aviso. En invierno conviene transportarlas templadas y no despegar con la batería fría.",
-        "El calor extremo, la carga rápida y las descargas profundas aceleran el envejecimiento. Para almacenamiento prolongado se dejan en torno al 40 o 60 por ciento de carga, unos 3,8 V por celda.",
-        "Una batería hinchada, deformada o que se calienta de forma anómala está dañada y se retira de servicio. No se perfora, no se deja cargando sin vigilancia y se transporta en contenedor resistente al fuego.",
-        "Motores y hélices: vibraciones, ruidos anómalos o juego en los ejes son señales de desgaste. Una hélice con una muesca mínima desequilibra el conjunto y degrada tanto la estabilidad como la imagen.",
-        "Sensores: la brújula se calibra lejos de metal, la IMU sobre superficie nivelada y estable, y los sensores de obstáculos no funcionan bien con superficies transparentes, reflectantes, uniformes o con poca luz.",
+        "Una batería es un dispositivo electroquímico que convierte energía química en energía eléctrica de corriente continua. Las no recargables se llaman primarias y las recargables, secundarias. En UAS se usan secundarias, porque reemplazarlas en cada vuelo sería inviable.",
+        "Entre las recargables, las de litio metal ofrecen la mayor densidad energética pero son inestables y peligrosas. El grupo siguiente, las de ion-litio y polímero de litio, es el que se usa en drones. Se eligen las LiPo precisamente porque su energía por kilogramo es mayor.",
+        "Voltaje: la celda LiPo tiene una tensión nominal de 3,7 V y se nombran por el número de celdas en serie. Una batería de 7,4 V es una 2S, una de 11,1 V es una 3S y una de 22,2 V es una 6S.",
+        "Conectar en serie suma los voltajes y mantiene la capacidad, y exige que todas las celdas tengan la misma capacidad. Conectar en paralelo, que se indica con una p, mantiene el voltaje y suma las capacidades. Se pueden combinar: una 4s3p son cuatro en serie y tres de esos bloques en paralelo.",
+        "Capacidad: se mide en miliamperios-hora y dice cuánta energía almacena. Una de 2000 mAh entrega 2000 mA durante una hora; si el consumo es de 1000 mA, dura dos horas. Más capacidad significa más tiempo de vuelo, pero también más peso y tamaño.",
+        "C-rate o tasa de descarga: cuánta corriente puede entregar de forma continua sin dañarse. Se calcula multiplicando capacidad por C. Una de 1000 mAh y 15C da 15 A continuos; una de 2500 mAh y 30C da 75 A.",
+        "Carga: la regla es no cargar nunca una LiPo por encima de 1C, es decir, a más corriente que su capacidad. Una de 2000 mAh se carga como mucho a 2 A. Las de varias celdas se cargan con equilibrado, porque si una celda se desvía de las demás más de 0,2 V la batería empieza a ser peligrosa.",
+        "Descarga: las celdas no deben bajar de 3,3 V, y por debajo de 3,0 V empiezan a degradarse y a perder cualidades. Las tres cosas que más acortan la vida de una batería son el calor, la sobredescarga y un equilibrado inadecuado.",
+        "Almacenaje: el punto de equilibrio son 3,8 V por celda. Las baterías inteligentes bajan solas hasta ese punto, disipando calor; las que no lo son requieren un cargador con balanceo.",
+        "Se retira de servicio toda batería hinchada, con celdas desequilibradas, con alguna celda por debajo de 3,3 V o sobre la que haya cualquier sospecha. No se perfora y se gestiona como residuo especial.",
+        "Dimensionar una batería es un cálculo, no una intuición: se mira cuánta corriente consumen los motores a plena carga, se comprueba que la descarga continua de la batería la cubra, y de ahí sale la autonomía. Aumentar la capacidad permite bajar el C-rate necesario, pero suma peso.",
       ],
-      k: ["Frío: menos capacidad y caídas de tensión", "Almacenar al 40–60 % · retirar baterías hinchadas"],
+      k: ["3,7 V por celda · 2S = 7,4 V · 3S = 11,1 V · 6S = 22,2 V", "Serie suma voltaje · paralelo suma capacidad", "C-rate: capacidad × C = corriente continua", "Carga máxima 1C · almacenaje 3,8 V · nunca por debajo de 3,3 V"],
     },
     {
-      t: "7 · Fenómenos de vuelo que conviene conocer",
+      t: "9 · Fenómenos de vuelo que conviene conocer",
       d: ["vrs", "efectosuelo"],
       p: [
         "Efecto suelo: cerca del suelo, a menos de aproximadamente un diámetro de rotor, el flujo se ve alterado y aumenta la sustentación. El dron parece flotar, rebota al aterrizar y puede desplazarse lateralmente de forma inesperada.",
-        "Anillo de vórtices: al descender vertical y rápido, el dron cae dentro de su propia estela descendente. Pierde sustentación, oscila y deja de responder a la potencia. La salida correcta es un desplazamiento lateral o hacia delante para salir del aire sucio, nunca aumentar potencia en vertical.",
-        "Autorrotación no existe en un multirrotor: si falla la propulsión, cae. Por eso las mitigaciones pasan por el paracaídas y por no situar el dron donde la caída sea inaceptable.",
+        "Anillo de vórtices: al descender vertical y rápido, el dron cae dentro de su propia estela descendente. Pierde sustentación, oscila y deja de responder a la potencia. La salida correcta es un desplazamiento lateral o hacia delante, nunca aumentar potencia en vertical.",
+        "Autorrotación no existe en un multirrotor: si falla la propulsión, cae. Si falla una hélice, se pierde el equilibrio de empujes y de pares y la aeronave no puede seguir volando con normalidad.",
         "Saturación de los mandos: cuando el viento exige casi todo el empuje disponible para mantener la posición, cualquier orden adicional ya no se puede ejecutar. El dron parece estable hasta que deja de serlo, de golpe.",
         "Interferencia magnética en cubiertas, estructuras metálicas o cerca de tendidos eléctricos: provoca errores de rumbo y el giro en círculos amplios conocido como toilet bowl. La respuesta es pilotar en manual, alejarse de la fuente y aterrizar para recalibrar.",
-        "Pérdida de posicionamiento en entorno urbano por rebotes de la señal: la posición salta, el dron deriva. Conviene tener practicado el pilotaje en modo sin asistencia de posición, con referencia visual directa.",
+        "Pérdida de posicionamiento en entorno urbano por rebotes de la señal: la posición salta y el dron deriva. Conviene tener practicado el pilotaje sin asistencia de posición, con referencia visual directa.",
       ],
       k: ["Efecto suelo cerca del terreno", "Anillo de vórtices: salir en horizontal, no con más potencia"],
     },
     {
-      t: "8 · Mitigación del riesgo en tierra",
-      d: ["regla11"],
+      t: "10 · Mitigación del riesgo en tierra y regla 1:1",
       d: ["regla11"],
       p: [
-        "La energía de un impacto depende de la masa y del cuadrado de la velocidad. Duplicar la velocidad multiplica por cuatro la energía. Por eso el modo de baja velocidad reduce el daño potencial de forma drástica sin cambiar el dron.",
-        "La regla 1:1 es una referencia práctica de zona de seguridad: mantener una distancia horizontal al menos igual a la altura de vuelo, porque un dron que pierde control describe una trayectoria, no cae en vertical.",
-        "Más altura implica mayor área de dispersión posible y más energía al llegar al suelo. Volar más alto no siempre es más seguro para quien está debajo.",
-        "Selección del emplazamiento: superficie firme y nivelada, despejada de obstáculos que generen turbulencia, alejada de personas no participantes, de vías de circulación y de tendidos, y con una zona alternativa de aterrizaje identificada.",
-        "Persona participante es la que está informada de los riesgos, ha dado su consentimiento y se encuentra bajo el control del operador. Quien no reúne las tres condiciones es persona no participante, aunque sea un conocido o el cliente.",
-        "Gestión de terceros: delimitación visible de la zona, señalización, un ayudante que vigile los accesos cuando el entorno lo requiera, y una decisión tomada de antemano sobre qué hacer si alguien entra: aumentar la distancia, interrumpir la maniobra o aterrizar.",
-        "Mitigaciones técnicas: modo de baja velocidad, limitación de altura, geovallado, protectores de hélice y sistemas de terminación del vuelo o paracaídas, que reducen la energía del impacto.",
-        "Mitigaciones operacionales: elegir horarios de poca afluencia, planificar trayectorias que no sobrevuelen zonas sensibles y mantener siempre una vía de escape hacia una zona despejada.",
+        "El riesgo en tierra se define como el riesgo de que una persona sea golpeada por la aeronave en caso de pérdida de control. Lo determinan, entre otros factores, la dimensión característica máxima de la aeronave, si se vuela dentro o más allá del alcance visual, y la densidad de población de la zona.",
+        "Antes de operar, el piloto debe valorar tres cosas: la existencia de obstáculos en el entorno, la dirección y velocidad del viento, y la existencia de lugares seguros para el despegue y el aterrizaje.",
+        "Las medidas de atenuación reconocidas son cuatro: instalar un sistema de limitación de la energía de impacto, es decir un paracaídas; realizar la operación en una zona controlada; definir una zona de contingencia o de prevención de riesgos en tierra; y disponer de función de vuelta a casa.",
+        "La regla 1:1 es la forma práctica de recordar la distancia que hay que mantener respecto a personas no participantes. Hasta los 30 m de altura, la distancia horizontal mínima es de 30 m. Con el modo de baja velocidad activado, hasta los 5 m de altura la distancia horizontal mínima es de 5 m.",
+        "Dicho de otro modo: sin el modo de baja velocidad, tanto la altura como la distancia horizontal a la persona no participante más cercana deben ser siempre superiores a 30 m. Con el modo activado, la distancia horizontal se calcula por la regla 1:1 y nunca baja de 5 m.",
+        "La energía del impacto depende de la masa y del cuadrado de la velocidad: duplicar la velocidad multiplica por cuatro la energía. Por eso el modo de baja velocidad reduce tanto el daño potencial sin cambiar de aeronave.",
+        "Son personas no participantes, por ejemplo, quienes están sentados en un parque dentro de la zona de operaciones, los asistentes a un festival aunque se les avisara con una cláusula en la entrada, y cualquiera que simplemente no quiera participar.",
+        "Son personas participantes, por ejemplo, el observador de la aeronave situado junto al piloto, o un trabajador del operador que está bloqueando el acceso a la zona. Lo que las convierte en participantes es estar informadas, haber aceptado de forma explícita y estar bajo el control del operador.",
+        "Mitigaciones operacionales que no cuestan nada: elegir horarios de poca afluencia, planificar trayectorias que no sobrevuelen zonas sensibles y mantener siempre una vía de escape hacia una zona despejada.",
       ],
-      k: ["La energía crece con el cuadrado de la velocidad", "Regla 1:1 como zona de seguridad", "Participante: informada, consintiente y bajo control"],
+      k: ["Regla 1:1 → hasta 30 m de altura, 30 m horizontales", "Con baja velocidad: 1:1 con mínimo de 5 m", "Un aviso en la entrada de un festival NO convierte a nadie en participante"],
     },
   ],
   sts: [
@@ -2275,17 +2735,25 @@ const TEMARIO = {
     },
     {
       t: "2 · STS-01 en detalle",
-      d: ["sts01"],
-      d: ["sts01"],
+      d: ["sts01", "zonacontrolada"],
       p: [
-        "Escenario de operaciones en VLOS sobre una zona terrestre controlada, en un entorno que puede ser poblado. Es el escenario típico del trabajo aéreo urbano: inspección de fachadas, obra, coberturas de evento en zona acotada.",
-        "Exige UAS de clase C5. El C5 puede ser un equipo diseñado como tal o un C3 al que se le ha instalado un kit de conversión que cumpla los requisitos de la clase.",
-        "La aeronave se mantiene siempre en contacto visual directo con el piloto, y la altura máxima es de 120 m, con la misma excepción de 15 m sobre obstáculos de más de 105 m a petición de su responsable.",
-        "La zona terrestre controlada es el elemento clave: un área en tierra delimitada por el operador dentro de la cual solo pueden encontrarse personas participantes. El operador debe poder garantizar ese control durante toda la operación, y no solo al empezar.",
-        "En la práctica eso implica vallado o balizamiento, señalización, personal de vigilancia en los accesos y coordinación previa con quien gestione el espacio, ya sea el ayuntamiento, la propiedad o la dirección de obra.",
-        "Si el control de la zona se pierde, por ejemplo porque entra un peatón, la operación se interrumpe. No hay margen de tolerancia sobre este punto.",
+        "Escenario de operaciones en VLOS en todo momento, sobre una zona terrestre controlada, en un entorno que puede ser poblado. Es el escenario del trabajo aéreo urbano: inspección de fachadas, obra, cobertura de evento en zona acotada.",
+        "Altura máxima de 120 m sobre el punto más cercano de la superficie. Si la aeronave vuela a menos de 50 m en horizontal de un obstáculo artificial de más de 105 m, la altura puede subir hasta 15 m por encima de ese obstáculo, a petición de la entidad responsable del mismo. Ese matiz de los 50 m horizontales es el que casi nadie recuerda.",
+        "La altura máxima del volumen operacional no puede superar en más de 30 m la altura máxima permitida de vuelo. Es decir, el volumen puede llegar a 150 m aunque la aeronave vuele a 120.",
+        "Velocidad máxima respecto al suelo de 5 m/s para aeronaves de vuelo libre. No es el modo de baja velocidad del A2 a 3 m/s: aquí el límite del escenario son 5 m/s.",
+        "Durante el vuelo la aeronave no puede transportar mercancías peligrosas.",
+        "La zona terrestre controlada se compone de tres partes: la zona de la geografía de vuelo, la zona de contingencia cuyos límites exteriores están al menos 10 m más allá de la anterior, y la zona de prevención de riesgos en tierra, que se dimensiona según la altura de vuelo y la masa de la aeronave.",
+        "Esas distancias mínimas del buffer son, para aeronaves de hasta 10 kg: 10 m volando a 30 m de altura, 15 m a 60 m, 20 m a 90 m y 25 m a 120 m. Para más de 10 kg se duplican largamente: 20, 30, 45 y 60 m respectivamente.",
+        "Si la aeronave está anclada, la zona terrestre controlada es un círculo de radio igual a la longitud del cable más 5 m, centrado en el punto de anclaje en el suelo.",
+        "La aeronave debe ser de clase C5, utilizada con identificación a distancia directa activa y actualizada. El C5 puede ser un equipo de fábrica o un C3 con kit de conversión acreditado.",
+        "Dentro de la zona terrestre controlada solo pueden estar personas participantes, y el operador debe poder garantizarlo durante toda la operación, no solo al empezar.",
       ],
-      k: ["VLOS · entorno poblado · clase C5 · 120 m", "Zona terrestre controlada solo con personas participantes"],
+      k: [
+        "VLOS · C5 · 120 m · velocidad respecto al suelo < 5 m/s",
+        "Contingencia ≥ 10 m más allá de la geografía de vuelo",
+        "Buffer con 10 kg: 10/15/20/25 m según vueles a 30/60/90/120 m",
+        "Anclado: radio = longitud del cable + 5 m",
+      ],
     },
     {
       t: "3 · STS-02 en detalle",
@@ -2379,6 +2847,45 @@ const TEMARIO = {
         "Los escenarios nacionales STS-ES-01 y STS-ES-02 dejaron de ser válidos el 31 de diciembre de 2025. Desde 2026 se opera bajo los escenarios europeos STS-01 y STS-02, con las clases C5 y C6.",
       ],
       k: ["40 preguntas/40 min desde A1/A3 · 30/30 con A2", "Práctica por escenario · revalidación 3 meses antes", "Los STS-ES nacionales caducaron el 31/12/2025"],
+    },
+    {
+      t: "10 · Responsabilidades en el escenario estándar",
+      d: ["responsabilidades"],
+      p: [
+        "Sobre las responsabilidades generales de la categoría específica, el escenario estándar añade unas cuantas propias, y el examen pregunta mucho quién hace qué.",
+        "El operador elabora el manual de operaciones con los elementos que exige el apéndice 5 del Reglamento.",
+        "El operador define el volumen operacional y la zona de prevención de riesgos en tierra, incluida la zona terrestre controlada, que es la proyección en el suelo de ambos.",
+        "El operador garantiza que los procedimientos de contingencia y emergencia son adecuados, y lo demuestra mediante pruebas de vuelo específicas o mediante simulaciones suficientemente representativas.",
+        "El operador elabora un plan de respuesta a emergencias que incluya, como mínimo, cuatro cosas: el plan para limitar la escalada de la emergencia, las condiciones para alertar a autoridades y organizaciones, los criterios para reconocer que hay una emergencia, y el reparto claro de obligaciones entre los pilotos y el resto del personal.",
+        "El operador define el reparto de funciones con los proveedores de servicios externos, si los hay, y garantiza que esos servicios se prestan de forma adecuada. Lo que no le corresponde es redactar las condiciones operacionales del escenario: esas vienen dadas por la norma.",
+        "El operador informa a todas las personas presentes en la zona terrestre controlada de los riesgos, las forma sobre las precauciones adoptadas y recaba su aceptación explícita de participar.",
+        "El operador garantiza que el UAS va acompañado de la declaración UE de conformidad, con referencia a la clase C5 o al C3 más el kit de accesorios, y que la etiqueta de clase está pegada en la aeronave o en el kit.",
+        "El piloto, antes de volar, verifica que los medios de terminación del vuelo están operativos y que la identificación a distancia directa está activa y actualizada.",
+        "Durante el vuelo el piloto mantiene el VLOS y la vigilancia del espacio aéreo, puede apoyarse en un observador de la aeronave con comunicación clara y eficaz, debe poder mantener el control salvo pérdida del enlace C2, solo maneja una aeronave a la vez, no opera desde un vehículo en movimiento y no transfiere el control a otra unidad de mando.",
+      ],
+      k: [
+        "El manual de operaciones y los volúmenes los define el operador",
+        "Las condiciones del escenario las fija la norma, no el operador",
+        "El piloto verifica la terminación del vuelo antes de despegar",
+      ],
+    },
+    {
+      t: "11 · Contingencia y emergencia: dónde está la frontera",
+      d: ["frontera"],
+      p: [
+        "Esta distinción es la que más se pregunta del bloque de emergencias, y tiene una frontera geométrica muy concreta.",
+        "Los procedimientos de contingencia se ejecutan cuando el piloto tiene una indicación de que la aeronave puede superar los límites de la geografía de vuelo, es decir, el volumen donde estaba previsto operar en condiciones normales.",
+        "Los procedimientos de emergencia se ejecutan cuando la indicación es que la aeronave puede superar los límites del volumen operacional, que es la geografía de vuelo más el volumen de contingencia. En ese punto se accionan los medios de terminación del vuelo.",
+        "Dicho en corto: salirse de lo previsto es contingencia; amenazar con salirse de todo lo protegido es emergencia.",
+        "Los medios de terminación del vuelo deben ser fiables, predecibles e independientes del sistema automático de control de vuelo y orientación. Si dependieran del sistema que acaba de fallar, no servirían.",
+        "Otras situaciones que el piloto debe tener practicadas: fallo parcial o total de la propulsión garantizando la seguridad de terceros en tierra, deterioro del equipo de posicionamiento, entrada de una persona no participante en el volumen operacional o en la zona terrestre controlada, aproximación de otra aeronave, y recuperación tras una pérdida deliberada y simulada del enlace de mando y control.",
+        "Si entran personas no participantes en la zona controlada, se aterriza evitando sobrevolarlas. Ni se continúa la operación ni se deja la aeronave en estacionario para ir a hablar con ellas.",
+      ],
+      k: [
+        "Geografía de vuelo superada → contingencia",
+        "Volumen operacional superado → emergencia y terminación del vuelo",
+        "La terminación debe ser independiente del control automático de vuelo",
+      ],
     },
   ],
 };
@@ -2647,6 +3154,91 @@ const Q = [
   { t: "sts", tema: "Escenarios estándar", q: "¿Se puede transportar mercancías peligrosas en los escenarios estándar?", o: ["No, los escenarios estándar no lo permiten", "Sí, en STS-01 con C5", "Sí, en STS-02 con C6"], c: 0, e: "Para eso hay que ir a una autorización operacional específica o a la categoría certificada." },
   { t: "sts", tema: "Declaración", q: "Los medios de comunicación durante la operación deben ser:", o: ["Sólidos y eficaces", "Transmitir en FM", "Plurales"], c: 0, e: "Si la comunicación con los observadores falla, la operación se interrumpe." },
   { t: "sts", tema: "Procedimientos", q: "En las inmediaciones de un aeródromo, la atención a la radio debe mantenerse:", o: ["En todo momento", "Solo para comunicar despegue y aterrizaje", "No es necesaria"], c: 0, e: "Es lo que te permite anticipar el tráfico en lugar de reaccionar cuando ya lo tienes encima." },
+  { t: "a2", tema: "Meteorología", q: "Las isobaras muy juntas en un mapa indican:", o: ["Viento fuerte", "Calma", "Niebla"], c: 0, e: "Mucha diferencia de presión en poca distancia significa un gradiente fuerte, y eso es viento." },
+  { t: "a2", tema: "Meteorología", q: "Un anticiclón se caracteriza por:", o: ["Presión de 1016 mb o más, isobaras separadas y tiempo estable", "Presión baja y tiempo inestable", "Isobaras muy juntas"], c: 0, e: "En el hemisferio norte el aire gira en el sentido de las agujas del reloj y desciende, lo que seca y estabiliza." },
+  { t: "a2", tema: "Meteorología", q: "En el hemisferio norte, el aire en una borrasca gira:", o: ["En sentido contrario a las agujas del reloj", "En el sentido de las agujas del reloj", "No gira"], c: 0, e: "Al revés que en el anticiclón. El aire asciende, se enfría y condensa: nubes y precipitación." },
+  { t: "a2", tema: "Meteorología", q: "La presión atmosférica de referencia a nivel del mar es:", o: ["1013 mb", "1016 mb", "1000 mb"], c: 0, e: "Por encima de 1016 mb se habla de anticiclón y por debajo de 1012 mb, de borrasca." },
+  { t: "a2", tema: "Meteorología", q: "Hay inversión térmica cuando:", o: ["La temperatura aumenta con la altura en lugar de disminuir", "La temperatura baja más rápido de lo normal", "El viento cambia de sentido"], c: 0, e: "Puede darse justo sobre el suelo o a cierta altura. En invierno atrapa nieblas y contaminación bajo ella." },
+  { t: "a2", tema: "Meteorología", q: "El gradiente térmico estándar equivale a:", o: ["6,5 °C por cada 1000 metros", "2 °C por cada 1000 metros", "10 °C por cada 1000 pies"], c: 0, e: "Es el mismo dato que los 2 °C por cada 1000 pies, expresado en el sistema métrico." },
+  { t: "a2", tema: "Meteorología", q: "La temperatura deja de descender en la atmósfera estándar hacia:", o: ["Los 36.000 pies, quedando en torno a −56,5 °C", "Los 10.000 pies", "Los 60.000 pies"], c: 0, e: "A partir de ahí se mantiene constante en la capa siguiente." },
+  { t: "a2", tema: "Meteorología", q: "La capa límite de la atmósfera llega aproximadamente hasta:", o: ["200 a 500 m", "50 m", "2000 m"], c: 0, e: "Es donde el rozamiento con el terreno perturba el viento. Todo vuelo de dron ocurre dentro de ella." },
+  { t: "a2", tema: "Meteorología", q: "Un viento de 135 grados sopla desde el:", o: ["Sureste", "Noroeste", "Suroeste"], c: 0, e: "Se cuenta desde el norte en el sentido de las agujas del reloj, e indica de dónde viene el viento, no hacia dónde va." },
+  { t: "a2", tema: "Meteorología", q: "Un nudo equivale a:", o: ["0,514 m/s", "1,852 m/s", "0,277 m/s"], c: 0, e: "Es la unidad en la que los fabricantes indican la velocidad máxima de viento que soporta la aeronave." },
+  { t: "a2", tema: "Meteorología", q: "En un mapa de viento, el triángulo de una flecha con barbas representa:", o: ["50 nudos", "10 nudos", "5 nudos"], c: 0, e: "La barba corta son 5 nudos y la larga 10. Por debajo de 5 se dibuja la flecha sin barbas." },
+  { t: "a2", tema: "Meteorología", q: "La turbulencia que genera la propia aeronave tras de sí se llama:", o: ["De estela", "Mecánica", "Convectiva"], c: 0, e: "La mecánica la producen los obstáculos y la convectiva el calentamiento del terreno." },
+  { t: "a2", tema: "Meteorología", q: "Una turbulencia que somete la aeronave a cambios bruscos y puede dejarla fuera de control se clasifica como:", o: ["Fuerte", "Moderada", "Ligera"], c: 0, e: "La moderada produce cambios sin pérdida de control; la ligera, cambios no relevantes." },
+  { t: "a2", tema: "Meteorología", q: "Al volar en aire turbulento, los fabricantes suelen recomendar:", o: ["Velocidades más bajas y desconectar el modo automático", "Subir la velocidad para atravesarlo antes", "Mantener el modo automático activado"], c: 0, e: "Se trata de reducir las cargas estructurales y recuperar el control directo de la aeronave." },
+  { t: "a2", tema: "Meteorología", q: "El punto de rocío se mide con:", o: ["El psicrómetro", "El anemómetro", "El barómetro"], c: 0, e: "Mide el contenido de vapor de agua del aire, que es lo que determina a qué temperatura se satura." },
+  { t: "a2", tema: "Meteorología", q: "La temperatura máxima del día suele registrarse:", o: ["Entre las 14:00 y las 16:00", "Entre las 12:00 y las 13:00", "Entre las 17:00 y las 19:00"], c: 0, e: "Y la mínima entre las 06:00 y las 08:00, justo las horas del vuelo de amanecer." },
+  { t: "a2", tema: "Meteorología", q: "El RVR o alcance visual de pista se proporciona cuando la visibilidad es menor de:", o: ["2000 m", "5000 m", "500 m"], c: 0, e: "Con visibilidades altas no se incluye en los partes porque no aporta nada." },
+  { t: "a2", tema: "Meteorología", q: "La altura de referencia que se toma para medir el RVR es:", o: ["5 m, unos 16 pies", "2 m", "10 m"], c: 0, e: "Es el nivel medio al que quedan los ojos del piloto en el momento de la toma de tierra." },
+  { t: "a2", tema: "Meteorología", q: "La densidad del aire es:", o: ["Inversamente proporcional a la altura y a la temperatura", "Directamente proporcional a la temperatura", "Independiente de la presión"], c: 0, e: "Por eso con calor y altitud el rendimiento cae, aunque también baje algo la resistencia al avance." },
+  { t: "a2", tema: "Meteorología", q: "La brisa marina sopla del mar hacia la tierra:", o: ["Durante el día", "Durante la noche", "Solo en invierno"], c: 0, e: "De día la tierra se calienta antes que el agua. De noche el proceso se invierte y aparece la brisa terrestre." },
+  { t: "a2", tema: "Meteorología", q: "El viento anabático o brisa de valle:", o: ["Asciende por la ladera y puede formar nubes en la cima", "Desciende por la ladera de noche", "Sopla del mar hacia la tierra"], c: 0, e: "El catabático es el contrario: desciende al enfriarse el aire, normalmente a primeras horas de la noche." },
+  { t: "a2", tema: "Meteorología", q: "La obtención de las predicciones meteorológicas es responsabilidad de:", o: ["Únicamente del piloto a distancia", "Del operador de UAS", "De AESA"], c: 0, e: "Y debe apoyarse en fuentes oficiales, como las aplicaciones de AEMET." },
+  { t: "a2", tema: "Rendimiento", q: "El alabeo es el movimiento alrededor del eje:", o: ["Longitudinal", "Lateral", "Vertical"], c: 0, e: "Cabeceo sobre el lateral y guiñada sobre el vertical. Los tres ejes se cortan en el centro de gravedad." },
+  { t: "a2", tema: "Rendimiento", q: "En un multirrotor, para cabecear hacia delante:", o: ["Se aumenta la velocidad de los motores traseros", "Se aumenta la de los delanteros", "Se invierte el giro de dos motores"], c: 0, e: "La aeronave bascula hacia delante y aparece la componente horizontal que produce el avance." },
+  { t: "a2", tema: "Rendimiento", q: "En un ala fija, el cabeceo lo produce:", o: ["El timón de profundidad", "Los alerones", "El timón de dirección"], c: 0, e: "Alerones para el alabeo y timón de dirección para la guiñada." },
+  { t: "a2", tema: "Rendimiento", q: "Si el centro de gravedad queda alto, la aeronave:", o: ["Realiza movimientos más rápidos y bruscos", "Es más estable y suave", "No se ve afectada"], c: 0, e: "Un CG bajo suaviza la respuesta. Si además queda descentrado respecto al centro geométrico, es inestable." },
+  { t: "a2", tema: "Rendimiento", q: "En un ala fija, la configuración estáticamente estable es:", o: ["Centro de gravedad ligeramente por delante del centro aerodinámico", "Centro de gravedad por detrás del centro aerodinámico", "Ambos en el mismo punto"], c: 0, e: "Si el CG va por detrás, ante una ráfaga el morro sigue subiendo hasta la entrada en pérdida. Coincidentes da estabilidad neutra." },
+  { t: "a2", tema: "Rendimiento", q: "Una carga útil mal asegurada:", o: ["Puede desprenderse y además desplaza el centro de gravedad", "Solo es un problema si pesa mucho", "No afecta al vuelo"], c: 0, e: "Por eso se comprueba antes de cada vuelo, y con cargas variables se busca que su efecto sobre el CG sea mínimo." },
+  { t: "a2", tema: "Baterías", q: "La tensión nominal de una celda LiPo es:", o: ["3,7 V", "1,2 V", "4,2 V"], c: 0, e: "De ahí la nomenclatura: 2S son 7,4 V, 3S son 11,1 V y 6S son 22,2 V." },
+  { t: "a2", tema: "Baterías", q: "Una batería de 22,2 V está formada por:", o: ["6 celdas en serie", "3 celdas en serie", "6 celdas en paralelo"], c: 0, e: "22,2 dividido entre 3,7 son seis celdas. Se designa 6S." },
+  { t: "a2", tema: "Baterías", q: "Conectar dos baterías en paralelo:", o: ["Mantiene el voltaje y suma las capacidades", "Suma los voltajes y mantiene la capacidad", "Suma ambas cosas"], c: 0, e: "La conexión en serie es la que suma voltajes. El paralelo se indica con una p: 4s3p." },
+  { t: "a2", tema: "Baterías", q: "Una batería de 2500 mAh con 30C puede entregar de forma continua:", o: ["75 A", "30 A", "7,5 A"], c: 0, e: "Capacidad por C-rate: 2,5 A por 30 son 75 A sin dañarse." },
+  { t: "a2", tema: "Baterías", q: "La corriente máxima a la que debe cargarse una LiPo de 2000 mAh es:", o: ["2 A, es decir 1C", "4 A", "0,5 A"], c: 0, e: "La regla general es no cargar nunca por encima de 1C, o sea, a más corriente que su capacidad nominal." },
+  { t: "a2", tema: "Baterías", q: "Si una celda se desvía de las demás más de 0,2 V:", o: ["La batería empieza a ser peligrosa y hay que tomar precauciones", "No tiene importancia", "Se corrige sola en el siguiente vuelo"], c: 0, e: "El equilibrado entre celdas es una función de los cargadores de LiPo precisamente por esto." },
+  { t: "a2", tema: "Baterías", q: "Las celdas de una LiPo no deben bajar de:", o: ["3,3 V, y desde 3,0 V ya se degradan", "2,0 V", "3,8 V"], c: 0, e: "Por debajo pierden cualidades de forma irreversible. Una celda que ha bajado de 3,3 V es motivo de retirada." },
+  { t: "a2", tema: "Baterías", q: "El punto de equilibrio o almacenaje de una LiPo es:", o: ["3,8 V por celda", "4,2 V por celda", "3,0 V por celda"], c: 0, e: "Las baterías inteligentes bajan solas hasta ahí; las que no lo son necesitan un cargador con balanceo." },
+  { t: "a2", tema: "Baterías", q: "Las tres cosas que más acortan la vida de una batería son:", o: ["Calor, sobredescarga y equilibrado inadecuado", "Frío, vibración y humedad", "Uso frecuente, carga lenta y almacenaje"], c: 0, e: "Ninguna de las tres se nota el mismo día: el daño se acumula." },
+  { t: "a2", tema: "Baterías", q: "Las baterías recargables se denominan:", o: ["Secundarias", "Primarias", "Terciarias"], c: 0, e: "Las primarias no son recargables. En UAS se usan secundarias porque reemplazarlas en cada vuelo sería inviable." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Según la regla 1:1, volando a 20 m de altura con el modo de baja velocidad activado, la distancia horizontal mínima a una persona no participante es:", o: ["20 m", "5 m", "30 m"], c: 0, e: "El modo de baja velocidad no fija 5 m sin más: aplica la regla 1:1 con un suelo de 5 m. A 20 m de altura, 20 m horizontales." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Sin el modo de baja velocidad activado, en A2:", o: ["Tanto la altura como la distancia horizontal deben superar los 30 m", "Basta con 30 m de distancia horizontal, sin límite de altura", "Basta con 5 m si se vuela despacio"], c: 0, e: "La regla 1:1 funciona en las dos direcciones: hasta 30 m de altura, 30 m horizontales." },
+  { t: "a2", tema: "Riesgo en tierra", q: "El riesgo en tierra se define como:", o: ["El riesgo de que una persona sea golpeada por la aeronave en caso de pérdida de control", "El riesgo de dañar el dron al aterrizar", "El riesgo de colisión con otra aeronave"], c: 0, e: "Lo determinan la dimensión máxima de la aeronave, si se vuela en VLOS o BVLOS y la densidad de población." },
+  { t: "a2", tema: "Riesgo en tierra", q: "¿Cuál de estas NO es una medida de atenuación del riesgo en tierra?", o: ["Aumentar la altura de vuelo", "Instalar un paracaídas", "Operar en una zona controlada"], c: 0, e: "Las reconocidas son el limitador de energía de impacto, la zona controlada, la zona de contingencia y la función de vuelta a casa." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Antes de operar, el piloto debe valorar específicamente:", o: ["Obstáculos del entorno, viento y lugares seguros para despegue y aterrizaje", "Solo la previsión de lluvia", "El número de aeronaves en la zona"], c: 0, e: "Son los tres factores que recoge el curso para la evaluación del riesgo en tierra." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Los asistentes a un festival, avisados mediante una cláusula en la entrada, son:", o: ["Personas no participantes", "Personas participantes", "Depende del tamaño del dron"], c: 0, e: "Un aviso impreso no equivale a estar informado, haber aceptado explícitamente y estar bajo el control del operador." },
+  { t: "a2", tema: "Riesgo en tierra", q: "Un trabajador del operador que bloquea el acceso a la zona de operaciones es:", o: ["Persona participante", "Persona no participante", "Observador del espacio aéreo"], c: 0, e: "Cumple las tres condiciones: informado, consintiente y bajo el control del operador." },
+  { t: "a13", tema: "Definiciones", q: "Una concentración de personas se define por:", o: ["Que las personas no puedan evitar el impacto de un UAS en caída libre, por su densidad y el espacio", "Que haya más de 50 personas", "Que se celebre un acto público"], c: 0, e: "No es cuestión de número sino de capacidad de apartarse. Una terraza llena puede serlo y un paseo con mucha gente suelta, no." },
+  { t: "a13", tema: "Definiciones", q: "El observador de la aeronave no tripulada:", o: ["Se sitúa junto al piloto y le ayuda a mantener el VLOS", "Se sitúa a 1 km para vigilar el espacio aéreo", "Sustituye al piloto en el despegue"], c: 0, e: "Es la figura que permite volar con gafas FPV. El observador del espacio aéreo es otra cosa: mira al cielo, no al dron." },
+  { t: "a13", tema: "Definiciones", q: "Una infraestructura crítica es:", o: ["Una infraestructura estratégica cuyo fallo tendría impacto grave sobre servicios esenciales", "Cualquier edificio público", "Una instalación militar"], c: 0, e: "Salud, electricidad, agua, transporte. Su perturbación o destrucción afectaría a servicios indispensables." },
+  { t: "a13", tema: "Definiciones", q: "Persona no participante es la que:", o: ["No participa en la operación o no está al corriente de las instrucciones y precauciones dadas por el operador", "Está a más de 30 m", "No ha visto el dron"], c: 0, e: "Basta con no estar al corriente de las instrucciones para serlo, aunque esté cerca y conozca al piloto." },
+  { t: "a13", tema: "Responsabilidades", q: "Designar al piloto para cada operación y garantizar su formación corresponde a:", o: ["El operador de UAS", "El piloto a distancia", "AESA"], c: 0, e: "Y el control del vuelo es intransferible: no se cede a otra persona a mitad de operación." },
+  { t: "a13", tema: "Responsabilidades", q: "Mantener actualizado el sistema de geoconsciencia del UAS es responsabilidad de:", o: ["El operador de UAS", "El fabricante", "El piloto durante el vuelo"], c: 0, e: "Cuando la aeronave incorpora esa función, el operador la actualiza según el lugar donde se vaya a operar." },
+  { t: "a13", tema: "Responsabilidades", q: "¿Quién es responsable de la seguridad aérea del vuelo?", o: ["El piloto a distancia", "El operador", "La autoridad competente"], c: 0, e: "Es la responsabilidad que justifica que el piloto pueda negarse a volar aunque el cliente presione." },
+  { t: "a13", tema: "Responsabilidades", q: "Sobre la MTOM y las modificaciones del UAS, el piloto:", o: ["No puede superar la MTOM ni el límite de masa de su clase, ni modificar el UAS en contra de lo que indique el fabricante", "Puede superar la MTOM en un 10 %", "Puede modificarlo si mantiene el peso"], c: 0, e: "Modificarlo fuera de lo previsto por el fabricante invalida además la conformidad de la clase." },
+  { t: "a13", tema: "Responsabilidades", q: "En A2 y A3 con personas participantes, asegurarse de que han sido informadas y han aceptado explícitamente corresponde a:", o: ["El operador de UAS", "El piloto en el momento del despegue", "El propietario del terreno"], c: 0, e: "Es parte de las responsabilidades del operador en categoría abierta." },
+  { t: "sts", tema: "Escenarios estándar", q: "En STS-01, la velocidad máxima respecto al suelo para una aeronave de vuelo libre es:", o: ["5 m/s", "3 m/s", "19 m/s"], c: 0, e: "No confundir con el modo de baja velocidad de A2, que son 3 m/s. El límite del escenario son 5 m/s." },
+  { t: "sts", tema: "Escenarios estándar", q: "La altura máxima del volumen operacional en STS-01:", o: ["No puede superar en más de 30 m la altura máxima permitida de vuelo", "Coincide exactamente con los 120 m", "No tiene límite"], c: 0, e: "La aeronave vuela hasta 120 m, pero el volumen definido puede llegar a 150 m." },
+  { t: "sts", tema: "Escenarios estándar", q: "La zona de contingencia en STS-01 debe extenderse, como mínimo:", o: ["10 m más allá de la zona de la geografía de vuelo", "30 m más allá", "No tiene distancia mínima"], c: 0, e: "Y más allá de ella va la zona de prevención de riesgos en tierra, que se dimensiona según altura y masa." },
+  { t: "sts", tema: "Escenarios estándar", q: "Volando a 120 m con una aeronave de 8 kg en STS-01, el buffer mínimo de riesgo en tierra es:", o: ["25 m", "60 m", "10 m"], c: 0, e: "Para aeronaves de hasta 10 kg la tabla da 10, 15, 20 y 25 m volando a 30, 60, 90 y 120 m. Por encima de 10 kg serían 60 m." },
+  { t: "sts", tema: "Escenarios estándar", q: "Volando a 60 m con una aeronave de 15 kg en STS-01, el buffer mínimo es:", o: ["30 m", "15 m", "45 m"], c: 0, e: "Por encima de 10 kg la tabla da 20, 30, 45 y 60 m para alturas de 30, 60, 90 y 120 m." },
+  { t: "sts", tema: "Escenarios estándar", q: "Con una aeronave anclada en STS-01, la zona terrestre controlada es:", o: ["Un círculo de radio igual a la longitud del cable más 5 m, centrado en el punto de anclaje", "Un cuadrado de 50 m de lado", "La misma que para vuelo libre"], c: 0, e: "El cable limita físicamente hasta dónde puede llegar, así que la zona se calcula a partir de él." },
+  { t: "sts", tema: "Escenarios estándar", q: "La excepción de los 15 m por encima de un obstáculo exige, además de que el obstáculo supere los 105 m:", o: ["Que la aeronave vuele a menos de 50 m en horizontal del obstáculo", "Que el obstáculo esté señalizado", "Que la operación sea de día"], c: 0, e: "Es la condición que casi nadie recuerda: la excepción es para inspeccionar el obstáculo de cerca, no para ganar altura en general." },
+  { t: "sts", tema: "Escenarios estándar", q: "¿Puede transportarse mercancía peligrosa en una operación STS-01?", o: ["No", "Sí, si se declara previamente", "Sí, hasta 5 kg"], c: 0, e: "Para eso hay que ir a una autorización operacional específica o a la categoría certificada." },
+  { t: "sts", tema: "Emergencias", q: "El piloto ejecuta los procedimientos de CONTINGENCIA cuando hay indicación de que la aeronave puede superar:", o: ["Los límites de la geografía de vuelo", "Los límites del volumen operacional", "La zona terrestre controlada"], c: 0, e: "Superar el volumen operacional ya es emergencia, y ahí entra la terminación del vuelo." },
+  { t: "sts", tema: "Emergencias", q: "¿Cuándo se accionan los medios de terminación del vuelo?", o: ["Cuando hay indicación de que la aeronave puede superar los límites del volumen operacional", "Cuando sale de la geografía de vuelo", "Cuando baja la batería"], c: 0, e: "Es el procedimiento de emergencia. Salirse solo de la geografía de vuelo activa los de contingencia." },
+  { t: "sts", tema: "Emergencias", q: "El plan de respuesta a emergencias debe incluir, como mínimo:", o: ["Plan para limitar la escalada, condiciones para alertar a las autoridades, criterios para reconocer la emergencia y reparto de obligaciones", "Solo el teléfono de emergencias", "Un seguro adicional"], c: 0, e: "Son los cuatro elementos mínimos que exige el Reglamento para el escenario estándar." },
+  { t: "sts", tema: "Declaración", q: "¿Cómo garantiza el operador que los procedimientos de contingencia y emergencia son adecuados?", o: ["Mediante pruebas de vuelo específicas o simulaciones suficientemente representativas", "Declarándolo por escrito", "Con la declaración de conformidad del fabricante"], c: 0, e: "No basta con escribirlos en el manual: hay que demostrar que funcionan." },
+  { t: "sts", tema: "Declaración", q: "La etiqueta de identificación de clase C5 puede ir pegada:", o: ["En la aeronave o en el kit de accesorios", "Solo en la aeronave", "Solo en el manual"], c: 0, e: "Se admite el kit porque el C5 puede obtenerse convirtiendo un C3, y la declaración de conformidad referencia ambas cosas." },
+  { t: "sts", tema: "Formación", q: "El examen teórico de escenario estándar para quien NO tiene el certificado A2 cubre ocho materias, entre ellas:", o: ["Las atenuaciones técnicas y operacionales de los riesgos en el aire", "La navegación por instrumentos", "El mantenimiento de motores"], c: 0, e: "Las ocho son: reglamentación, rendimiento humano, procedimientos, riesgo en tierra, conocimiento del UAS, meteorología, rendimiento de vuelo y riesgo en el aire." },
+  { t: "sts", tema: "Formación", q: "Quien ya tiene el certificado de competencia A2 hace un examen STS de:", o: ["Al menos 30 preguntas, sobre cinco de las ocho materias", "Las mismas 40 preguntas", "20 preguntas"], c: 0, e: "Se le descuentan las materias que ya acreditó: meteorología, rendimiento de vuelo y riesgos en el aire." },
+  { t: "sts", tema: "Formación", q: "El certificado de conocimientos teóricos de escenario estándar tiene una validez de:", o: ["5 años", "2 años", "Indefinida"], c: 0, e: "Se renueva dentro de su periodo de validez, demostrando competencias o completando una formación de actualización." },
+  { t: "sts", tema: "Declaración", q: "La declaración operacional tiene una duración limitada de:", o: ["2 años", "5 años", "Ilimitada"], c: 0, e: "Y deja de considerarse completa si la autoridad constata que la operación no se ajusta a lo declarado, si cambian las condiciones o si no se le da acceso." },
+  { t: "sts", tema: "Categoría específica", q: "Una autorización operacional:", o: ["No es transferible", "Puede cederse a otro operador", "Se transfiere con la venta de la aeronave"], c: 0, e: "Tampoco lo es el LUC, salvo cambio de propiedad de la organización aprobado por la autoridad." },
+  { t: "sts", tema: "Categoría específica", q: "El LUC se expide por:", o: ["Un periodo de tiempo ilimitado, mientras se sigan cumpliendo los requisitos", "Dos años", "Cinco años"], c: 0, e: "Se mantiene válido mientras el titular cumpla y no haya renuncia ni revocación." },
+  { t: "sts", tema: "Categoría específica", q: "¿Quién puede solicitar un LUC?", o: ["Una persona jurídica", "Cualquier persona física", "Solo las administraciones públicas"], c: 0, e: "Exige un sistema de gestión de la seguridad, un gestor responsable y un manual del LUC." },
+  { t: "sts", tema: "Categoría específica", q: "En categoría específica, los registros de formación del personal se conservan:", o: ["Al menos tres años después de que la persona deje la organización o cambie de puesto", "Un año", "Mientras dure el contrato"], c: 0, e: "Lo mismo para el mantenimiento y la información de las operaciones: mínimo tres años." },
+  { t: "sts", tema: "Declaración", q: "Tras recibir la declaración operacional, la autoridad competente:", o: ["Verifica que está completa y confirma su recepción, y entonces el operador puede iniciar la operación", "Concede una autorización en 30 días", "No responde nada"], c: 0, e: "La confirmación de recepción e integridad es lo que habilita a empezar, pero no es una autorización." },
+  { t: "sts", tema: "Declaración", q: "Si cambia algún dato de la declaración operacional presentada, el operador:", o: ["Lo notifica sin demora a la autoridad competente", "Espera a la renovación", "No tiene que hacer nada"], c: 0, e: "Y si las condiciones cambian tanto que la declaración ya no cumple los requisitos, deja de considerarse completa." },
+  { t: "sts", tema: "Declaración", q: "En categoría específica, el UAS debe llevar instalada:", o: ["Al menos una luz verde intermitente y un sistema activo de identificación a distancia", "Luces rojas y blancas", "Un transpondedor"], c: 0, e: "Es una responsabilidad expresa del operador de UAS en la categoría específica, no solo para vuelo nocturno." },
+  { t: "sts", tema: "Categoría específica", q: "El operador de categoría específica debe usar UAS que, como mínimo, estén diseñados para que:", o: ["En caso de avería no vuelen fuera del volumen de la operación ni causen un accidente mortal", "Puedan volar sin GNSS", "Soporten lluvia intensa"], c: 0, e: "Y para que la interfaz persona-máquina reduzca el error del piloto y no cause cansancio excesivo." },
+  { t: "sts", tema: "Procedimientos", q: "Entre las maniobras que exige la evaluación práctica del escenario estándar está:", o: ["Pilotar en modo manual sin asistencia de GNSS, si el equipo lo permite", "Volar a más de 120 m", "Aterrizar sobre agua"], c: 0, e: "También estacionario, transiciones, virajes, actuación ante fallo de motor y maniobras evasivas." },
+  { t: "sts", tema: "Procedimientos", q: "La evaluación práctica incluye demostrar el método de recuperación tras:", o: ["Una pérdida deliberada y simulada del enlace de mando y control", "Un impacto con un ave", "Un incendio de batería real"], c: 0, e: "Se simula para comprobar que el piloto sabe qué hace la aeronave y cómo retomar el control." },
+  { t: "sts", tema: "Declaración", q: "Informar a las personas presentes en la zona terrestre controlada y recabar su aceptación explícita es responsabilidad de:", o: ["El operador de UAS", "El piloto a distancia", "El cliente que contrata el trabajo"], c: 0, e: "Incluye informarlas de los riesgos y formarlas sobre las precauciones adoptadas, no solo avisarlas." },
+  { t: "sts", tema: "Procedimientos", q: "Antes del vuelo, el piloto en STS debe verificar específicamente:", o: ["Que los medios de terminación del vuelo están operativos y la identificación a distancia activa", "El nivel de aceite", "La licencia del observador"], c: 0, e: "Son las dos comprobaciones que el Reglamento añade a las generales de la categoría específica." },
+  { t: "a13", tema: "Límites operacionales", q: "Para poder subir 15 m por encima de un obstáculo de más de 105 m, la aeronave debe volar:", o: ["A menos de 50 m en horizontal del obstáculo", "A más de 100 m del obstáculo", "Sobre el eje exacto del obstáculo"], c: 0, e: "La excepción está pensada para inspeccionar el obstáculo de cerca, no para ganar altura general en la zona." },
+  { t: "a13", tema: "Límites operacionales", q: "Los planeadores no tripulados de menos de 10 kg:", o: ["Pueden superar los 120 m sobre el terreno, siempre que no vuelen a más de 120 m por encima del piloto", "No pueden volar en categoría abierta", "Tienen el mismo límite sin excepciones"], c: 0, e: "Es la única excepción al límite de 120 m medido sobre el punto más cercano del terreno." },
 ];
 
 const CHULETA = [
@@ -2654,8 +3246,8 @@ const CHULETA = [
     t: "Distancias y alturas",
     f: [
       ["120 m", "Altura máxima sobre el punto más cercano de la superficie, en abierta y en los STS"],
-      ["+15 m", "Por encima de un obstáculo de más de 105 m, a petición de su responsable"],
-      ["30 m / 5 m", "Distancia a personas no participantes en A2, con y sin modo de baja velocidad"],
+      ["+15 m", "Sobre un obstáculo de más de 105 m, volando a menos de 50 m en horizontal y a petición de su responsable"],
+      ["30 m / 1:1", "A2: 30 m a personas no participantes · con baja velocidad, regla 1:1 con mínimo de 5 m"],
       ["150 m", "Distancia en A3 a zonas residenciales, comerciales, industriales o recreativas"],
       ["50 m", "Distancia máxima al piloto en modo de seguimiento automático"],
       ["1 km / 2 km", "Alcance máximo en STS-02 sin y con observadores del espacio aéreo"],
@@ -2728,6 +3320,7 @@ let S = {
 let quiz = null;
 let tmr = null;
 let abierto = 0;
+let abiertoT = -1;
 
 try {
   const r = localStorage.getItem(KEY);
@@ -2904,6 +3497,7 @@ function vInicio() {
   <button class="btn" data-a="practica">Practicar 10 preguntas</button>
   <button class="btn ghost" data-a="examen">Simulacro · ${T.preguntas} preguntas en ${T.minutos} min</button>
   <button class="btn quiet" data-a="tab" data-v="clases">Qué puedo volar y dónde · tabla de clases</button>
+  <button class="btn quiet" data-a="tab" data-v="tramites">Trámites con AESA, paso a paso</button>
 
   <div class="card">
     <h3>Tu avance</h3>
@@ -2932,7 +3526,8 @@ function vInicio() {
   </div>
 
   <p class="note">El orden de las opciones cambia en cada intento, así que no vale memorizar posiciones. En el simulacro no hay corrección hasta el final, con temporizador, como en el examen real.</p>
-  <p class="note">Tu progreso se guarda en este dispositivo. Contenido preparado a partir de los Reglamentos (UE) 2019/947 y 2019/945 y del Real Decreto 517/2024. Contrasta siempre con el material oficial de AESA antes de examinarte.</p>`;
+  <p class="note">Tu progreso se guarda en este dispositivo. Contenido preparado a partir de los Reglamentos (UE) 2019/947 y 2019/945 y del Real Decreto 517/2024. Contrasta siempre con el material oficial de AESA antes de examinarte.</p>
+  <p class="note" style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">Altura 120 · Hecho por Dani Tena</p>`;
 }
 
 function vTemario() {
@@ -3150,6 +3745,33 @@ function vClases() {
   <p class="note">Común a toda la categoría abierta: menos de 25 kg, vuelo en VLOS, 120 m de altura sobre el punto más cercano de la superficie, prohibido sobrevolar aglomeraciones, transportar mercancías peligrosas y soltar objetos.</p>`;
 }
 
+function vTramites() {
+  return `
+  <div class="card" style="margin-top:16px">
+    <h3>Los trámites, en orden</h3>
+    <p class="note" style="margin-top:6px">Cada paso desbloquea el siguiente. Toca cualquiera para ver el detalle y el enlace.</p>
+    <div class="fig">${DIAGRAMAS.itinerariotramites.s}<span>${esc(DIAGRAMAS.itinerariotramites.p)}</span></div>
+  </div>
+  <div class="card">
+    <h3>Antes de empezar</h3>
+    ${AVISOS.map((a) => `<div class="dist"><b style="color:var(--am)">${esc(a[0])}</b><span>${esc(a[1])}</span></div>`).join("")}
+  </div>
+  ${TRAMITES.map((t, i) => `<div class="tram">
+      <button class="tramhd" data-a="tram" data-v="${i}">
+        <i>${esc(t.n)}</i>
+        <span style="flex:1"><b>${esc(t.t)}</b><s>${esc(t.d)}</s></span>
+        <u>${abiertoT === i ? "−" : "+"}</u>
+      </button>
+      ${abiertoT === i ? `<div class="trambody">
+        ${t.p.map((p) => `<p>${esc(p)}</p>`).join("")}
+        ${t.a ? `<div class="tramav">${esc(t.a)}</div>` : ""}
+        ${t.u ? `<a class="tramlink" href="${esc(t.u[1])}" target="_blank" rel="noopener noreferrer">${esc(t.u[0])} ↗</a>` : ""}
+      </div>` : ""}
+    </div>`).join("")}
+  <p class="note">Las direcciones de los trámites de AESA cambian cada cierto tiempo. Si un enlace falla, entra en la sede electrónica y busca el trámite por su nombre en el catálogo correspondiente.</p>
+  <p class="note">Una aclaración al rellenar los formularios: muchos trámites aparecen duplicados con la coletilla «Actividades NO EASA». Esa versión es solo para operaciones de Estado: policía, aduanas, búsqueda y salvamento, extinción de incendios, guardacostas o defensa. Si tu operación es civil, aunque sea profesional, va por la versión normal. Elegir mal la versión obliga a repetir el trámite entero.</p>`;
+}
+
 function vChuleta() {
   return `
   <div class="card" style="margin-top:16px">
@@ -3165,13 +3787,14 @@ function vChuleta() {
 }
 
 /* ---------- pintado ---------- */
-const VISTAS = { inicio: vInicio, temario: vTemario, test: vTest, repaso: vRepaso, clases: vClases, chuleta: vChuleta };
+const VISTAS = { inicio: vInicio, temario: vTemario, test: vTest, repaso: vRepaso, clases: vClases, tramites: vTramites, chuleta: vChuleta };
 const NAV = [
   ["inicio", "Inicio", "M3 11 12 4l9 7v9H3z"],
   ["temario", "Temario", "M4 4h11l5 5v11H4z"],
   ["test", "Test", "M5 12l4 4 10-10"],
   ["repaso", "Repaso", "M20 12a8 8 0 1 1-2.3-5.6 M20 4v4h-4"],
   ["clases", "Clases", "M4 6h16 M4 12h16 M4 18h10"],
+  ["tramites", "Trámites", "M6 3h9l4 4v14H6z M9 12h7 M9 16h5"],
   ["chuleta", "Chuleta", "M4 5h16v14H4z M8 9h8 M8 13h5"],
 ];
 
@@ -3205,6 +3828,9 @@ document.addEventListener("click", (ev) => {
     pintar();
   } else if (a === "tab") {
     S.tab = v;
+    pintar();
+  } else if (a === "tram") {
+    abiertoT = abiertoT === +v ? -1 : +v;
     pintar();
   } else if (a === "acc") {
     abierto = abierto === +v ? -1 : +v;
