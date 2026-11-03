@@ -24,12 +24,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
 <style>
-html { background: #0A151E; }
 
 
 
-body * { box-sizing: border-box; }
-body {
+:root {
   --ink: #0A151E;
   --panel: #12222E;
   --panel2: #17303F;
@@ -40,6 +38,30 @@ body {
   --am: #F2B441;
   --ok: #55D6A0;
   --no: #F07A6E;
+  --topbg: rgba(10,21,30,.94);
+  --navbg: rgba(10,21,30,.97);
+  --figbg: rgba(4,11,16,.45);
+  --btntext: #062130;
+}
+:root[data-tema="claro"] {
+  --ink: #F2F6F8;
+  --panel: #FFFFFF;
+  --panel2: #EAF1F5;
+  --line: #CFDDE5;
+  --text: #16262F;
+  --mute: #5C7585;
+  --cy: #0F7A9E;
+  --am: #A8700A;
+  --ok: #1B8A60;
+  --no: #C0453B;
+  --topbg: rgba(242,246,248,.95);
+  --navbg: rgba(242,246,248,.97);
+  --figbg: #FFFFFF;
+  --btntext: #FFFFFF;
+}
+html, body { background: var(--ink); }
+body * { box-sizing: border-box; }
+body {
   font-family: Barlow, ui-sans-serif, system-ui, sans-serif;
   background: var(--ink);
   color: var(--text);
@@ -55,21 +77,23 @@ body h1, body h2, body h3, body .cond {
 .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
 
 /* cabecera */
-.top { position: sticky; top: 0; z-index: 20; background: rgba(10,21,30,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top { position: sticky; top: 0; z-index: 20; background: var(--topbg); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .topin { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; max-width: 720px; margin: 0 auto; }
 .brand { font-size: 20px; font-weight: 700; line-height: 1; }
 .brand span { color: var(--cy); }
 .tag { font-size: 12px; color: var(--mute); margin-top: 2px; }
+.temabtn { background: var(--panel); border: 1px solid var(--line); color: var(--mute); border-radius: 8px;
+  width: 34px; height: 34px; font-size: 15px; cursor: pointer; line-height: 1; }
 .seg { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
 .seg button { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; color: var(--mute);
   background: none; border: 0; padding: 5px 11px; border-radius: 6px; cursor: pointer; }
-.seg button[data-on="1"] { background: var(--cy); color: #062130; }
+.seg button[data-on="1"] { background: var(--cy); color: var(--btntext); }
 
 /* bloques */
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-top: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-top: 16px; }
 .card h3 { font-size: 19px; font-weight: 600; }
 .rows { margin-top: 10px; }
-.row { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+.row { display: flex; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.5; }
 .row:first-child { border-top: 0; }
 .row b { flex: 0 0 92px; color: var(--mute); font-weight: 500; }
 
@@ -87,8 +111,8 @@ body h1, body h2, body h3, body .cond {
 /* botones */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
   font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: .02em;
-  padding: 12px 16px; border-radius: 8px; border: 1px solid var(--cy); background: var(--cy); color: #062130;
-  cursor: pointer; margin-top: 10px; }
+  padding: 12px 16px; border-radius: 8px; border: 1px solid var(--cy); background: var(--cy); color: var(--btntext);
+  cursor: pointer; margin-top: 12px; }
 .btn.ghost { background: transparent; color: var(--cy); }
 .btn.quiet { background: transparent; color: var(--mute); border-color: var(--line); }
 .btn.am { background: transparent; color: var(--am); border-color: var(--am); }
@@ -96,13 +120,13 @@ body h1, body h2, body h3, body .cond {
 .btn:focus-visible, .seg button:focus-visible, .opt:focus-visible, .acc:focus-visible { outline: 2px solid var(--am); outline-offset: 2px; }
 
 /* temario */
-.acc { width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-  padding: 14px 16px; margin-top: 10px; color: var(--text); cursor: pointer; font-family: 'Barlow Condensed', sans-serif;
+.acc { width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 16px 18px; margin-top: 10px; color: var(--text); cursor: pointer; font-family: 'Barlow Condensed', sans-serif;
   font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .acc i { font-style: normal; color: var(--cy); font-size: 20px; }
-.accbody { background: var(--panel2); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px;
-  margin-top: -10px; padding: 4px 16px 14px; }
-.accbody p { font-size: 14.5px; line-height: 1.55; color: #CFE2EC; margin: 12px 0 0; padding-left: 14px; position: relative; }
+.accbody { background: var(--panel2); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 12px 12px;
+  margin-top: -10px; padding: 6px 18px 18px; }
+.accbody p { font-size: 15px; line-height: 1.68; color: var(--text); margin: 15px 0 0; padding-left: 14px; position: relative; }
 .accbody p::before { content: ""; position: absolute; left: 0; top: 9px; width: 5px; height: 5px; background: var(--cy); border-radius: 50%; }
 .clave { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
 .clavehd { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--am); letter-spacing: .04em; text-transform: uppercase; }
@@ -114,7 +138,7 @@ body h1, body h2, body h3, body .cond {
 .clshd em { font-style: normal; font-size: 13px; color: var(--text); }
 .clshd u { text-decoration: none; font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; margin-left: auto;
   border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
-.clsrow { display: flex; gap: 10px; padding: 9px 14px; border-top: 1px solid rgba(35,65,79,.5); font-size: 13.5px; line-height: 1.45; }
+.clsrow { display: flex; gap: 10px; padding: 12px 15px; border-top: 1px solid rgba(35,65,79,.5); font-size: 13.5px; line-height: 1.45; }
 .clsrow:first-child { border-top: 0; }
 .tram { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-top: 12px; overflow: hidden; }
 .tramhd { width: 100%; text-align: left; background: none; border: 0; color: var(--text); padding: 13px 14px; cursor: pointer;
@@ -125,13 +149,13 @@ body h1, body h2, body h3, body .cond {
 .tramhd s { text-decoration: none; display: block; font-size: 11.5px; color: var(--mute); margin-top: 2px; }
 .tramhd u { text-decoration: none; margin-left: auto; color: var(--cy); font-size: 19px; }
 .trambody { padding: 0 14px 14px; }
-.trambody p { font-size: 14px; line-height: 1.55; color: #CFE2EC; margin: 10px 0 0; padding-left: 13px; position: relative; }
+.trambody p { font-size: 14.5px; line-height: 1.65; color: var(--text); margin: 13px 0 0; padding-left: 13px; position: relative; }
 .trambody p::before { content: ""; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; background: var(--cy); border-radius: 50%; }
 .tramav { margin-top: 13px; background: rgba(242,180,65,.1); border-left: 3px solid var(--am); border-radius: 0 7px 7px 0;
   padding: 10px 12px; font-size: 13.5px; line-height: 1.45; color: var(--text); }
 .tramlink { display: inline-block; margin-top: 12px; color: var(--cy); font-size: 13.5px; border: 1px solid var(--line);
   border-radius: 8px; padding: 9px 12px; text-decoration: none; word-break: break-word; }
-.dist { border-top: 1px solid rgba(35,65,79,.6); padding: 11px 0; font-size: 13.5px; line-height: 1.45; }
+.dist { border-top: 1px solid var(--line); padding: 14px 0; font-size: 14.5px; line-height: 1.6; }
 .dist:first-of-type { border-top: 0; }
 .dist b { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 3px; }
 .urb { display: flex; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--line); font-size: 13.5px; line-height: 1.45; align-items: flex-start; }
@@ -145,7 +169,7 @@ body h1, body h2, body h3, body .cond {
 .clsrow b { flex: 0 0 66px; color: var(--mute); font-weight: 500; font-size: 13px; }
 .figpin { font-style: normal; font-family: Barlow, sans-serif; font-size: 11px; color: var(--am);
   border: 1px solid var(--am); border-radius: 999px; padding: 2px 8px; margin-left: auto; margin-right: 8px; white-space: nowrap; }
-.fig { margin-top: 16px; background: rgba(4,11,16,.45); border: 1px solid var(--line); border-radius: 10px; padding: 12px 10px 10px; }
+.fig { margin-top: 18px; background: var(--figbg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 10px 10px; }
 .fig svg { width: 100%; height: auto; display: block; }
 .fig span { display: block; font-size: 12px; color: var(--mute); margin-top: 9px; line-height: 1.45; }
 .mapa { margin-top: 12px; }
@@ -161,17 +185,17 @@ body h1, body h2, body h3, body .cond {
 .clock[data-warn="1"] { color: var(--am); }
 .prog { height: 3px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; }
 .prog i { display: block; height: 100%; background: var(--cy); }
-.qtxt { font-size: 18px; line-height: 1.4; margin: 16px 0 4px; font-weight: 500; }
+.qtxt { font-size: 19px; line-height: 1.45; margin: 16px 0 6px; font-weight: 500; }
 .qtema { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: var(--am); }
 .opt { display: flex; gap: 11px; width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line);
-  color: var(--text); border-radius: 9px; padding: 13px 14px; margin-top: 9px; cursor: pointer; font-size: 15px;
+  color: var(--text); border-radius: 10px; padding: 15px 15px; margin-top: 11px; cursor: pointer; font-size: 15.5px;
   font-family: Barlow, sans-serif; line-height: 1.4; }
 .opt k { flex: 0 0 20px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; color: var(--mute); }
 .opt[data-s="sel"] { border-color: var(--cy); }
 .opt[data-s="ok"] { border-color: var(--ok); background: rgba(85,214,160,.1); }
 .opt[data-s="no"] { border-color: var(--no); background: rgba(240,122,110,.1); }
-.exp { border-left: 3px solid var(--am); background: var(--panel2); padding: 12px 14px; border-radius: 0 8px 8px 0;
-  margin-top: 14px; font-size: 14.5px; line-height: 1.55; }
+.exp { border-left: 3px solid var(--am); background: var(--panel2); padding: 14px 15px; border-radius: 0 9px 9px 0;
+  margin-top: 16px; font-size: 15px; line-height: 1.65; }
 .exp b { color: var(--am); font-weight: 600; }
 
 /* resultado y diagnóstico */
@@ -206,7 +230,7 @@ body h1, body h2, body h3, body .cond {
 .compose { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
 .compose input { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; color: var(--text);
   padding: 11px 12px; font-family: Barlow, sans-serif; font-size: 15px; }
-.compose button { background: var(--cy); color: #062130; border: 0; border-radius: 8px; padding: 0 16px; cursor: pointer;
+.compose button { background: var(--cy); color: var(--btntext); border: 0; border-radius: 8px; padding: 0 16px; cursor: pointer;
   font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600; }
 .sug { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 16px 12px; }
 .sug button { background: transparent; border: 1px solid var(--line); color: var(--mute); border-radius: 999px;
@@ -218,7 +242,7 @@ body h1, body h2, body h3, body .cond {
 .tbl td:first-child { color: var(--cy); font-family: 'Barlow Condensed', sans-serif; font-size: 15.5px; white-space: nowrap; }
 
 /* nav inferior */
-.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: rgba(10,21,30,.97);
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--navbg);
   border-top: 1px solid var(--line); display: flex; }
 .nav button { flex: 1; background: none; border: 0; color: var(--mute); padding: 9px 1px 11px; cursor: pointer;
   font-family: 'Barlow Condensed', sans-serif; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
@@ -226,7 +250,7 @@ body h1, body h2, body h3, body .cond {
 .nav svg { width: 19px; height: 19px; }
 .pip { position: absolute; top: 6px; right: 50%; margin-right: -18px; background: var(--am); color: #21180a;
   font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 6px; }
-.note { font-size: 12.5px; color: var(--mute); line-height: 1.5; margin-top: 16px; }
+.note { font-size: 13.5px; color: var(--mute); line-height: 1.65; margin-top: 16px; }
 .empty { text-align: center; color: var(--mute); padding: 40px 10px; font-size: 15px; line-height: 1.5; }
 </style>
 </head>
@@ -237,7 +261,7 @@ body h1, body h2, body h3, body .cond {
       <h1 class="brand">Altura <span>120</span></h1>
       <div class="tag">Preparación de los exámenes AESA de dron</div>
     </div>
-    <div class="seg" id="seg"></div>
+    <div style="display:flex;align-items:center;gap:8px"><button class="temabtn" id="tema" data-a="tema" aria-label="Cambiar tema">☀</button><div class="seg" id="seg"></div></div>
   </div>
 </header>
 <main class="wrap" id="app">
@@ -606,11 +630,13 @@ const TRAMITES = [
     d: "Interior, o Ertzaintza en Euskadi",
     p: [
       "Este trámite no es de AESA y se olvida con frecuencia. Lo exige el artículo 40 del RD 517/2024 para operar en entornos urbanos o sobre concentraciones de personas.",
-      "En el País Vasco la competencia es de la Ertzaintza: la comunicación se dirige al Departamento de Seguridad del Gobierno Vasco, con un mínimo de diez días de antelación.",
-      "En el resto de España se presenta ante el Ministerio del Interior por su sede electrónica. Una misma comunicación puede agrupar varias operaciones si entre el inicio de la primera y el final de la última no pasan más de cinco días naturales.",
+      "El plazo mínimo es de cinco días naturales de antelación respecto al inicio de la operación.",
+      "En el País Vasco la comunicación se dirige al Departamento de Seguridad del Gobierno Vasco, para la Ertzaintza, por sede electrónica o presencialmente en comisaría. Tras recibirla, la Ertzaintza hace su estudio de seguridad y, si todo es correcto, la operación se entiende aceptada sin más comunicaciones.",
+      "En el resto de España se presenta ante el Ministerio del Interior por su sede electrónica. Una misma comunicación puede agrupar las operaciones de los cinco días naturales siguientes a la fecha de inicio, indicando fecha y franja horaria de cada una.",
+      "El silencio administrativo es positivo: si no hay respuesta, puedes operar llevando contigo el resguardo de la comunicación presentada.",
       "No sustituye a nada: es adicional al registro, a las zonas geográficas y a la coordinación con el gestor del aeródromo si procede.",
     ],
-    a: "En Euskadi, diez días de antelación. No lo dejes para el final.",
+    a: "Cinco días naturales de antelación. Lleva el resguardo al campo.",
     u: ["Comunicación a la Ertzaintza (Euskadi)", "https://www.euskadi.eus/comunicacion/comunicacion-operaciones-de-aeronaves-por-control-remoto/web01-tramite/es/"],
   },
   {
@@ -626,6 +652,34 @@ const TRAMITES = [
     a: "Las zonas geográficas se consultan en cada vuelo, no una vez al año.",
     u: ["ENAIRE Drones", "https://drones.enaire.es/"],
   },
+];
+
+const ENLACES = [
+  ["ENAIRE Drones", "Zonas geográficas de UAS y espacio aéreo. Localiza tu posición y te dice qué restricciones tienes encima y hasta qué altura.", "https://drones.enaire.es/"],
+  ["Windy", "Viento en superficie y en altura, rachas, nubes y lluvia, hora a hora. Lo más útil es la vista de rachas: es el dato que decide si vuelas.", "https://www.windy.com/"],
+  ["AEMET", "Predicción oficial, avisos y observación en tiempo real. Es la referencia cuando hay que justificar una decisión.", "https://www.aemet.es/"],
+];
+
+const DOCUMENTOS = [
+  ["Acreditación del piloto", "La prueba de superación A1/A3, el certificado A2 o el de STS, según lo que vayas a hacer. En el móvil vale, pero llévalo descargado: en el campo puede no haber cobertura.", "cy"],
+  ["Registro de operador", "El justificante o el certificado de registro, con tu número de operador visible. Comprueba antes de salir que no esté caducado.", "cy"],
+  ["Seguro", "La póliza o el certificado en vigor, cuando sea exigible. Recuerda que en A2, en específica y a partir de 20 kg lo es siempre.", "cy"],
+  ["DNI", "Para acreditar que el piloto eres tú y no otra persona.", "mute"],
+  ["Resguardo de la comunicación", "Si vuelas en entorno urbano o sobre concentraciones, el resguardo de la comunicación a la Ertzaintza o a Interior. Con silencio administrativo positivo, ese papel es tu respaldo.", "am"],
+  ["Coordinación con el aeródromo", "Si operas en la zona de seguridad de un aeródromo o helipuerto, la evidencia de haberlo coordinado con la entidad responsable.", "am"],
+  ["Permiso del titular", "Si despegas o aterrizas en propiedad privada, el permiso de quien la controla. Sobrevolar no lo necesita; pisar, sí.", "am"],
+  ["Categoría específica", "Acuse de la declaración operacional o la autorización, y el manual de operaciones. Es lo primero que se pide en una inspección.", "no"],
+  ["Documentación del UAS", "Manual del fabricante y declaración UE de conformidad si la aeronave lleva marcado de clase.", "mute"],
+  ["Registros", "Tu lista de comprobación y el registro de vuelos. No te los exigirán casi nunca, pero son tu mejor defensa si hay una reclamación.", "mute"],
+];
+
+const CHECKLIST = [
+  ["En casa, la víspera", "Baterías cargadas y templadas, hélices revisadas, firmware ya actualizado y probado, tarjeta con espacio. Documentación descargada en el móvil."],
+  ["Al planificar", "Zonas geográficas y NOTAM en ENAIRE Drones. Meteorología en Windy y AEMET, mirando la racha máxima, no la media. Obstáculos, tendidos y punto de despegue elegido, con una alternativa."],
+  ["Al llegar", "Comprueba que el sitio es como lo imaginaste. Viento real, personas presentes, accesos. Si algo no cuadra con lo planificado, replantea antes de montar."],
+  ["Antes de despegar", "Calibraciones si procede, failsafe y altura de retorno por encima del obstáculo más alto, delimitación de la zona y briefing a los participantes. Fija tu margen de batería de retorno."],
+  ["En vuelo", "VLOS siempre, vigila el espacio aéreo tanto como el dron, controla el consumo real y respeta tu margen, no el aviso de batería crítica."],
+  ["Al terminar", "Inspección del equipo, registro del vuelo y de cualquier incidencia, baterías a carga de almacenaje si no vuelves a volar pronto."],
 ];
 
 const HERO = { a13: "subcategorias", a2: "viento", sts: "volumen" };
@@ -2507,16 +2561,16 @@ const TEMARIO = {
   p: [
     "Además del registro como operador en AESA, el Real Decreto 517/2024 introdujo en su artículo 40 una obligación de comunicación por razones de seguridad ciudadana, independiente de todo lo anterior.",
     "Deben comunicarlo los operadores obligados a registrarse que vayan a realizar operaciones en entornos urbanos o sobre concentraciones de personas. No es una autorización aeronáutica: es un aviso a las autoridades de seguridad para que puedan valorar si procede limitar o prohibir el vuelo.",
-    "En el conjunto de España la comunicación se presenta ante el Ministerio del Interior, a través de su sede electrónica. Una misma comunicación puede agrupar varias operaciones, siempre que entre el inicio de la primera y el final de la última no pasen más de 5 días naturales.",
-    "En el País Vasco la competencia en seguridad ciudadana es de la Ertzaintza, así que la comunicación se dirige al Departamento de Seguridad del Gobierno Vasco, por la sede electrónica de Euskadi o presencialmente en comisaría, con un mínimo de 10 días de antelación respecto a la operación.",
+    "En el resto de España se presenta ante el Ministerio del Interior, a través de su sede electrónica, con la misma antelación mínima de cinco días naturales. Una misma comunicación puede agrupar varias operaciones dentro de los cinco días naturales siguientes a la fecha de inicio, indicando fecha y franja horaria de cada una.",
+    "El plazo es de cinco días de antelación como mínimo. En el País Vasco la competencia en seguridad ciudadana es de la Ertzaintza, así que la comunicación se dirige al Departamento de Seguridad del Gobierno Vasco, por la sede electrónica de Euskadi o presencialmente en comisaría.",
     "Conviene no confundir las tres cosas: el registro de operador se hace una vez y vale para toda la flota; la consulta de zonas geográficas se hace en cada vuelo; y esta comunicación solo aparece cuando vuelas en ciudad o sobre concentraciones de personas.",
     "Aparte de esto, operar en la zona de seguridad de un aeródromo o un helipuerto exige coordinarse con la entidad responsable de esa instalación, no con AESA ni con el ayuntamiento.",
     "Los plazos y los formularios cambian con cierta frecuencia: antes de un trabajo, comprueba el trámite vigente en la sede electrónica que corresponda.",
   ],
   k: [
     "RD 517/2024 art. 40: comunicación por seguridad ciudadana",
-    "País Vasco: Ertzaintza, mínimo 10 días antes",
-    "Resto de España: Ministerio del Interior, sede electrónica",
+    "Mínimo cinco días de antelación",
+    "Ertzaintza en Euskadi · Ministerio del Interior en el resto",
     "Aeródromo o helipuerto: coordinación con la entidad responsable",
   ],
     },
@@ -3085,8 +3139,9 @@ const Q = [
   // ---------- trámites y distancias (A1/A3) ----------
   { t: "a13", tema: "Trámites", q: "Vas a grabar en el centro de una ciudad. Además del registro de operador, ¿qué trámite introduce el RD 517/2024?", o: ["Ninguno más", "Una comunicación previa por razones de seguridad ciudadana", "Una autorización operacional de AESA"], c: 1, e: "El artículo 40 obliga a comunicar las operaciones en entornos urbanos o sobre concentraciones de personas. No es una autorización aeronáutica, es un aviso a seguridad." },
   { t: "a13", tema: "Trámites", q: "Vas a volar en entorno urbano en Donostia. ¿A quién diriges la comunicación previa?", o: ["Al Ministerio del Interior", "Al Departamento de Seguridad del Gobierno Vasco, para la Ertzaintza", "A AESA"], c: 1, e: "En el País Vasco la competencia de seguridad ciudadana es de la Ertzaintza. En el resto de España la comunicación va al Ministerio del Interior." },
-  { t: "a13", tema: "Trámites", q: "¿Con cuánta antelación debe presentarse la comunicación a la Ertzaintza?", o: ["Un mínimo de 10 días antes de la operación", "El mismo día", "48 horas antes"], c: 0, e: "Diez días, para que las autoridades de seguridad puedan valorar si procede limitar o prohibir el vuelo." },
-  { t: "a13", tema: "Trámites", q: "Una sola comunicación al Ministerio del Interior puede agrupar varias operaciones siempre que:", o: ["Sean del mismo piloto", "Entre el inicio de la primera y el final de la última no pasen más de 5 días naturales", "Se hagan en la misma provincia"], c: 1, e: "Ese es el límite temporal de la plataforma. También permite reutilizar datos de pilotos y aeronaves de comunicaciones anteriores." },
+  { t: "a13", tema: "Trámites", q: "¿Con cuánta antelación debe presentarse la comunicación por seguridad ciudadana?", o: ["Un mínimo de cinco días naturales antes de la operación", "El mismo día", "Un mes antes"], c: 0, e: "Cinco días, para que las autoridades de seguridad puedan valorar si procede limitar o prohibir el vuelo. Antes eran diez días hábiles; el plazo se redujo." },
+  { t: "a13", tema: "Trámites", q: "Presentas la comunicación por seguridad ciudadana y no recibes respuesta. ¿Puedes volar?", o: ["Sí: el silencio es positivo, llevando el resguardo de la comunicación", "No, hace falta respuesta expresa", "Solo si lo confirmas por teléfono"], c: 0, e: "El resguardo de la comunicación presentada es lo que acredita que cumpliste el trámite." },
+  { t: "a13", tema: "Trámites", q: "Una sola comunicación por seguridad ciudadana puede agrupar varias operaciones siempre que:", o: ["Sean del mismo piloto", "Se desarrollen en los cinco días naturales siguientes a la fecha de inicio indicada", "Se hagan en la misma provincia"], c: 1, e: "Hay que indicar la fecha y la franja horaria concreta de cada una de las operaciones." },
   { t: "a13", tema: "Trámites", q: "La comunicación por seguridad ciudadana y el registro de operador en AESA son:", o: ["El mismo trámite", "Trámites distintos e independientes", "Alternativos: basta con uno"], c: 1, e: "El registro se hace una vez y vale para toda la flota; la comunicación aparece solo cuando vuelas en ciudad o sobre concentraciones." },
   { t: "a13", tema: "Espacio aéreo", q: "Para operar en la zona de seguridad de un aeródromo o helipuerto, ¿con quién hay que coordinarse?", o: ["Con EASA", "Con el ayuntamiento", "Con la entidad responsable de esa instalación"], c: 2, e: "Es el gestor de la instalación quien conoce el tráfico real y puede coordinar la operación." },
   { t: "a13", tema: "Límites operacionales", q: "¿Qué distancia mínima a los edificios fija la normativa para volar en A1 o A2?", o: ["50 m", "Ninguna: lo que se mide es la distancia a las personas no participantes", "150 m"], c: 1, e: "La regla de 150 m a zonas residenciales, comerciales, industriales o recreativas es exclusiva de A3." },
@@ -3321,12 +3376,14 @@ let quiz = null;
 let tmr = null;
 let abierto = 0;
 let abiertoT = -1;
+let tema = "oscuro";
 
 try {
   const r = localStorage.getItem(KEY);
   if (r) {
     const d = JSON.parse(r);
     if (d.track) S.track = d.track;
+    if (d.tema) tema = d.tema;
     if (d.stats) S.stats = d.stats;
     if (d.prog) S.prog = d.prog;
   }
@@ -3334,7 +3391,7 @@ try {
 
 const guardar = () => {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ track: S.track, stats: S.stats, prog: S.prog }));
+    localStorage.setItem(KEY, JSON.stringify({ track: S.track, stats: S.stats, prog: S.prog, tema: tema }));
   } catch (e) {}
 };
 
@@ -3497,7 +3554,7 @@ function vInicio() {
   <button class="btn" data-a="practica">Practicar 10 preguntas</button>
   <button class="btn ghost" data-a="examen">Simulacro · ${T.preguntas} preguntas en ${T.minutos} min</button>
   <button class="btn quiet" data-a="tab" data-v="clases">Qué puedo volar y dónde · tabla de clases</button>
-  <button class="btn quiet" data-a="tab" data-v="tramites">Trámites con AESA, paso a paso</button>
+  <button class="btn quiet" data-a="tab" data-v="tramites">Antes de volar · trámites y documentación</button>
 
   <div class="card">
     <h3>Tu avance</h3>
@@ -3748,6 +3805,23 @@ function vClases() {
 function vTramites() {
   return `
   <div class="card" style="margin-top:16px">
+    <h3>Antes de cada vuelo</h3>
+    <p class="note" style="margin-top:6px">Lo que se comprueba cada vez que sales a volar, por mucha experiencia que tengas.</p>
+    ${ENLACES.map((e) => `<div class="dist"><b style="color:var(--cy)">${esc(e[0])}</b><span>${esc(e[1])}</span><br><a class="tramlink" href="${esc(e[2])}" target="_blank" rel="noopener noreferrer">Abrir ↗</a></div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h3>Qué llevar al campo</h3>
+    <p class="note" style="margin-top:6px">Si te paran, esto es lo que te pueden pedir. Descárgalo en el móvil: donde se vuela no siempre hay cobertura.</p>
+    ${DOCUMENTOS.map((d) => `<div class="dist"><b style="color:var(--${d[2]})">${esc(d[0])}</b><span>${esc(d[1])}</span></div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h3>Secuencia de la operación</h3>
+    ${CHECKLIST.map((c) => `<div class="dist"><b style="color:var(--am)">${esc(c[0])}</b><span>${esc(c[1])}</span></div>`).join("")}
+  </div>
+
+  <div class="card">
     <h3>Los trámites, en orden</h3>
     <p class="note" style="margin-top:6px">Cada paso desbloquea el siguiente. Toca cualquiera para ver el detalle y el enlace.</p>
     <div class="fig">${DIAGRAMAS.itinerariotramites.s}<span>${esc(DIAGRAMAS.itinerariotramites.p)}</span></div>
@@ -3794,11 +3868,18 @@ const NAV = [
   ["test", "Test", "M5 12l4 4 10-10"],
   ["repaso", "Repaso", "M20 12a8 8 0 1 1-2.3-5.6 M20 4v4h-4"],
   ["clases", "Clases", "M4 6h16 M4 12h16 M4 18h10"],
-  ["tramites", "Trámites", "M6 3h9l4 4v14H6z M9 12h7 M9 16h5"],
+  ["tramites", "Operar", "M6 3h9l4 4v14H6z M9 12h7 M9 16h5"],
   ["chuleta", "Chuleta", "M4 5h16v14H4z M8 9h8 M8 13h5"],
 ];
 
+function aplicarTema() {
+  document.documentElement.dataset.tema = tema;
+  var b = document.getElementById("tema");
+  if (b) b.textContent = tema === "claro" ? "☾" : "☀";
+}
+
 function pintar() {
+  aplicarTema();
   const pend = pendientesDe(S.track).length;
   document.getElementById("seg").innerHTML = Object.keys(TRACKS)
     .map((k) => `<button data-on="${S.track === k ? 1 : 0}" data-a="track" data-v="${k}">${esc(TRACKS[k].nombre)}</button>`)
@@ -3829,6 +3910,10 @@ document.addEventListener("click", (ev) => {
   } else if (a === "tab") {
     S.tab = v;
     pintar();
+  } else if (a === "tema") {
+    tema = tema === "claro" ? "oscuro" : "claro";
+    guardar();
+    aplicarTema();
   } else if (a === "tram") {
     abiertoT = abiertoT === +v ? -1 : +v;
     pintar();
