@@ -1,4 +1,4 @@
-const CACHE = "altura120-v10";
+const CACHE = "altura120-v11";
 const FICHEROS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
