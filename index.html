@@ -261,7 +261,7 @@ body h1, body h2, body h3, body .cond {
       <h1 class="brand">Altura <span>120</span></h1>
       <div class="tag">Preparación de los exámenes AESA de dron</div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px"><button class="temabtn" id="tema" data-a="tema" aria-label="Cambiar tema">☀</button><div class="seg" id="seg"></div></div>
+    <div style="display:flex;align-items:center;gap:8px"><button class="temabtn" id="tema" data-a="temaui" aria-label="Cambiar tema">☀</button><div class="seg" id="seg"></div></div>
   </div>
 </header>
 <main class="wrap" id="app">
@@ -281,6 +281,7 @@ body h1, body h2, body h3, body .cond {
     preguntas: 40,
     minutos: 40,
     aciertos: 30,
+    reval: { preguntas: 20, minutos: 20, aciertos: 15 },
     resumen: [
       ["Formato", "40 preguntas tipo test, en línea desde la sede de AESA"],
       ["Aprobado", "75 % — 30 aciertos. Los fallos no restan"],
@@ -295,6 +296,7 @@ body h1, body h2, body h3, body .cond {
     preguntas: 30,
     minutos: 30,
     aciertos: 23,
+    reval: { preguntas: 35, minutos: 35, aciertos: 27 },
     resumen: [
       ["Formato", "30 preguntas, examen televigilado (webcam, micro y pantalla)"],
       ["Aprobado", "75 % — 23 aciertos"],
@@ -309,8 +311,10 @@ body h1, body h2, body h3, body .cond {
     preguntas: 40,
     minutos: 40,
     aciertos: 30,
+    reval: { preguntas: 52, minutos: 52, aciertos: 39 },
     resumen: [
       ["Formato", "40 preguntas / 40 min si vienes de A1/A3 · 30 preguntas / 30 min si ya tienes A2"],
+      ["Revalidación", "52 preguntas en 52 minutos, 39 aciertos · un intento por matriculación"],
       ["Aprobado", "75 %"],
       ["Requisito", "Prueba de superación A1/A3 (el A2 es opcional y acorta el examen)"],
       ["Después", "Formación práctica del escenario y acreditación de aptitudes prácticas"],
@@ -3456,6 +3460,9 @@ let quiz = null;
 let tmr = null;
 let abierto = 0;
 let abiertoT = -1;
+let ciega = null;
+let ciegaI = 0;
+let ciegaVisto = false;
 let tema = "oscuro";
 
 try {
@@ -3514,10 +3521,11 @@ function seleccionar(n, tema) {
 function arrancar(modo, opts) {
   opts = opts || {};
   const T = TRACKS[S.track];
-  const n = modo === "examen" ? T.preguntas : opts.n || 10;
+  const cfg = modo === "reval" ? T.reval : T;
+  const n = modo === "examen" || modo === "reval" ? cfg.preguntas : opts.n || 10;
   const ids = opts.ids
     ? barajar(opts.ids).slice(0, n)
-    : modo === "examen"
+    : modo === "examen" || modo === "reval"
     ? barajar(idsDe(S.track)).slice(0, n)
     : seleccionar(n, opts.tema);
   if (!ids.length) return;
@@ -3528,7 +3536,8 @@ function arrancar(modo, opts) {
     i: 0,
     elegido: null,
     respuestas: [],
-    seg: modo === "examen" ? T.minutos * 60 : null,
+    seg: modo === "examen" || modo === "reval" ? cfg.minutos * 60 : null,
+    corte: modo === "reval" ? Math.round((T.reval.aciertos / T.reval.preguntas) * 100) : 75,
     fin: false,
   };
   S.tab = "test";
@@ -3562,7 +3571,7 @@ function responder(k) {
   if (bien) S.stats[S.track].ok++;
   registrar(p.id, bien);
   quiz.respuestas.push({ id: p.id, tema: p.tema, bien, dada: p.o[k], buena: p.o[p.c] });
-  if (quiz.modo === "examen") {
+  if (quiz.modo === "examen" || quiz.modo === "reval") {
     if (quiz.i + 1 >= quiz.preguntas.length) {
       quiz.fin = true;
       if (tmr) clearInterval(tmr);
@@ -3633,6 +3642,7 @@ function vInicio() {
   ${pend ? `<button class="btn am" data-a="tab" data-v="repaso">Te tocan ${pend} ${pend === 1 ? "pregunta" : "preguntas"} de repaso</button>` : ""}
   <button class="btn" data-a="practica">Practicar 10 preguntas</button>
   <button class="btn ghost" data-a="examen">Simulacro · ${T.preguntas} preguntas en ${T.minutos} min</button>
+  <button class="btn ghost" data-a="reval">Simulacro de revalidación · ${T.reval.preguntas} en ${T.reval.minutos} min</button>
   <button class="btn quiet" data-a="tab" data-v="clases">Qué puedo volar y dónde · tabla de clases</button>
   <button class="btn quiet" data-a="tab" data-v="tramites">Antes de volar · trámites y documentación</button>
 
@@ -3715,7 +3725,7 @@ function vTest() {
   return `
   <div style="margin-top:18px">
     <div class="qmeta">
-      <span>Pregunta ${quiz.i + 1} de ${quiz.preguntas.length} · ${esc(quiz.etiqueta || (quiz.modo === "examen" ? "simulacro" : "práctica"))}</span>
+      <span>Pregunta ${quiz.i + 1} de ${quiz.preguntas.length} · ${esc(quiz.etiqueta || (quiz.modo === "examen" ? "simulacro" : quiz.modo === "reval" ? "revalidación" : "práctica"))}</span>
       ${quiz.seg !== null ? `<span class="clock" id="reloj" data-warn="${quiz.seg < 120 ? 1 : 0}">${mmss(quiz.seg)}</span>` : ""}
     </div>
     <div class="prog"><i style="width:${(quiz.i / quiz.preguntas.length) * 100}%"></i></div>
@@ -3742,7 +3752,8 @@ function vResultado() {
   const ok = quiz.respuestas.filter((r) => r.bien).length;
   const total = quiz.preguntas.length;
   const p = Math.round((ok / total) * 100);
-  const aprobado = p >= 75;
+  const corte = quiz.corte || 75;
+  const aprobado = p >= corte;
 
   const porTema = {};
   quiz.respuestas.forEach((r) => {
@@ -3760,8 +3771,8 @@ function vResultado() {
   <div class="card" style="margin-top:18px">
     <div class="verd" data-ok="${aprobado ? 1 : 0}">${aprobado ? "Aprobado" : "No superado"}</div>
     <div class="big" style="margin-top:6px">${ok}/${total}</div>
-    <div class="tag" style="margin-top:6px">${p}% · el mínimo son 75 puntos porcentuales${quiz.seg === 0 ? " · se agotó el tiempo" : ""}</div>
-    <div class="bar" style="margin-top:14px"><div class="fill" style="width:${p}%"></div><span class="bug" style="left:75%"></span></div>
+    <div class="tag" style="margin-top:6px">${p}% · el mínimo son ${corte} puntos porcentuales${quiz.seg === 0 ? " · se agotó el tiempo" : ""}</div>
+    <div class="bar" style="margin-top:14px"><div class="fill" style="width:${p}%"></div><span class="bug" style="left:${corte}%"></span></div>
   </div>
 
   <div class="card">
@@ -3806,7 +3817,24 @@ function vResultado() {
   <button class="btn quiet" data-a="salir">Salir del test</button>`;
 }
 
+function vCiega() {
+  var q = Q[ciega[ciegaI]];
+  return `
+  <div class="qmeta" style="margin-top:18px"><span>${ciegaI + 1} de ${ciega.length} · repaso a ciegas</span></div>
+  <div class="prog"><i style="width:${(ciegaI / ciega.length) * 100}%"></i></div>
+  <div class="qtema" style="margin-top:18px">${esc(q.tema)}</div>
+  <div class="qtxt">${esc(q.q)}</div>
+  ${!ciegaVisto
+    ? `<p class="note">Formula la respuesta en voz alta o por escrito antes de mirar. Si no te sale sin ver las opciones, no te la sabes: la reconoces.</p>
+       <button class="btn" data-a="ciegaver">Ver la respuesta</button>`
+    : `<div class="opt" data-s="ok" style="cursor:default"><k>✓</k><span>${esc(q.o[q.c])}</span></div>
+       <div class="exp">${esc(q.e)}</div>
+       <button class="btn" data-a="ciegasig">${ciegaI + 1 >= ciega.length ? "Terminar" : "Siguiente"}</button>`}
+  <button class="btn quiet" data-a="ciegasalir">Dejarlo aquí</button>`;
+}
+
 function vRepaso() {
+  if (ciega) return vCiega();
   const todas = idsDe(S.track);
   const vistas = todas.filter((i) => S.prog[i]).length;
   if (!vistas)
@@ -3828,7 +3856,8 @@ function vRepaso() {
       <div class="row"><b>Sin ver</b><span>${todas.length - vistas} preguntas del banco</span></div>
     </div>
   </div>
-  ${pend.length ? `<button class="btn" data-a="repasar">Repasar ahora</button>` : ""}
+  ${pend.length ? `<button class="btn" data-a="repasar">Repasar ahora</button>
+  <button class="btn am" data-a="ciega">Repaso a ciegas · sin ver las opciones</button>` : ""}
   <button class="btn ghost" data-a="practica">Seguir con preguntas nuevas</button>
   ${pend
     .slice(0, 12)
@@ -3990,7 +4019,17 @@ document.addEventListener("click", (ev) => {
   } else if (a === "tab") {
     S.tab = v;
     pintar();
-  } else if (a === "tema") {
+  } else if (a === "ciega") {
+    ciega = barajar(pendientesDe(S.track)).slice(0, 15);
+    ciegaI = 0; ciegaVisto = false; pintar();
+  } else if (a === "ciegaver") {
+    ciegaVisto = true; pintar();
+  } else if (a === "ciegasig") {
+    if (ciegaI + 1 >= ciega.length) { ciega = null; } else { ciegaI++; ciegaVisto = false; }
+    pintar();
+  } else if (a === "ciegasalir") {
+    ciega = null; pintar();
+  } else if (a === "temaui") {
     tema = tema === "claro" ? "oscuro" : "claro";
     guardar();
     aplicarTema();
@@ -4004,6 +4043,8 @@ document.addEventListener("click", (ev) => {
     arrancar("practica");
   } else if (a === "examen") {
     arrancar("examen");
+  } else if (a === "reval") {
+    arrancar("reval");
   } else if (a === "tema") {
     arrancar("practica", { tema: v, n: 10 });
   } else if (a === "repasar") {
